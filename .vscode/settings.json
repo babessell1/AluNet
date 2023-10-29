@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.rmd": "markdown",
+        "*.,yml": "yaml",
+        "vector": "cpp"
+    }
+}
