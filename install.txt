@@ -1,3 +1,0 @@
-conda create -n leiden  r-recommended r-irkernel Jupyter
-conda install -c conda-forge r-rcpp
-conda install -c conda-forge r-igraph
