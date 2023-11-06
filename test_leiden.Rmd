@@ -1,0 +1,22 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+ 
+
+```{r}
+library(Rcpp)
+update.packages("Rcpp")
+setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
+Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
+Sys.which("make")
+Sys.which("g++")
+```
+
+```{r}
+sourceCpp("rcpp/Leiden.cpp", verbose = TRUE, rebuild = TRUE)
+```
+
+```{r}
+sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
+```
