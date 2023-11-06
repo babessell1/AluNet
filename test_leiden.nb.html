@@ -1754,8 +1754,24 @@ display: none;
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSY3BwKVxudXBkYXRlLnBhY2thZ2VzKFwiUmNwcFwiKVxuc2V0d2QoXCJDOi9Vc2Vycy9iYmVzc2VsbC9Qcm9qZWN0cy9HaXRIdWIvQWx1TmV0XCIpXG5TeXMuc2V0ZW52KFBLR19DWFhGTEFHUyA9IFwiLXN0ZD1jKysxN1wiKVxuU3lzLndoaWNoKFwibWFrZVwiKVxuYGBgIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSY3BwKVxubGlicmFyeShpZ3JhcGgpXG5gYGAifQ== -->
 <pre class="r"><code>library(Rcpp)
+library(igraph)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYaWdyYXBo4oCZXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0cyBhcmUgbWFza2VkIGZyb20g4oCYcGFja2FnZTpzdGF0c+KAmTpcblxuICAgIGRlY29tcG9zZSwgc3BlY3RydW1cblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpiYXNl4oCZOlxuXG4gICAgdW5pb25cbiJ9 -->
+<pre><code>
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShNYXRyaXgpXG51cGRhdGUucGFja2FnZXMoXCJSY3BwXCIpXG5zZXR3ZChcIkM6L1VzZXJzL2JiZXNzZWxsL1Byb2plY3RzL0dpdEh1Yi9BbHVOZXRcIilcblN5cy5zZXRlbnYoUEtHX0NYWEZMQUdTID0gXCItc3RkPWMrKzE3XCIpXG5TeXMud2hpY2goXCJtYWtlXCIpXG5gYGAifQ== -->
+<pre class="r"><code>library(Matrix)
 update.packages(&quot;Rcpp&quot;)
 setwd(&quot;C:/Users/bbessell/Projects/GitHub/AluNet&quot;)
 Sys.setenv(PKG_CXXFLAGS = &quot;-std=c++17&quot;)
@@ -1776,10 +1792,10 @@ Sys.which(&quot;make&quot;)</code></pre>
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc291cmNlQ3BwKFwicmNwcC9MZWlkZW4uY3BwXCIsIHZlcmJvc2UgPSBUUlVFLCByZWJ1aWxkID0gVFJVRSlcbmBgYCJ9 -->
-<pre class="r"><code>sourceCpp(&quot;rcpp/Leiden.cpp&quot;, verbose = TRUE, rebuild = TRUE)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc291cmNlQ3BwKFwicmNwcC9jb21waWxlX3Rlc3QuY3BwXCIsIHZlcmJvc2UgPSBUUlVFLCByZWJ1aWxkID0gVFJVRSlcbmBgYCJ9 -->
+<pre class="r"><code>sourceCpp(&quot;rcpp/compile_test.cpp&quot;, verbose = TRUE, rebuild = TRUE)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5HZW5lcmF0ZWQgZXh0ZXJuIFwiQ1wiIGZ1bmN0aW9ucyBcbi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG5cblxuI2luY2x1ZGUgPFJjcHAuaD5cbiNpZmRlZiBSQ1BQX1VTRV9HTE9CQUxfUk9TVFJFQU1cblJjcHA6OlJvc3RyZWFtPHRydWU+JiAgUmNwcDo6UmNvdXQgPSBSY3BwOjpSY3BwX2NvdXRfZ2V0KCk7XG5SY3BwOjpSb3N0cmVhbTxmYWxzZT4mIFJjcHA6OlJjZXJyID0gUmNwcDo6UmNwcF9jZXJyX2dldCgpO1xuI2VuZGlmXG5cbi8vIGNyZWF0ZUdyYXBoUlxuTGlzdCBjcmVhdGVHcmFwaFIoTGlzdCBub2RlcywgTGlzdCBlZGdlcywgTnVtZXJpY1ZlY3RvciB3ZWlnaHRzKTtcblJjcHBFeHBvcnQgU0VYUCBzb3VyY2VDcHBfMV9jcmVhdGVHcmFwaFIoU0VYUCBub2Rlc1NFWFAsIFNFWFAgZWRnZXNTRVhQLCBTRVhQIHdlaWdodHNTRVhQKSB7XG5CRUdJTl9SQ1BQXG4gICAgUmNwcDo6Uk9iamVjdCByY3BwX3Jlc3VsdF9nZW47XG4gICAgUmNwcDo6Uk5HU2NvcGUgcmNwcF9ybmdTY29wZV9nZW47XG4gICAgUmNwcDo6dHJhaXRzOjppbnB1dF9wYXJhbWV0ZXI8IExpc3QgPjo6dHlwZSBub2Rlcyhub2Rlc1NFWFApO1xuICAgIFJjcHA6OnRyYWl0czo6aW5wdXRfcGFyYW1ldGVyPCBMaXN0ID46OnR5cGUgZWRnZXMoZWRnZXNTRVhQKTtcbiAgICBSY3BwOjp0cmFpdHM6OmlucHV0X3BhcmFtZXRlcjwgTnVtZXJpY1ZlY3RvciA+Ojp0eXBlIHdlaWdodHMod2VpZ2h0c1NFWFApO1xuICAgIHJjcHBfcmVzdWx0X2dlbiA9IFJjcHA6OndyYXAoY3JlYXRlR3JhcGhSKG5vZGVzLCBlZGdlcywgd2VpZ2h0cykpO1xuICAgIHJldHVybiByY3BwX3Jlc3VsdF9nZW47XG5FTkRfUkNQUFxufVxuXG5HZW5lcmF0ZWQgUiBmdW5jdGlvbnMgXG4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG5cbmAuc291cmNlQ3BwXzFfRExMSW5mb2AgPC0gZHluLmxvYWQoJ0M6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvVGVtcC9SdG1wNEVDeWZyL3NvdXJjZUNwcC14ODZfNjQtdzY0LW1pbmd3MzItMS4wLjExL3NvdXJjZWNwcF8xZGM2OTU3MTM0L3NvdXJjZUNwcF8yLmRsbCcpXG5cbmNyZWF0ZUdyYXBoUiA8LSBSY3BwOjo6c291cmNlQ3BwRnVuY3Rpb24oZnVuY3Rpb24obm9kZXMsIGVkZ2VzLCB3ZWlnaHRzKSB7fSwgRkFMU0UsIGAuc291cmNlQ3BwXzFfRExMSW5mb2AsICdzb3VyY2VDcHBfMV9jcmVhdGVHcmFwaFInKVxuXG5ybShgLnNvdXJjZUNwcF8xX0RMTEluZm9gKVxuXG5CdWlsZGluZyBzaGFyZWQgbGlicmFyeVxuLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1cblxuRElSOiBDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1RlbXAvUnRtcDRFQ3lmci9zb3VyY2VDcHAteDg2XzY0LXc2NC1taW5ndzMyLTEuMC4xMS9zb3VyY2VjcHBfMWRjNjk1NzEzNFxuXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00M34xLjIvYmluL3g2NC9SIENNRCBTSExJQiAtLXByZWNsZWFuIC1vIFwic291cmNlQ3BwXzIuZGxsXCIgXCJMZWlkZW4uY3BwXCIgXG51c2luZyBDKysgY29tcGlsZXI6ICdHX19+MS5FWEUgKEdDQykgMTIuMy4wJ1xudXNpbmcgQysrMTFcbmcrKyAgLXN0ZD1nbnUrKzExIC1JXCJDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00M34xLjIvaW5jbHVkZVwiIC1ETkRFQlVHICAgLUlcIkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlXCIgLUlcIkM6L1VzZXJzL2JiZXNzZWxsL1Byb2plY3RzL0dpdEh1Yi9BbHVOZXQvcmNwcFwiICAgLUlcIkM6L3J0b29sczQzL3g4Nl82NC13NjQtbWluZ3czMi5zdGF0aWMucG9zaXgvaW5jbHVkZVwiICAtc3RkPWMrKzE3ICAgLU8yIC1XYWxsICAtbWZwbWF0aD1zc2UgLW1zc2UyIC1tc3RhY2tyZWFsaWduICAtYyBMZWlkZW4uY3BwIC1vIExlaWRlbi5vXG5MZWlkZW4uY3BwOiBJbiBmdW5jdGlvbiAnUmNwcDo6TGlzdCBjcmVhdGVHcmFwaChSY3BwOjpMaXN0LCBSY3BwOjpMaXN0LCBSY3BwOjpOdW1lcmljVmVjdG9yKSc6XG5MZWlkZW4uY3BwOjI1Ojc6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSAnbnVtTm9kZXMnIFstV3VudXNlZC12YXJpYWJsZV1cbiAgIDI1IHwgICBpbnQgbnVtTm9kZXMgPSBub2Rlcy5zaXplKCk7XG4gICAgICB8ICAgICAgIF5+fn5+fn5+XG5MZWlkZW4uY3BwOjI2Ojc6IHdhcm5pbmc6IHVudXNlZCB2YXJpYWJsZSAnbnVtRWRnZXMnIFstV3VudXNlZC12YXJpYWJsZV1cbiAgIDI2IHwgICBpbnQgbnVtRWRnZXMgPSBlZGdlcy5zaXplKCk7XG4gICAgICB8ICAgICAgIF5+fn5+fn5+XG5JbiBmaWxlIGluY2x1ZGVkIGZyb20gQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcENvbW1vbi5oOjE2OSxcbiAgICAgICAgICAgICAgICAgZnJvbSBDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwLmg6MjcsXG4gICAgICAgICAgICAgICAgIGZyb20gTGVpZGVuLmNwcDoxMDpcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXMuaDogSW4gaW5zdGFudGlhdGlvbiBvZiAnVCBSY3BwOjppbnRlcm5hbDo6YXMoU0VYUCwgUmNwcDo6dHJhaXRzOjpyX3R5cGVfZ2VuZXJpY190YWcpIFt3aXRoIFQgPSBSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT47IFNFWFAgPSBTRVhQUkVDKl0nOlxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcy5oOjE1MjozMTogICByZXF1aXJlZCBmcm9tICdUIFJjcHA6OmFzKFNFWFApIFt3aXRoIFQgPSBGdW5jdGlvbl9JbXBsPFByZXNlcnZlU3RvcmFnZT47IFNFWFAgPSBTRVhQUkVDKl0nXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FwaS9tZWF0L3Byb3h5Lmg6MTM4OjE3OiAgIHJlcXVpcmVkIGZyb20gJ1JjcHA6OkJpbmRpbmdQb2xpY3k8RW52aXJvbm1lbnRDbGFzcz46OkJpbmRpbmc6Om9wZXJhdG9yIFQoKSBjb25zdCBbd2l0aCBUID0gUmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+OyBFbnZpcm9ubWVudENsYXNzID0gUmNwcDo6RW52aXJvbm1lbnRfSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+XSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXBpL21lYXQvbWVzc2FnZS5oOjI3OjY5OiAgIHJlcXVpcmVkIGZyb20gaGVyZVxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcy5oOjg3OjQxOiBlcnJvcjogbm8gbWF0Y2hpbmcgZnVuY3Rpb24gZm9yIGNhbGwgdG8gJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID46OkV4cG9ydGVyKFNFWFBSRUMqJiknXG4gICA4NyB8ICAgICAgICAgICAgIDo6UmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxUPiBleHBvcnRlcih4KTtcbiAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5+fn5+fn5+XG5JbiBmaWxlIGluY2x1ZGVkIGZyb20gQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcy5oOjI1OlxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiBjYW5kaWRhdGU6ICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+OjpFeHBvcnRlcihjb25zdCBSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+JiknXG4gICAyOSB8ICAgICAgICAgICAgICAgICBjbGFzcyBFeHBvcnRlcntcbiAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgIF5+fn5+fn5+XG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6ICAgbm8ga25vd24gY29udmVyc2lvbiBmb3IgYXJndW1lbnQgMSBmcm9tICdTRVhQJyB7YWthICdTRVhQUkVDKid9IHRvICdjb25zdCBSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+JidcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvaW50ZXJuYWwvRXhwb3J0ZXIuaDoyOToyMzogbm90ZTogY2FuZGlkYXRlOiAnUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT4gPjo6RXhwb3J0ZXIoUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT4gPiYmKSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvaW50ZXJuYWwvRXhwb3J0ZXIuaDoyOToyMzogbm90ZTogICBubyBrbm93biBjb252ZXJzaW9uIGZvciBhcmd1bWVudCAxIGZyb20gJ1NFWFAnIHtha2EgJ1NFWFBSRUMqJ30gdG8gJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID4mJidcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXMuaDogSW4gaW5zdGFudGlhdGlvbiBvZiAnVCBSY3BwOjppbnRlcm5hbDo6YXMoU0VYUCwgUmNwcDo6dHJhaXRzOjpyX3R5cGVfZ2VuZXJpY190YWcpIFt3aXRoIFQgPSBSY3BwOjpWZWN0b3I8MTk+OyBTRVhQID0gU0VYUFJFQypdJzpcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXMuaDoxNTI6MzE6ICAgcmVxdWlyZWQgZnJvbSAnVCBSY3BwOjphcyhTRVhQKSBbd2l0aCBUID0gVmVjdG9yPDE5PjsgU0VYUCA9IFNFWFBSRUMqXSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvSW5wdXRQYXJhbWV0ZXIuaDozNDo0MzogICByZXF1aXJlZCBmcm9tICdSY3BwOjpJbnB1dFBhcmFtZXRlcjxUPjo6b3BlcmF0b3IgVCgpIFt3aXRoIFQgPSBSY3BwOjpWZWN0b3I8MTk+XSdcbkxlaWRlbi5jcHA6NTg6NDY6ICAgcmVxdWlyZWQgZnJvbSBoZXJlXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FzLmg6ODc6NDE6IGVycm9yOiBubyBtYXRjaGluZyBmdW5jdGlvbiBmb3IgY2FsbCB0byAnUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpWZWN0b3I8MTk+ID46OkV4cG9ydGVyKFNFWFBSRUMqJiknXG4gICA4NyB8ICAgICAgICAgICAgIDo6UmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxUPiBleHBvcnRlcih4KTtcbiAgICAgIHwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5+fn5+fn5+XG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6IGNhbmRpZGF0ZTogJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6VmVjdG9yPDE5PiA+OjpFeHBvcnRlcigpJ1xuICAgMjkgfCAgICAgICAgICAgICAgICAgY2xhc3MgRXhwb3J0ZXJ7XG4gICAgICB8ICAgICAgICAgICAgICAgICAgICAgICBefn5+fn5+flxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiAgIGNhbmRpZGF0ZSBleHBlY3RzIDAgYXJndW1lbnRzLCAxIHByb3ZpZGVkXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6IGNhbmRpZGF0ZTogJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6VmVjdG9yPDE5PiA+OjpFeHBvcnRlcihjb25zdCBSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxOT4gPiYpJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiAgIG5vIGtub3duIGNvbnZlcnNpb24gZm9yIGFyZ3VtZW50IDEgZnJvbSAnU0VYUCcge2FrYSAnU0VYUFJFQyonfSB0byAnY29uc3QgUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpWZWN0b3I8MTk+ID4mJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiBjYW5kaWRhdGU6ICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxOT4gPjo6RXhwb3J0ZXIoUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpWZWN0b3I8MTk+ID4mJiknXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6ICAgbm8ga25vd24gY29udmVyc2lvbiBmb3IgYXJndW1lbnQgMSBmcm9tICdTRVhQJyB7YWthICdTRVhQUkVDKid9IHRvICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxOT4gPiYmJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcy5oOiBJbiBpbnN0YW50aWF0aW9uIG9mICdUIFJjcHA6OmludGVybmFsOjphcyhTRVhQLCBSY3BwOjp0cmFpdHM6OnJfdHlwZV9nZW5lcmljX3RhZykgW3dpdGggVCA9IFJjcHA6OlZlY3RvcjwxNCwgUmNwcDo6UHJlc2VydmVTdG9yYWdlPjsgU0VYUCA9IFNFWFBSRUMqXSc6XG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FzLmg6MTUyOjMxOiAgIHJlcXVpcmVkIGZyb20gJ1QgUmNwcDo6YXMoU0VYUCkgW3dpdGggVCA9IFZlY3RvcjwxNCwgUHJlc2VydmVTdG9yYWdlPjsgU0VYUCA9IFNFWFBSRUMqXSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvSW5wdXRQYXJhbWV0ZXIuaDozNDo0MzogICByZXF1aXJlZCBmcm9tICdSY3BwOjpJbnB1dFBhcmFtZXRlcjxUPjo6b3BlcmF0b3IgVCgpIFt3aXRoIFQgPSBSY3BwOjpWZWN0b3I8MTQsIFJjcHA6OlByZXNlcnZlU3RvcmFnZT5dJ1xuTGVpZGVuLmNwcDo1ODo0NjogICByZXF1aXJlZCBmcm9tIGhlcmVcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXMuaDo4Nzo0MTogZXJyb3I6IG5vIG1hdGNoaW5nIGZ1bmN0aW9uIGZvciBjYWxsIHRvICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxNCwgUmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+OjpFeHBvcnRlcihTRVhQUkVDKiYpJ1xuICAgODcgfCAgICAgICAgICAgICA6OlJjcHA6OnRyYWl0czo6RXhwb3J0ZXI8VD4gZXhwb3J0ZXIoeCk7XG4gICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBefn5+fn5+flxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiBjYW5kaWRhdGU6ICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxNCwgUmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+OjpFeHBvcnRlcigpJ1xuICAgMjkgfCAgICAgICAgICAgICAgICAgY2xhc3MgRXhwb3J0ZXJ7XG4gICAgICB8ICAgICAgICAgICAgICAgICAgICAgICBefn5+fn5+flxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiAgIGNhbmRpZGF0ZSBleHBlY3RzIDAgYXJndW1lbnRzLCAxIHByb3ZpZGVkXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6IGNhbmRpZGF0ZTogJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6VmVjdG9yPDE0LCBSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID46OkV4cG9ydGVyKGNvbnN0IFJjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6VmVjdG9yPDE0LCBSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID4mKSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvaW50ZXJuYWwvRXhwb3J0ZXIuaDoyOToyMzogbm90ZTogICBubyBrbm93biBjb252ZXJzaW9uIGZvciBhcmd1bWVudCAxIGZyb20gJ1NFWFAnIHtha2EgJ1NFWFBSRUMqJ30gdG8gJ2NvbnN0IFJjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6VmVjdG9yPDE0LCBSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID4mJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiBjYW5kaWRhdGU6ICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxNCwgUmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+OjpFeHBvcnRlcihSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OlZlY3RvcjwxNCwgUmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+JiYpJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiAgIG5vIGtub3duIGNvbnZlcnNpb24gZm9yIGFyZ3VtZW50IDEgZnJvbSAnU0VYUCcge2FrYSAnU0VYUFJFQyonfSB0byAnUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpWZWN0b3I8MTQsIFJjcHA6OlByZXNlcnZlU3RvcmFnZT4gPiYmJ1xubWFrZTogKioqIFtDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00M34xLjIvZXRjL3g2NC9NYWtlY29uZjoyNzI6IExlaWRlbi5vXSBFcnJvciAxXG4ifQ== -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5HZW5lcmF0ZWQgZXh0ZXJuIFwiQ1wiIGZ1bmN0aW9ucyBcbi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG5cblxuI2luY2x1ZGUgPFJjcHAuaD5cbiNpZmRlZiBSQ1BQX1VTRV9HTE9CQUxfUk9TVFJFQU1cblJjcHA6OlJvc3RyZWFtPHRydWU+JiAgUmNwcDo6UmNvdXQgPSBSY3BwOjpSY3BwX2NvdXRfZ2V0KCk7XG5SY3BwOjpSb3N0cmVhbTxmYWxzZT4mIFJjcHA6OlJjZXJyID0gUmNwcDo6UmNwcF9jZXJyX2dldCgpO1xuI2VuZGlmXG5cbi8vIGNvbXBpbGVfc3VjY2Vzc1xuTGlzdCBjb21waWxlX3N1Y2Nlc3MoTGlzdCBub2RlcywgTGlzdCBlZGdlcywgTnVtZXJpY1ZlY3RvciB3ZWlnaHRzKTtcblJjcHBFeHBvcnQgU0VYUCBzb3VyY2VDcHBfMTBfY29tcGlsZV9zdWNjZXNzKFNFWFAgbm9kZXNTRVhQLCBTRVhQIGVkZ2VzU0VYUCwgU0VYUCB3ZWlnaHRzU0VYUCkge1xuQkVHSU5fUkNQUFxuICAgIFJjcHA6OlJPYmplY3QgcmNwcF9yZXN1bHRfZ2VuO1xuICAgIFJjcHA6OlJOR1Njb3BlIHJjcHBfcm5nU2NvcGVfZ2VuO1xuICAgIFJjcHA6OnRyYWl0czo6aW5wdXRfcGFyYW1ldGVyPCBMaXN0ID46OnR5cGUgbm9kZXMobm9kZXNTRVhQKTtcbiAgICBSY3BwOjp0cmFpdHM6OmlucHV0X3BhcmFtZXRlcjwgTGlzdCA+Ojp0eXBlIGVkZ2VzKGVkZ2VzU0VYUCk7XG4gICAgUmNwcDo6dHJhaXRzOjppbnB1dF9wYXJhbWV0ZXI8IE51bWVyaWNWZWN0b3IgPjo6dHlwZSB3ZWlnaHRzKHdlaWdodHNTRVhQKTtcbiAgICByY3BwX3Jlc3VsdF9nZW4gPSBSY3BwOjp3cmFwKGNvbXBpbGVfc3VjY2Vzcyhub2RlcywgZWRnZXMsIHdlaWdodHMpKTtcbiAgICByZXR1cm4gcmNwcF9yZXN1bHRfZ2VuO1xuRU5EX1JDUFBcbn1cblxuR2VuZXJhdGVkIFIgZnVuY3Rpb25zIFxuLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVxuXG5gLnNvdXJjZUNwcF8xMF9ETExJbmZvYCA8LSBkeW4ubG9hZCgnQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9UZW1wL1J0bXBBRFM5d2Uvc291cmNlQ3BwLXg4Nl82NC13NjQtbWluZ3czMi0xLjAuMTEvc291cmNlY3BwXzMyNDgxZDc3N2Q4MS9zb3VyY2VDcHBfMTIuZGxsJylcblxuY29tcGlsZV9zdWNjZXNzIDwtIFJjcHA6Ojpzb3VyY2VDcHBGdW5jdGlvbihmdW5jdGlvbihub2RlcywgZWRnZXMsIHdlaWdodHMpIHt9LCBGQUxTRSwgYC5zb3VyY2VDcHBfMTBfRExMSW5mb2AsICdzb3VyY2VDcHBfMTBfY29tcGlsZV9zdWNjZXNzJylcblxucm0oYC5zb3VyY2VDcHBfMTBfRExMSW5mb2ApXG5cbkJ1aWxkaW5nIHNoYXJlZCBsaWJyYXJ5XG4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVxuXG5ESVI6IEM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvVGVtcC9SdG1wQURTOXdlL3NvdXJjZUNwcC14ODZfNjQtdzY0LW1pbmd3MzItMS4wLjExL3NvdXJjZWNwcF8zMjQ4MWQ3NzdkODFcblxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNDN+MS4yL2Jpbi94NjQvUiBDTUQgU0hMSUIgLS1wcmVjbGVhbiAtbyBcInNvdXJjZUNwcF8xMi5kbGxcIiBcImNvbXBpbGVfdGVzdC5jcHBcIiBcbnVzaW5nIEMrKyBjb21waWxlcjogJ0dfX34xLkVYRSAoR0NDKSAxMi4zLjAnXG51c2luZyBDKysxMVxuZysrICAtc3RkPWdudSsrMTEgLUlcIkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQzfjEuMi9pbmNsdWRlXCIgLUROREVCVUcgICAtSVwiQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGVcIiAtSVwiQzovVXNlcnMvYmJlc3NlbGwvUHJvamVjdHMvR2l0SHViL0FsdU5ldC9yY3BwXCIgICAtSVwiQzovcnRvb2xzNDMveDg2XzY0LXc2NC1taW5ndzMyLnN0YXRpYy5wb3NpeC9pbmNsdWRlXCIgIC1zdGQ9YysrMTcgICAtTzIgLVdhbGwgIC1tZnBtYXRoPXNzZSAtbXNzZTIgLW1zdGFja3JlYWxpZ24gIC1jIGNvbXBpbGVfdGVzdC5jcHAgLW8gY29tcGlsZV90ZXN0Lm9cbmNvbXBpbGVfdGVzdC5jcHA6IEluIGZ1bmN0aW9uICdSY3BwOjpMaXN0IGNyZWF0ZUdyYXBoKFJjcHA6Okxpc3QsIFJjcHA6Okxpc3QsIFJjcHA6Ok51bWVyaWNWZWN0b3IpJzpcbmNvbXBpbGVfdGVzdC5jcHA6MjU6Nzogd2FybmluZzogdW51c2VkIHZhcmlhYmxlICdudW1Ob2RlcycgWy1XdW51c2VkLXZhcmlhYmxlXVxuICAgMjUgfCAgIGludCBudW1Ob2RlcyA9IG5vZGVzLnNpemUoKTtcbiAgICAgIHwgICAgICAgXn5+fn5+fn5cbmNvbXBpbGVfdGVzdC5jcHA6MjY6Nzogd2FybmluZzogdW51c2VkIHZhcmlhYmxlICdudW1FZGdlcycgWy1XdW51c2VkLXZhcmlhYmxlXVxuICAgMjYgfCAgIGludCBudW1FZGdlcyA9IGVkZ2VzLnNpemUoKTtcbiAgICAgIHwgICAgICAgXn5+fn5+fn5cbmcrKyAtc2hhcmVkIC1zIC1zdGF0aWMtbGliZ2NjIC1vIHNvdXJjZUNwcF8xMi5kbGwgdG1wLmRlZiBjb21waWxlX3Rlc3QubyAtTEM6L3J0b29sczQzL3g4Nl82NC13NjQtbWluZ3czMi5zdGF0aWMucG9zaXgvbGliL3g2NCAtTEM6L3J0b29sczQzL3g4Nl82NC13NjQtbWluZ3czMi5zdGF0aWMucG9zaXgvbGliIC1MQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNDN+MS4yL2Jpbi94NjQgLWxSXG4ifQ== -->
 <pre><code>
 Generated extern &quot;C&quot; functions 
 --------------------------------------------------------
@@ -1791,16 +1807,16 @@ Rcpp::Rostream&lt;true&gt;&amp;  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream&lt;false&gt;&amp; Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// createGraphR
-List createGraphR(List nodes, List edges, NumericVector weights);
-RcppExport SEXP sourceCpp_1_createGraphR(SEXP nodesSEXP, SEXP edgesSEXP, SEXP weightsSEXP) {
+// compile_success
+List compile_success(List nodes, List edges, NumericVector weights);
+RcppExport SEXP sourceCpp_10_compile_success(SEXP nodesSEXP, SEXP edgesSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter&lt; List &gt;::type nodes(nodesSEXP);
     Rcpp::traits::input_parameter&lt; List &gt;::type edges(edgesSEXP);
     Rcpp::traits::input_parameter&lt; NumericVector &gt;::type weights(weightsSEXP);
-    rcpp_result_gen = Rcpp::wrap(createGraphR(nodes, edges, weights));
+    rcpp_result_gen = Rcpp::wrap(compile_success(nodes, edges, weights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1808,80 +1824,29 @@ END_RCPP
 Generated R functions 
 -------------------------------------------------------
 
-`.sourceCpp_1_DLLInfo` &lt;- dyn.load(&#39;C:/Users/bbessell/AppData/Local/Temp/Rtmp4ECyfr/sourceCpp-x86_64-w64-mingw32-1.0.11/sourcecpp_1dc6957134/sourceCpp_2.dll&#39;)
+`.sourceCpp_10_DLLInfo` &lt;- dyn.load(&#39;C:/Users/bbessell/AppData/Local/Temp/RtmpADS9we/sourceCpp-x86_64-w64-mingw32-1.0.11/sourcecpp_32481d777d81/sourceCpp_12.dll&#39;)
 
-createGraphR &lt;- Rcpp:::sourceCppFunction(function(nodes, edges, weights) {}, FALSE, `.sourceCpp_1_DLLInfo`, &#39;sourceCpp_1_createGraphR&#39;)
+compile_success &lt;- Rcpp:::sourceCppFunction(function(nodes, edges, weights) {}, FALSE, `.sourceCpp_10_DLLInfo`, &#39;sourceCpp_10_compile_success&#39;)
 
-rm(`.sourceCpp_1_DLLInfo`)
+rm(`.sourceCpp_10_DLLInfo`)
 
 Building shared library
 --------------------------------------------------------
 
-DIR: C:/Users/bbessell/AppData/Local/Temp/Rtmp4ECyfr/sourceCpp-x86_64-w64-mingw32-1.0.11/sourcecpp_1dc6957134
+DIR: C:/Users/bbessell/AppData/Local/Temp/RtmpADS9we/sourceCpp-x86_64-w64-mingw32-1.0.11/sourcecpp_32481d777d81
 
-C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/bin/x64/R CMD SHLIB --preclean -o &quot;sourceCpp_2.dll&quot; &quot;Leiden.cpp&quot; 
+C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/bin/x64/R CMD SHLIB --preclean -o &quot;sourceCpp_12.dll&quot; &quot;compile_test.cpp&quot; 
 using C++ compiler: &#39;G__~1.EXE (GCC) 12.3.0&#39;
 using C++11
-g++  -std=gnu++11 -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/include&quot; -DNDEBUG   -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include&quot; -I&quot;C:/Users/bbessell/Projects/GitHub/AluNet/rcpp&quot;   -I&quot;C:/rtools43/x86_64-w64-mingw32.static.posix/include&quot;  -std=c++17   -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c Leiden.cpp -o Leiden.o
-Leiden.cpp: In function &#39;Rcpp::List createGraph(Rcpp::List, Rcpp::List, Rcpp::NumericVector)&#39;:
-Leiden.cpp:25:7: warning: unused variable &#39;numNodes&#39; [-Wunused-variable]
+g++  -std=gnu++11 -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/include&quot; -DNDEBUG   -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include&quot; -I&quot;C:/Users/bbessell/Projects/GitHub/AluNet/rcpp&quot;   -I&quot;C:/rtools43/x86_64-w64-mingw32.static.posix/include&quot;  -std=c++17   -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c compile_test.cpp -o compile_test.o
+compile_test.cpp: In function &#39;Rcpp::List createGraph(Rcpp::List, Rcpp::List, Rcpp::NumericVector)&#39;:
+compile_test.cpp:25:7: warning: unused variable &#39;numNodes&#39; [-Wunused-variable]
    25 |   int numNodes = nodes.size();
       |       ^~~~~~~~
-Leiden.cpp:26:7: warning: unused variable &#39;numEdges&#39; [-Wunused-variable]
+compile_test.cpp:26:7: warning: unused variable &#39;numEdges&#39; [-Wunused-variable]
    26 |   int numEdges = edges.size();
       |       ^~~~~~~~
-In file included from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/RcppCommon.h:169,
-                 from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp.h:27,
-                 from Leiden.cpp:10:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h: In instantiation of &#39;T Rcpp::internal::as(SEXP, Rcpp::traits::r_type_generic_tag) [with T = Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt;; SEXP = SEXPREC*]&#39;:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:152:31:   required from &#39;T Rcpp::as(SEXP) [with T = Function_Impl&lt;PreserveStorage&gt;; SEXP = SEXPREC*]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/api/meat/proxy.h:138:17:   required from &#39;Rcpp::BindingPolicy&lt;EnvironmentClass&gt;::Binding::operator T() const [with T = Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt;; EnvironmentClass = Rcpp::Environment_Impl&lt;Rcpp::PreserveStorage&gt;]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/api/meat/message.h:27:69:   required from here
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:87:41: error: no matching function for call to &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(SEXPREC*&amp;)&#39;
-   87 |             ::Rcpp::traits::Exporter&lt;T&gt; exporter(x);
-      |                                         ^~~~~~~~
-In file included from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:25:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(const Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;)&#39;
-   29 |                 class Exporter{
-      |                       ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;const Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h: In instantiation of &#39;T Rcpp::internal::as(SEXP, Rcpp::traits::r_type_generic_tag) [with T = Rcpp::Vector&lt;19&gt;; SEXP = SEXPREC*]&#39;:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:152:31:   required from &#39;T Rcpp::as(SEXP) [with T = Vector&lt;19&gt;; SEXP = SEXPREC*]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/InputParameter.h:34:43:   required from &#39;Rcpp::InputParameter&lt;T&gt;::operator T() [with T = Rcpp::Vector&lt;19&gt;]&#39;
-Leiden.cpp:58:46:   required from here
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:87:41: error: no matching function for call to &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;::Exporter(SEXPREC*&amp;)&#39;
-   87 |             ::Rcpp::traits::Exporter&lt;T&gt; exporter(x);
-      |                                         ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;::Exporter()&#39;
-   29 |                 class Exporter{
-      |                       ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   candidate expects 0 arguments, 1 provided
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;::Exporter(const Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;const Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;::Exporter(Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;&amp;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;19&gt; &gt;&amp;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h: In instantiation of &#39;T Rcpp::internal::as(SEXP, Rcpp::traits::r_type_generic_tag) [with T = Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt;; SEXP = SEXPREC*]&#39;:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:152:31:   required from &#39;T Rcpp::as(SEXP) [with T = Vector&lt;14, PreserveStorage&gt;; SEXP = SEXPREC*]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/InputParameter.h:34:43:   required from &#39;Rcpp::InputParameter&lt;T&gt;::operator T() [with T = Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt;]&#39;
-Leiden.cpp:58:46:   required from here
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:87:41: error: no matching function for call to &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;::Exporter(SEXPREC*&amp;)&#39;
-   87 |             ::Rcpp::traits::Exporter&lt;T&gt; exporter(x);
-      |                                         ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;::Exporter()&#39;
-   29 |                 class Exporter{
-      |                       ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   candidate expects 0 arguments, 1 provided
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;::Exporter(const Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;const Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;::Exporter(Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;&amp;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;Rcpp::traits::Exporter&lt;Rcpp::Vector&lt;14, Rcpp::PreserveStorage&gt; &gt;&amp;&amp;&#39;
-make: *** [C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/etc/x64/Makeconf:272: Leiden.o] Error 1</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gc291cmNlQ3BwKFwicmNwcC9MZWlkZW4uY3BwXCIsIHZlcmJvc2UgPSBUUlVFLCByZWJ1aWxkID0gVFJVRSkgOiBcbiAgRXJyb3IgMSBvY2N1cnJlZCBidWlsZGluZyBzaGFyZWQgbGlicmFyeS5cbiJ9 -->
-<pre><code>Error in sourceCpp(&quot;rcpp/Leiden.cpp&quot;, verbose = TRUE, rebuild = TRUE) : 
-  Error 1 occurred building shared library.</code></pre>
+g++ -shared -s -static-libgcc -o sourceCpp_12.dll tmp.def compile_test.o -LC:/rtools43/x86_64-w64-mingw32.static.posix/lib/x64 -LC:/rtools43/x86_64-w64-mingw32.static.posix/lib -LC:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/bin/x64 -lR</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1890,35 +1855,68 @@ make: *** [C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/etc/x64/Makeconf:
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc291cmNlQ3BwKFwicmNwcC9HcmFwaFV0aWxzLmNwcFwiLCB2ZXJib3NlID0gRiwgcmVidWlsZCA9IFRSVUUpXG5gYGAifQ== -->
 <pre class="r"><code>sourceCpp(&quot;rcpp/GraphUtils.cpp&quot;, verbose = F, rebuild = TRUE)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoidXNpbmcgQysrIGNvbXBpbGVyOiAnR19ffjEuRVhFIChHQ0MpIDEyLjMuMCdcbmcrKyAtc3RkPWdudSsrMTcgIC1JXCJDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00M34xLjIvaW5jbHVkZVwiIC1ETkRFQlVHICAgLUlcIkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlXCIgLUlcIkM6L1VzZXJzL2JiZXNzZWxsL1Byb2plY3RzL0dpdEh1Yi9BbHVOZXQvcmNwcFwiICAgLUlcIkM6L3J0b29sczQzL3g4Nl82NC13NjQtbWluZ3czMi5zdGF0aWMucG9zaXgvaW5jbHVkZVwiICAtc3RkPWMrKzE3ICAgLU8yIC1XYWxsICAtbWZwbWF0aD1zc2UgLW1zc2UyIC1tc3RhY2tyZWFsaWduICAtYyBHcmFwaFV0aWxzLmNwcCAtbyBHcmFwaFV0aWxzLm9cbkluIGZpbGUgaW5jbHVkZWQgZnJvbSBDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwQ29tbW9uLmg6MTY5LFxuICAgICAgICAgICAgICAgICBmcm9tIEM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAuaDoyNyxcbiAgICAgICAgICAgICAgICAgZnJvbSBHcmFwaFV0aWxzLmNwcDoxOlxuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcy5oOiBJbiBpbnN0YW50aWF0aW9uIG9mICdUIFJjcHA6OmludGVybmFsOjphcyhTRVhQLCBSY3BwOjp0cmFpdHM6OnJfdHlwZV9nZW5lcmljX3RhZykgW3dpdGggVCA9IFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPjsgU0VYUCA9IFNFWFBSRUMqXSc6XG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FzLmg6MTUyOjMxOiAgIHJlcXVpcmVkIGZyb20gJ1QgUmNwcDo6YXMoU0VYUCkgW3dpdGggVCA9IEZ1bmN0aW9uX0ltcGw8UHJlc2VydmVTdG9yYWdlPjsgU0VYUCA9IFNFWFBSRUMqXSdcbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvYXBpL21lYXQvcHJveHkuaDoxMzg6MTc6ICAgcmVxdWlyZWQgZnJvbSAnUmNwcDo6QmluZGluZ1BvbGljeTxFbnZpcm9ubWVudENsYXNzPjo6QmluZGluZzo6b3BlcmF0b3IgVCgpIGNvbnN0IFt3aXRoIFQgPSBSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT47IEVudmlyb25tZW50Q2xhc3MgPSBSY3BwOjpFbnZpcm9ubWVudF9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT5dJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9hcGkvbWVhdC9tZXNzYWdlLmg6Mjc6Njk6ICAgcmVxdWlyZWQgZnJvbSBoZXJlXG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FzLmg6ODc6NDE6IGVycm9yOiBubyBtYXRjaGluZyBmdW5jdGlvbiBmb3IgY2FsbCB0byAnUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT4gPjo6RXhwb3J0ZXIoU0VYUFJFQyomKSdcbiAgIDg3IHwgICAgICAgICAgICAgOjpSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFQ+IGV4cG9ydGVyKHgpO1xuICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXn5+fn5+fn5cbkluIGZpbGUgaW5jbHVkZWQgZnJvbSBDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2FzLmg6MjU6XG5DOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00LjMuMi9saWJyYXJ5L1JjcHAvaW5jbHVkZS9SY3BwL2ludGVybmFsL0V4cG9ydGVyLmg6Mjk6MjM6IG5vdGU6IGNhbmRpZGF0ZTogJ1JjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID46OkV4cG9ydGVyKGNvbnN0IFJjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID4mKSdcbiAgIDI5IHwgICAgICAgICAgICAgICAgIGNsYXNzIEV4cG9ydGVye1xuICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgXn5+fn5+fn5cbkM6L1VzZXJzL2JiZXNzZWxsL0FwcERhdGEvTG9jYWwvUHJvZ3JhbXMvUi9SLTQuMy4yL2xpYnJhcnkvUmNwcC9pbmNsdWRlL1JjcHAvaW50ZXJuYWwvRXhwb3J0ZXIuaDoyOToyMzogbm90ZTogICBubyBrbm93biBjb252ZXJzaW9uIGZvciBhcmd1bWVudCAxIGZyb20gJ1NFWFAnIHtha2EgJ1NFWFBSRUMqJ30gdG8gJ2NvbnN0IFJjcHA6OnRyYWl0czo6RXhwb3J0ZXI8UmNwcDo6RnVuY3Rpb25fSW1wbDxSY3BwOjpQcmVzZXJ2ZVN0b3JhZ2U+ID4mJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiBjYW5kaWRhdGU6ICdSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+OjpFeHBvcnRlcihSY3BwOjp0cmFpdHM6OkV4cG9ydGVyPFJjcHA6OkZ1bmN0aW9uX0ltcGw8UmNwcDo6UHJlc2VydmVTdG9yYWdlPiA+JiYpJ1xuQzovVXNlcnMvYmJlc3NlbGwvQXBwRGF0YS9Mb2NhbC9Qcm9ncmFtcy9SL1ItNC4zLjIvbGlicmFyeS9SY3BwL2luY2x1ZGUvUmNwcC9pbnRlcm5hbC9FeHBvcnRlci5oOjI5OjIzOiBub3RlOiAgIG5vIGtub3duIGNvbnZlcnNpb24gZm9yIGFyZ3VtZW50IDEgZnJvbSAnU0VYUCcge2FrYSAnU0VYUFJFQyonfSB0byAnUmNwcDo6dHJhaXRzOjpFeHBvcnRlcjxSY3BwOjpGdW5jdGlvbl9JbXBsPFJjcHA6OlByZXNlcnZlU3RvcmFnZT4gPiYmJ1xubWFrZTogKioqIFtDOi9Vc2Vycy9iYmVzc2VsbC9BcHBEYXRhL0xvY2FsL1Byb2dyYW1zL1IvUi00M34xLjIvZXRjL3g2NC9NYWtlY29uZjoyNzI6IEdyYXBoVXRpbHMub10gRXJyb3IgMVxuIn0= -->
-<pre><code>using C++ compiler: &#39;G__~1.EXE (GCC) 12.3.0&#39;
-g++ -std=gnu++17  -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/include&quot; -DNDEBUG   -I&quot;C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include&quot; -I&quot;C:/Users/bbessell/Projects/GitHub/AluNet/rcpp&quot;   -I&quot;C:/rtools43/x86_64-w64-mingw32.static.posix/include&quot;  -std=c++17   -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c GraphUtils.cpp -o GraphUtils.o
-In file included from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/RcppCommon.h:169,
-                 from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp.h:27,
-                 from GraphUtils.cpp:1:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h: In instantiation of &#39;T Rcpp::internal::as(SEXP, Rcpp::traits::r_type_generic_tag) [with T = Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt;; SEXP = SEXPREC*]&#39;:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:152:31:   required from &#39;T Rcpp::as(SEXP) [with T = Function_Impl&lt;PreserveStorage&gt;; SEXP = SEXPREC*]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/api/meat/proxy.h:138:17:   required from &#39;Rcpp::BindingPolicy&lt;EnvironmentClass&gt;::Binding::operator T() const [with T = Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt;; EnvironmentClass = Rcpp::Environment_Impl&lt;Rcpp::PreserveStorage&gt;]&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/api/meat/message.h:27:69:   required from here
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:87:41: error: no matching function for call to &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(SEXPREC*&amp;)&#39;
-   87 |             ::Rcpp::traits::Exporter&lt;T&gt; exporter(x);
-      |                                         ^~~~~~~~
-In file included from C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/as.h:25:
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(const Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;)&#39;
-   29 |                 class Exporter{
-      |                       ^~~~~~~~
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;const Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note: candidate: &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;::Exporter(Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&amp;)&#39;
-C:/Users/bbessell/AppData/Local/Programs/R/R-4.3.2/library/Rcpp/include/Rcpp/internal/Exporter.h:29:23: note:   no known conversion for argument 1 from &#39;SEXP&#39; {aka &#39;SEXPREC*&#39;} to &#39;Rcpp::traits::Exporter&lt;Rcpp::Function_Impl&lt;Rcpp::PreserveStorage&gt; &gt;&amp;&amp;&#39;
-make: *** [C:/Users/bbessell/AppData/Local/Programs/R/R-43~1.2/etc/x64/Makeconf:272: GraphUtils.o] Error 1</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY3JlYXRlUmFuZG9tWmVyb0luZmxhdGVkQWRqYWNlbmN5TWF0cml4IDwtIGZ1bmN0aW9uKG51bV92ZXJ0aWNlcywgemVyb19wcm9iKSB7XG4gIGFkamFjZW5jeV9tYXRyaXggPC0gbWF0cml4KDAsIG5yb3cgPSBudW1fdmVydGljZXMsIG5jb2wgPSBudW1fdmVydGljZXMpXG4gIFxuICBmb3IgKGkgaW4gMToobnVtX3ZlcnRpY2VzIC0gMSkpIHtcbiAgICBmb3IgKGogaW4gKGkgKyAxKTpudW1fdmVydGljZXMpIHtcbiAgICAgIGlmIChydW5pZigxKSA8IHplcm9fcHJvYikge1xuICAgICAgICBhZGphY2VuY3lfbWF0cml4W2ksIGpdIDwtIDBcbiAgICAgICAgYWRqYWNlbmN5X21hdHJpeFtqLCBpXSA8LSAwXG4gICAgICB9IGVsc2Uge1xuICAgICAgICB3ZWlnaHQgPC0gcnVuaWYoMSlcbiAgICAgICAgYWRqYWNlbmN5X21hdHJpeFtpLCBqXSA8LSB3ZWlnaHRcbiAgICAgICAgYWRqYWNlbmN5X21hdHJpeFtqLCBpXSA8LSB3ZWlnaHRcbiAgICAgIH1cbiAgICB9XG4gIH1cbiAgXG4gIHJldHVybihhZGphY2VuY3lfbWF0cml4KVxufVxuXG4jIEV4YW1wbGUgdXNhZ2U6XG5udW1fdmVydGljZXMgPC0gNFxuemVyb19wcm9iIDwtIDAuMyAgIyBQcm9iYWJpbGl0eSBvZiBoYXZpbmcgYSB6ZXJvLXdlaWdodCBlZGdlXG5hZGphY2VuY3lfbWF0cml4IDwtIGNyZWF0ZVJhbmRvbVplcm9JbmZsYXRlZEFkamFjZW5jeU1hdHJpeChudW1fdmVydGljZXMsIHplcm9fcHJvYilcblxuIyBQcmludCB0aGUgYWRqYWNlbmN5IG1hdHJpeFxucHJpbnQoYWRqYWNlbmN5X21hdHJpeClcbmBgYCJ9 -->
+<pre class="r"><code>createRandomZeroInflatedAdjacencyMatrix &lt;- function(num_vertices, zero_prob) {
+  adjacency_matrix &lt;- matrix(0, nrow = num_vertices, ncol = num_vertices)
+  
+  for (i in 1:(num_vertices - 1)) {
+    for (j in (i + 1):num_vertices) {
+      if (runif(1) &lt; zero_prob) {
+        adjacency_matrix[i, j] &lt;- 0
+        adjacency_matrix[j, i] &lt;- 0
+      } else {
+        weight &lt;- runif(1)
+        adjacency_matrix[i, j] &lt;- weight
+        adjacency_matrix[j, i] &lt;- weight
+      }
+    }
+  }
+  
+  return(adjacency_matrix)
+}
+
+# Example usage:
+num_vertices &lt;- 4
+zero_prob &lt;- 0.3  # Probability of having a zero-weight edge
+adjacency_matrix &lt;- createRandomZeroInflatedAdjacencyMatrix(num_vertices, zero_prob)
+
+# Print the adjacency matrix
+print(adjacency_matrix)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgICAgICAgICBbLDFdICAgICAgIFssMl0gICAgICBbLDNdICAgICAgWyw0XVxuWzEsXSAwLjAwMDAwMDAwIDAuMDUxOTM2NTQgMC4xMjQzNzY4IDAuMDAwMDAwMFxuWzIsXSAwLjA1MTkzNjU0IDAuMDAwMDAwMDAgMC40NjI2OTE4IDAuMTQ5OTYwOVxuWzMsXSAwLjEyNDM3Njg0IDAuNDYyNjkxNzUgMC4wMDAwMDAwIDAuMDAwMDAwMFxuWzQsXSAwLjAwMDAwMDAwIDAuMTQ5OTYwODggMC4wMDAwMDAwIDAuMDAwMDAwMFxuIn0= -->
+<pre><code>           [,1]       [,2]      [,3]      [,4]
+[1,] 0.00000000 0.05193654 0.1243768 0.0000000
+[2,] 0.05193654 0.00000000 0.4626918 0.1499609
+[3,] 0.12437684 0.46269175 0.0000000 0.0000000
+[4,] 0.00000000 0.14996088 0.0000000 0.0000000</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gc291cmNlQ3BwKFwicmNwcC9HcmFwaFV0aWxzLmNwcFwiLCB2ZXJib3NlID0gRiwgcmVidWlsZCA9IFRSVUUpIDogXG4gIEVycm9yIDEgb2NjdXJyZWQgYnVpbGRpbmcgc2hhcmVkIGxpYnJhcnkuXG4ifQ== -->
-<pre><code>Error in sourceCpp(&quot;rcpp/GraphUtils.cpp&quot;, verbose = F, rebuild = TRUE) : 
-  Error 1 occurred building shared library.</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JhcGhfZGF0YSA8LSBjcmVhdGVHcmFwaChhZGphY2VuY3lfbWF0cml4KVxuZWRnZXMgPC0gZ3JhcGhfZGF0YSRlZGdlc1xud2VpZ2h0cyA8LSBncmFwaF9kYXRhJHdlaWdodHNcbmBgYCJ9 -->
+<pre class="r"><code>graph_data &lt;- createGraph(adjacency_matrix)
+edges &lt;- graph_data$edges
+weights &lt;- graph_data$weights</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA8LSBncmFwaC5kYXRhLmZyYW1lKGdyYXBoJGVkZ2VzLCBkaXJlY3RlZCA9IEZBTFNFKVxuYGBgIn0= -->
+<pre class="r"><code>g &lt;- graph.data.frame(graph$edges, directed = FALSE)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gZ3JhcGguZGF0YS5mcmFtZShncmFwaCRlZGdlcywgZGlyZWN0ZWQgPSBGQUxTRSkgOiBcbiAgdGhlIGRhdGEgZnJhbWUgc2hvdWxkIGNvbnRhaW4gYXQgbGVhc3QgdHdvIGNvbHVtbnNcbiJ9 -->
+<pre><code>Error in graph.data.frame(graph$edges, directed = FALSE) : 
+  the data frame should contain at least two columns</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KIA0KDQpgYGB7cn0NCmxpYnJhcnkoUmNwcCkNCnVwZGF0ZS5wYWNrYWdlcygiUmNwcCIpDQpzZXR3ZCgiQzovVXNlcnMvYmJlc3NlbGwvUHJvamVjdHMvR2l0SHViL0FsdU5ldCIpDQpTeXMuc2V0ZW52KFBLR19DWFhGTEFHUyA9ICItc3RkPWMrKzE3IikNClN5cy53aGljaCgibWFrZSIpDQpTeXMud2hpY2goImcrKyIpDQpgYGANCg0KYGBge3J9DQpzb3VyY2VDcHAoInJjcHAvTGVpZGVuLmNwcCIsIHZlcmJvc2UgPSBUUlVFLCByZWJ1aWxkID0gVFJVRSkNCmBgYA0KDQpgYGB7cn0NCnNvdXJjZUNwcCgicmNwcC9HcmFwaFV0aWxzLmNwcCIsIHZlcmJvc2UgPSBGLCByZWJ1aWxkID0gVFJVRSkNCmBgYA==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KIA0KDQpgYGB7cn0NCmxpYnJhcnkoUmNwcCkNCmxpYnJhcnkoaWdyYXBoKQ0KbGlicmFyeShNYXRyaXgpDQp1cGRhdGUucGFja2FnZXMoIlJjcHAiKQ0Kc2V0d2QoIkM6L1VzZXJzL2JiZXNzZWxsL1Byb2plY3RzL0dpdEh1Yi9BbHVOZXQiKQ0KU3lzLnNldGVudihQS0dfQ1hYRkxBR1MgPSAiLXN0ZD1jKysxNyIpDQpTeXMud2hpY2goIm1ha2UiKQ0KU3lzLndoaWNoKCJnKysiKQ0KYGBgDQoNCmBgYHtyfQ0Kc291cmNlQ3BwKCJyY3BwL2NvbXBpbGVfdGVzdC5jcHAiLCB2ZXJib3NlID0gVFJVRSwgcmVidWlsZCA9IFRSVUUpDQpgYGANCg0KYGBge3J9DQpzb3VyY2VDcHAoInJjcHAvR3JhcGhVdGlscy5jcHAiLCB2ZXJib3NlID0gRiwgcmVidWlsZCA9IFRSVUUpDQpgYGANCg0KDQpgYGB7cn0NCmNyZWF0ZVJhbmRvbVplcm9JbmZsYXRlZEFkamFjZW5jeU1hdHJpeCA8LSBmdW5jdGlvbihudW1fdmVydGljZXMsIHplcm9fcHJvYikgew0KICBhZGphY2VuY3lfbWF0cml4IDwtIG1hdHJpeCgwLCBucm93ID0gbnVtX3ZlcnRpY2VzLCBuY29sID0gbnVtX3ZlcnRpY2VzKQ0KICANCiAgZm9yIChpIGluIDE6KG51bV92ZXJ0aWNlcyAtIDEpKSB7DQogICAgZm9yIChqIGluIChpICsgMSk6bnVtX3ZlcnRpY2VzKSB7DQogICAgICBpZiAocnVuaWYoMSkgPCB6ZXJvX3Byb2IpIHsNCiAgICAgICAgYWRqYWNlbmN5X21hdHJpeFtpLCBqXSA8LSAwDQogICAgICAgIGFkamFjZW5jeV9tYXRyaXhbaiwgaV0gPC0gMA0KICAgICAgfSBlbHNlIHsNCiAgICAgICAgd2VpZ2h0IDwtIHJ1bmlmKDEpDQogICAgICAgIGFkamFjZW5jeV9tYXRyaXhbaSwgal0gPC0gd2VpZ2h0DQogICAgICAgIGFkamFjZW5jeV9tYXRyaXhbaiwgaV0gPC0gd2VpZ2h0DQogICAgICB9DQogICAgfQ0KICB9DQogIA0KICByZXR1cm4oYWRqYWNlbmN5X21hdHJpeCkNCn0NCg0KIyBFeGFtcGxlIHVzYWdlOg0KbnVtX3ZlcnRpY2VzIDwtIDQNCnplcm9fcHJvYiA8LSAwLjMgICMgUHJvYmFiaWxpdHkgb2YgaGF2aW5nIGEgemVyby13ZWlnaHQgZWRnZQ0KYWRqYWNlbmN5X21hdHJpeCA8LSBjcmVhdGVSYW5kb21aZXJvSW5mbGF0ZWRBZGphY2VuY3lNYXRyaXgobnVtX3ZlcnRpY2VzLCB6ZXJvX3Byb2IpDQoNCiMgUHJpbnQgdGhlIGFkamFjZW5jeSBtYXRyaXgNCnByaW50KGFkamFjZW5jeV9tYXRyaXgpDQpgYGANCg0KYGBge3J9DQpncmFwaF9kYXRhIDwtIGNyZWF0ZUdyYXBoKGFkamFjZW5jeV9tYXRyaXgpDQplZGdlcyA8LSBncmFwaF9kYXRhJGVkZ2VzDQp3ZWlnaHRzIDwtIGdyYXBoX2RhdGEkd2VpZ2h0cw0KYGBgDQoNCmBgYHtyfQ0KZyA8LSBncmFwaC5kYXRhLmZyYW1lKGdyYXBoJGVkZ2VzLCBkaXJlY3RlZCA9IEZBTFNFKQ0KRShnKSR3ZWlnaHQgPC0gd2VpZ2h0cw0KcHJpbnQoZykNCmBgYA==</div>
 
 
 

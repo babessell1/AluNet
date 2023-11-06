@@ -25,14 +25,12 @@ int countEdges(const Graph& C, const Graph& D) {
             weightMapC[i].push_back(weight);  
         }
     }
-
     for (int i = 0; i < D.n; i++) {  
         for (std::vector<int>::size_type j = 0; j < D.adj[i].size(); j++) {  
             int neighbor = D.adj[i][j];  
             neighborsD[i].insert(neighbor); 
         }
     }
-
     for (int i = 0; i < C.n; i++) {  
         for (int neighbor : neighborsC[i]) {  
             if (neighborsD[i].count(neighbor) > 0) {  
@@ -53,20 +51,29 @@ int countEdges(const Graph& C, const Graph& D) {
 Rcpp::List graphToRList(const Graph& G) {
     int n = G.n;
     
-    Rcpp::List vertices(n);
-    Rcpp::List edges(n);
-    
+    Rcpp::NumericVector from;
+    Rcpp::NumericVector to;
+    Rcpp::NumericVector weight;
+
     for (int i = 0; i < n; i++) {
-        vertices[i] = i;
-        edges[i] = DataFrame::create(Named("to") = G.adj[i], Named("weight") = G.weights[i]);
+        for (std::vector<int>::size_type j = 0; j < G.adj[i].size(); j++) {
+            from.push_back(i + 1); // Adding 1 to convert to 1-based indexing
+            to.push_back(G.adj[i][j] + 1); // Adding 1 to convert to 1-based indexing
+            weight.push_back(G.weights[i][j]);
+        }
     }
-    
-    Rcpp::List result = Rcpp::List::create(Named("vertices") = vertices, Named("edges") = edges);
-    
+
+    // Create a named list with 'from', 'to', and 'weight' components
+    Rcpp::List result = Rcpp::List::create(
+        Rcpp::Named("from") = from,
+        Rcpp::Named("to") = to,
+        Rcpp::Named("weight") = weight
+    );
+
     return result;
 }
 
-
+// [[Rcpp::export]]
 Rcpp::List createGraph(const Rcpp::NumericMatrix& edgeWeights) {
 
     Graph G(edgeWeights.nrow());
@@ -77,6 +84,5 @@ Rcpp::List createGraph(const Rcpp::NumericMatrix& edgeWeights) {
             }
         }
     }
-
     return graphToRList(G);
 }

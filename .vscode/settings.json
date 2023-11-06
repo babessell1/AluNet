@@ -5,6 +5,9 @@
         "vector": "cpp",
         "exception": "cpp",
         "sstream": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "xstring": "cpp"
     }
 }

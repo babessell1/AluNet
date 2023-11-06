@@ -12,7 +12,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 
-#include "Leiden.h"
+#include "compile_test.h"
 
 // using namespace Leiden;
 //using namespace std::chrono;
@@ -35,6 +35,6 @@ List createGraph(List nodes, List edges, NumericVector weights) {
 
 // Export the function to R using Rcpp attributes
 // [[Rcpp::export]]
-List createGraphR(List nodes, List edges, NumericVector weights) {
+List compile_success(List nodes, List edges, NumericVector weights) {
   return createGraph(nodes, edges, weights);
 }
