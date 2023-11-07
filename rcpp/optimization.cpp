@@ -30,11 +30,15 @@
 
 /********************
  * We should add a list of is_member_fixed, which indicates whether there are some nodes that are not able to move,
- * for example, if we wish 
+ * this would be useful for judging whether our function should terminate. 
 ********************/
 
 // [[Rcpp::export]]
-double Optimization::optimization_partition(Rcpp::vector<Partition*> partitions, Rcpp::vector<double> weights, Rcpp::vector<bool> const& is_memeber_fixed, size_t max_common_size){
+double Optimization::optimization_partition(
+    Rcpp::vector<Partition*> partitions, 
+    Rcpp::vector<double> weights, 
+    Rcpp::vector<bool> const& is_memeber_fixed, 
+    size_t max_common_size){
 
 
     // define the score result of current partition
@@ -113,14 +117,14 @@ double Optimization::optimization_partition(Rcpp::vector<Partition*> partitions,
         improve += merge_nodes(); // this should be further defined
         // make sure imrpovement 
 
-        // cluster_coarse_partition should be specified in the partition cpp file instead of
+        // cluster_partition should be specified in the partition cpp file instead of
         // optimization file since this involves the partition method.
         for(size_t i = 0; i < number_of_classifications; i++){
             if(collapsed_partitions[i] != partitions[i]){
                 if(this->refine_parition){ // a flag indicating whether to revise the partition
-                    partitions[i]->cluster_coarse_partition(collapsed_partitions[i], aggregate_node_per_individual_node); //
+                    partitions[i]->cluster_partition(collapsed_partitions[i], aggregate_node_per_individual_node); //
                 }else{
-                    partitions[i]->cluster_coarse_partition(collapsed_partitions[i]);
+                    partitions[i]->cluster_partition(collapsed_partitions[i]);
                 }
             }
         }
@@ -159,7 +163,7 @@ double Optimization::optimization_partition(Rcpp::vector<Partition*> partitions,
         }
 
         // collapse graph basd on sub collapsed partition
-        for(int i = 0;i < number_of_classifications; i++){
+        for(int i = 0; i < number_of_classifications; i++){
             new_collapsed_graph[i] = collapsed_graphs[i]->collapse_graph(sub_collapsed_partitions[i]);
         }
 
@@ -188,9 +192,9 @@ double Optimization::optimization_partition(Rcpp::vector<Partition*> partitions,
     }
     else{
         for(size_t j = 0; j < number_of_classifications; j++){
-            new_collapsed_graphs[layer] = collapsed_graphs[layer]->collapse_graph(collapsed_partitions[layer]);
+            new_collapsed_graphs[j] = collapsed_graphs[j]->collapse_graph(collapsed_partitions[j]);
         // Create collapsed partition (i.e. default partition of each node in its own community).
-        new_collapsed_partitions[layer] = collapsed_partitions[layer]->create(new_collapsed_graphs[layer]);
+        new_collapsed_partitions[j] = collapsed_partitions[j]->create(new_collapsed_graphs[j]);
         }
     }
 
@@ -253,6 +257,16 @@ double Optimization::optimization_partition(Rcpp::vector<Partition*> partitions,
 
 double Optimization::move_nodes(Rcpp::vector<Partition*> partitions, Rcpp::vector<double> weights, Rcpp::vector<bool> const& is_member_fixed, size_t max_community_size)
 {
+
+    // the first criterion is to find all the unchangeable items
+    // i.e., fixed nodes are stable ones
+
+    // skip these nodes when using gready algorithm to find improvements
+
+    // delete empty communities so that we won't have uncessary commons
+
+    // mark all changable neighbors as unstable and rerun the function
+    // to find all chengable.
 
     return 
 }
