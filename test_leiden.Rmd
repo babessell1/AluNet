@@ -14,6 +14,9 @@ Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
 Sys.which("make")
 Sys.which("g++")
 ```
+```{r}
+Sys.getenv()
+```
 
 ```{r}
 sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
@@ -23,44 +26,40 @@ sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
 sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
 ```
 
-
 ```{r}
-createRandomZeroInflatedAdjacencyMatrix <- function(num_vertices, zero_prob) {
-  adjacency_matrix <- matrix(0, nrow = num_vertices, ncol = num_vertices)
-  
-  for (i in 1:(num_vertices - 1)) {
-    for (j in (i + 1):num_vertices) {
-      if (runif(1) < zero_prob) {
-        adjacency_matrix[i, j] <- 0
-        adjacency_matrix[j, i] <- 0
-      } else {
-        weight <- runif(1)
-        adjacency_matrix[i, j] <- weight
-        adjacency_matrix[j, i] <- weight
-      }
-    }
-  }
-  
-  return(adjacency_matrix)
-}
-
-# Example usage:
-num_vertices <- 4
-zero_prob <- 0.3  # Probability of having a zero-weight edge
+# test Rcpp graph construction with random graph (seg fault stress test)
+source("r/createRandomZeroInflatedAdjacencyMatrix.R")
+num_vertices <- 100
+zero_prob <- 0.3
 adjacency_matrix <- createRandomZeroInflatedAdjacencyMatrix(num_vertices, zero_prob)
-
-# Print the adjacency matrix
-print(adjacency_matrix)
-```
-
-```{r}
+#print(adjacency_matrix)
 graph_data <- createGraph(adjacency_matrix)
 edges <- graph_data$edges
 weights <- graph_data$weights
+#print(graph_data)
+g <- graph.data.frame(graph_data)
+#print(g)
+edge_weights <- E(g)$weight
+#print(edge_weights)
+#plot(g)
+#l <- layout_on_sphere(g)
+plot(g)
 ```
 
+
+
 ```{r}
-g <- graph.data.frame(graph$edges, directed = FALSE)
-E(g)$weight <- weights
-print(g)
+source("r/createAdjacencyMatrixFromHiCData")
+adjacency_matrix <- createAdjacencyMatrixFromHiCData(
+  "data/GSE148434_NS_all.5kb.1e-2.FitHiC.all.txt")
+#graph_data <- createGraph(adjacency_matrix)
+edges <- graph_data$edges
+weights <- graph_data$weights
+#print(graph_data)
+g <- graph.data.frame(graph_data)
+#print(g)
+edge_weights <- E(g)$weight
+#print(edge_weights)
+#plot(g)
+plot.igraph(g)
 ```
