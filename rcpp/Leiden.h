@@ -1,20 +1,28 @@
 #include <Rcpp.h>
 #include "GraphUtils.h"
 
+// inherit partition from graph object?
 class Community {
 public:
     std::vector<std::string> nodes; // nodes of a graph
-
+    
     Community(const std::vector<std::string>& nodes); 
     std::vector<int> getIndices();  // returns indices of nodes in community
+
+private:
+    size_t number_of_nodes;
+    size_t number_of_communities;
 };
 
 class Partition {
 public:
-    std::vector<Community> communities;  // communities
-
-    Partition(const std::vector<int>& C);
+    Partition(const std::vector<int>& C); // should define more features
     std::vector<int> getIndices();  // returns indices of communities in partition
+    inline size_t number_of_nodes() { return input_nodes_vector.size(); } // should revise the name
+    Graph get_graph(); // should link it to the graph object
+
+private:
+    std::vector<Community> communities;  // communities
 };
 
 class Optimizer {
