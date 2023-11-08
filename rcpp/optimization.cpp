@@ -87,9 +87,9 @@ double Optimization::optimization_partition(
     Rcpp::vector<Graph* > collapsed_graphs(number_of_classifications);
     Rcpp::vector<Partitions*> collapsed_partitions(number_of_classifications);
 
-    for(size_t layer = 0; layer < number_of_classifications; layer++){
-        collapsed_graphs[layer] = graphs[layer];
-        collapsed_partitions[layer] = partitions[layer];
+    for(size_t j = 0; j < number_of_classifications; j++){
+        collapsed_graphs[j] = graphs[j];
+        collapsed_partitions[j] = partitions[j];
     }
 
     // Declare which nodes in the collapsed graph are fixed, which to start is
@@ -267,7 +267,34 @@ double Optimization::move_nodes(Rcpp::vector<Partition*> partitions, Rcpp::vecto
 
     // mark all changable neighbors as unstable and rerun the function
     // to find all chengable.
+    size_t number_of_classifications = partitions.size();
+    if (number_of_classifications == 0) {
+        return -1.0;
+    }
+    Rcpp::vector<Graph*> graphs(number_of_classifications);
+    for (size_t i = 0; i < number_of_classifications; i++) {
+        graphs[i] = partitions[i]->get_graph();
+    }
 
-    return 
+    // number of nodes in the graph
+    // just like the explannation in the optimization function
+    // the number of nodes should be equal
+    size_t number_of_nodes = graphs[0]->number_of_nodes();
+    
+
+    // get the fixed membership from the iterations
+    // we should fix some membership for fixed nodes
+    Rcpp::vector<size_t> fixed_nodes;
+    Rcpp::vector<size_t> fixed_membership(number_of_nodes);
+
+    // is_member_fixed is a vector that contains whether j is fixed
+    for (size_t j = 0; j < number_of_nodes; j++) {
+        if (is_memeber_fixed[j]) { // if fixed
+            fixed_nodes.push_back(j);
+            fixed_membership[j] = partitions[0]->membership(j);
+        }
+    }
+
+    
 }
 
