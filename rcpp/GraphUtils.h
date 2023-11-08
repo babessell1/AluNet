@@ -9,15 +9,19 @@
 class Graph {
 public:
     int n;
+    std::map<std::string, int> nodeIndexMap;
     std::vector<std::vector<int>> adj;
     std::vector<std::vector<double>> weights;
+    std::vector<std::vector<int>> community;
+    std::vector<std::boolean>> isFixed;
 
     Graph(int n);
-    void addEdge(int u, int v, double w);
+    void addEdge(const std::string& u, const std::string& v, double w);
+    int getNodeIndex(const std::string& node) const;
+    std::string getNodeName(int index) const;
 };
 
-int countEdges(const Graph& C, const Graph& D);
 Rcpp::List graphToRList(const Graph& G);
-Rcpp::List createGraph(const Rcpp::NumericMatrix& edgeWeights);
+
 
 #endif

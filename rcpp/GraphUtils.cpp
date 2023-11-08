@@ -2,65 +2,50 @@
 using namespace Rcpp;
 #include "GraphUtils.h"
 
-Graph::Graph(int n) : n(n), adj(n), weights(n) {}
+Graph::Graph(int n) : n(n), adj(n), weights(n), community(n), isFixed(n);
 
-void Graph::addEdge(int u, int v, double w) {
-    adj[u].push_back(v); // add v to u's list of neighbors
-    weights[u].push_back(w); // add weight of edge from u to v
+void Graph::addEdge(const std::string& u, const std::string& v, double w) {
+    int uIndex = getNodeIndex(u);
+    int vIndex = getNodeIndex(v);
+    adj[uIndex].push_back(vIndex);
+    weights[uIndex].push_back(w);
+    community[uIndex].push_back(1);
+    isFixed[uIndex].push_back(false);
 }
 
-int countEdges(const Graph& C, const Graph& D) {
-    int E = 0;
-    std::unordered_map<int, std::set<int>> neighborsC;
-    std::unordered_map<int, std::vector<double>> weightMapC;
-    std::unordered_map<int, std::set<int>> neighborsD;
+int Graph::getNodeIndex(const std::string& node) const {
+    if (nodeIndexMap.find(node) != nodeIndexMap.end()) {
+        return nodeIndexMap.at(node);
+    }
+    Rcpp::stop("Node not found: " + node);
+}
 
-    for (int i = 0; i < C.n; i++) {
-        for (std::vector<int>::size_type j = 0; j < C.adj[i].size(); j++) {
-            int neighbor = C.adj[i][j];
-            double weight = C.weights[i][j];
-            neighborsC[i].insert(neighbor);
-            weightMapC[i].push_back(weight);
+std::string Graph::getNodeName(int index) const {
+    for (const auto& entry : nodeIndexMap) {
+        if (entry.second == index) {
+            return entry.first;
         }
     }
-    for (int i = 0; i < D.n; i++) {
-        for (std::vector<int>::size_type j = 0; j < D.adj[i].size(); j++) {
-            int neighbor = D.adj[i][j];
-            neighborsD[i].insert(neighbor);
-        }
-    }
-    for (int i = 0; i < C.n; i++) {
-        for (int neighbor : neighborsC[i]) {
-            if (neighborsD[i].count(neighbor) > 0) {
-                auto &weightsC = weightMapC[i];
-                for (std::vector<int>::size_type j = 0; j < C.adj[i].size(); j++) {
-                    if (C.adj[i][j] == neighbor) {
-                        E += weightsC[j];
-                    }
-                }
-            }
-        }
-    }
-
-    return E;
+    Rcpp::stop("Index not found: " + std::to_string(index));
 }
 
 Rcpp::List graphToRList(const Graph& G) {
     int n = G.n;
-    
-    Rcpp::NumericVector from;
-    Rcpp::NumericVector to;
+
+    Rcpp::CharacterVector from;
+    Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
 
     for (int i = 0; i < n; i++) {
+        std::string fromNode = G.getNodeName(i);
         for (std::vector<int>::size_type j = 0; j < G.adj[i].size(); j++) {
-            from.push_back(i + 1); // Adding 1 to convert to 1-based indexing
-            to.push_back(G.adj[i][j] + 1); // Adding 1 to convert to 1-based indexing
+            std::string toNode = G.getNodeName(G.adj[i][j]);
+            from.push_back(fromNode);
+            to.push_back(toNode);
             weight.push_back(G.weights[i][j]);
         }
     }
 
-    // Create a named list with 'from', 'to', and 'weight' components
     Rcpp::List result = Rcpp::List::create(
         Rcpp::Named("from") = from,
         Rcpp::Named("to") = to,
@@ -75,31 +60,30 @@ Graph listToGraph(const Rcpp::List& graphList) {
     Rcpp::CharacterVector to = graphList["to"];
     Rcpp::NumericVector weight = graphList["weight"];
 
-    std::map<std::string, int> nodeIndexMap;
-
-    Graph G(from.size());
+    std::set<std::string> uniqueNodes;
 
     for (int i = 0; i < from.size(); i++) {
-        const char* fromNode = from[i];
-        const char* toNode = to[i];
-        std::string fromStr(fromNode);
-        std::string toStr(toNode);
+        std::string fromNode = Rcpp::as<std::string>(from[i]);
+        std::string toNode = Rcpp::as<std::string>(to[i]);
+
+        uniqueNodes.insert(fromNode);
+        uniqueNodes.insert(toNode);
+    }
+
+    Graph G(uniqueNodes.size());
+
+    int index = 0;
+    for (const std::string& node : uniqueNodes) {
+        G.nodeIndexMap[node] = index;
+        index++;
+    }
+
+    for (int i = 0; i < from.size(); i++) {
+        std::string fromNode = Rcpp::as<std::string>(from[i]);
+        std::string toNode = Rcpp::as<std::string>(to[i]);
         double w = weight[i];
 
-        if (nodeIndexMap.find(fromStr) == nodeIndexMap.end()) {
-            int fromIndex = nodeIndexMap.size();
-            nodeIndexMap[fromStr] = fromIndex;
-        }
-
-        if (nodeIndexMap.find(toStr) == nodeIndexMap.end()) {
-            int toIndex = nodeIndexMap.size();
-            nodeIndexMap[toStr] = toIndex;
-        }
-
-        int fromIndex = nodeIndexMap[fromStr];
-        int toIndex = nodeIndexMap[toStr];
-
-        G.addEdge(fromIndex, toIndex, w);
+        G.addEdge(fromNode, toNode, w);
     }
 
     return G;
@@ -107,15 +91,16 @@ Graph listToGraph(const Rcpp::List& graphList) {
 
 // [[Rcpp::export]]
 Rcpp::List createGraphFromMatrix(const Rcpp::NumericMatrix& edgeWeights) {
-
     Graph G(edgeWeights.nrow());
+
     for (int i = 0; i < edgeWeights.nrow(); i++) {
         for (int j = 0; j < edgeWeights.ncol(); j++) {
             if (edgeWeights(i, j) != 0) {
-                G.addEdge(i, j, edgeWeights(i, j));
+                G.addEdge(G.getNodeName(i), G.getNodeName(j), edgeWeights(i, j));
             }
         }
     }
+
     return graphToRList(G);
 }
 
