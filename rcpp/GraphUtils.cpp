@@ -2,15 +2,13 @@
 using namespace Rcpp;
 #include "GraphUtils.h"
 
-Graph::Graph(int n) : n(n), adj(n), weights(n), community(n), isFixed(n);
+Graph::Graph(int n) : n(n), adj(n), weights(n) {};
 
 void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     int uIndex = getNodeIndex(u);
     int vIndex = getNodeIndex(v);
     adj[uIndex].push_back(vIndex);
     weights[uIndex].push_back(w);
-    community[uIndex].push_back(1);
-    isFixed[uIndex].push_back(false);
 }
 
 int Graph::getNodeIndex(const std::string& node) const {
@@ -27,6 +25,14 @@ std::string Graph::getNodeName(int index) const {
         }
     }
     Rcpp::stop("Index not found: " + std::to_string(index));
+}
+
+std::vector<int> Graph::getNodes() const {
+    std::vector<int> nodes;
+    for (const auto& entry : nodeIndexMap) {
+        nodes.push_back(entry.second);
+    }
+    return nodes;
 }
 
 Rcpp::List graphToRList(const Graph& G) {

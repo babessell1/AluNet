@@ -1,40 +1,41 @@
 #include <Rcpp.h>
 #include "GraphUtils.h"
 
-// inherit partition from graph object?
 class Community {
 public:
-    std::vector<std::string> nodes; // nodes of a graph
-    
-    Community(const std::vector<std::string>& nodes); 
-    std::vector<int> getIndices();  // returns indices of nodes in community
-
-private:
+    Community(const std::vector<int>& nodes, int index);
     size_t number_of_nodes;
-    size_t number_of_communities;
+    std::vector<int> nodeIndices;  // Store node indices associated with the community
+    int communityIndex;  // Index for the community
 };
 
 class Partition {
 public:
-    Partition(const std::vector<int>& C); // should define more features
-    std::vector<int> getIndices();  // returns indices of communities in partition
-    inline size_t number_of_nodes() { return input_nodes_vector.size(); } // should revise the name
-    Graph get_graph(); // should link it to the graph object
+    std::vector<int> communityIndices;
+    std::unordered_map<int, Community> communityIndexMap;
+    std::vector<Community> communities;
 
-private:
-    std::vector<Community> communities;  // communities
+    Partition(const std::vector<Community>& communities);
+    std::vector<int> getCommunityIndices();
+    //size_t number_of_nodes();
+    //void addCommunity(const Community& newCommunity);
+    //void removeCommunity(int communityIndex);
+    //void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
+    //std::vector<int> getCommunityIndices();
+    //int getCommunityIndex(int nodeIndex);
 };
 
 class Optimizer {
 public:
-    Graph G; // graph
-    int iter; // number of iterations
-    std::vector<std::vector<int>> P; // partition
+    Graph G;
+    Partition P;
 
-    Optimizer(const Graph& G, int iterations);
-    Partition optimize();  // Leiden iteration, returns new partition
-    Partition moveNodesFast();  // Leiden move, updates partition
-    Partition refinePartition();  // creates new partition from partition
-    Partition mergeNodesSubset(const Community& subset);  // refine community
-    Graph aggregateGraph(const Graph& G, const Partition& P);  // aggregate graph
+    Optimizer(const Graph& G);
+    //Partition optimize();
+    //Partition moveNodesFast();
+    //Partition refinePartition();
+    //Partition mergeNodesSubset(const Community& subset);
+    //Graph aggregateGraph(const Graph& G, const Partition& P);
+    //double constantPotts(double gamma);
+    Partition initializePartition();
 };

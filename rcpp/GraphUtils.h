@@ -12,16 +12,17 @@ public:
     std::map<std::string, int> nodeIndexMap;
     std::vector<std::vector<int>> adj;
     std::vector<std::vector<double>> weights;
-    std::vector<std::vector<int>> community;
-    std::vector<std::boolean>> isFixed;
 
     Graph(int n);
     void addEdge(const std::string& u, const std::string& v, double w);
     int getNodeIndex(const std::string& node) const;
     std::string getNodeName(int index) const;
+    std::vector<int> getNodes() const;
 };
 
 Rcpp::List graphToRList(const Graph& G);
+// listToGraph
+Graph listToGraph(const Rcpp::List& graphList);
 
 
 #endif
