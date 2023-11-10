@@ -7,7 +7,8 @@
 ############################ COMMUNITY CLASS ###################################
 */
 // Construct a community base on a set of node indices, and a community index
-Community::Community(const std::vector<std::vector<int>>& nodes, int index) : number_of_nodes(nodes.size()), communityIndex(index), nodeIndices(nodes) {}
+Community::Community(const std::vector<int>& nodes, int index)
+    : number_of_nodes(nodes.size()), nodeIndices(nodes), communityIndex(index) {}
 /*
 ################################################################################
 ############################ PARTITION CLASS ###################################
@@ -24,7 +25,6 @@ Partition::Partition(const std::vector<Community>& communities) : communities(co
     }
 }
 
-// get indices of communities in the partition (different from node indices!)
 std::vector<int> Partition::getCommunityIndices() {
     // get community indices
     // from communityIndexMap
@@ -34,26 +34,6 @@ std::vector<int> Partition::getCommunityIndices() {
     }
 
     return indices;
-}
-
-
-// flatten the partition, last step of the optimization step in the paper
- void Partition::flattenPartition() {
-    // for each community index in the partition
-    for (int communityIndex : communityIndices) {
-        // get the subsets of the community
-        std::vector subsets = communityIndexMap[communityIndex].nodeIndices;
-        // flatten the subsets
-        std::vector<int> flat_set;
-        for (std::vector<int> subset : subsets) {
-            for (int nodeIndex : subset) {
-                flat_set.push_back(nodeIndex);
-            }
-        }
-        // set the flat set as the community in the map
-        // store as a vector of vectors!
-        communityIndexMap[communityIndex].nodeIndices = {flat_set};
-    }
 }
 
 /*
@@ -125,30 +105,15 @@ double Optimizer::constantPotts(double gamma) const {
     return objective;
 }
 
-*/
-void Optimizer::optimize() {
+Partition Optimizer::optimize() {
     // Implement the Leiden algorithm iteration here
-    // This involve multiple steps, such as moveNodesFast, refinePartition, mergeNodesSubset, etc.
-    bool done = false;
-    while (!done) {
-        //moveNodesFast();
-        // set done to true if partition size is equal to number of nodes
-        // convert number of nodes (P.communities.size()) to int
-        int num_nodes = P.communities.size();
-        if (num_nodes == G.n) { 
-            done = true;
-        }
-        //Partition P_refined = refinePartition();
-        //aggregateGraph(P_refined);
-
-        // set true no matter what for now
-        done = true;
-
-    }
-    P.flattenPartition();
+    // You may need to implement the main Leiden algorithm logic
+    // This may involve multiple steps, such as moveNodesFast, refinePartition, and convergence checking
+    Partition optimizedPartition; // Placeholder, replace with actual logic
+    return optimizedPartition;
 }
 
-
+*/
 Partition initializePartition(const Graph& G) {
     std::vector<Community> communities;
 
@@ -156,7 +121,7 @@ Partition initializePartition(const Graph& G) {
     // for each node in the getNodes
     for (int nodeIndex : G.getNodes()) {
         // Construct a community with a single node
-        Community community({{nodeIndex}}, nodeIndex);
+        Community community({nodeIndex}, nodeIndex);
         communities.push_back(community);
     }
 
@@ -164,7 +129,6 @@ Partition initializePartition(const Graph& G) {
 
     return P;
 }
-
 
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
@@ -179,7 +143,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     for (int i = 0; i < iterations; i++) {
         // Run the Leiden algorithm
-        optim.optimize();
+        //P = optim.optimize();
+        // pass for now
     }
 
     // get the communities from the partition

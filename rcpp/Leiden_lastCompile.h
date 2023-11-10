@@ -8,13 +8,11 @@ class Community {
 public:
     // properties
     size_t number_of_nodes;
+    std::vector<int> nodeIndices;  // Store node indices associated with the community
     int communityIndex;  // Index for the community
-    // set property through constructor
-    std::vector<std::vector<int>> nodeIndices;  // Store node indices associated with the community in their subset structure
     
-    
-    // methods rember to convert input to vector in a vector
-    Community(const std::vector<std::vector<int>>& nodes, int index);
+    // methods
+    Community(const std::vector<int>& nodes, int index);
 };
 
 class Partition {
@@ -27,7 +25,6 @@ public:
     // methods
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices();
-    void flattenPartition();
     //size_t number_of_nodes();
     //void addCommunity(const Community& newCommunity);
     //void removeCommunity(int communityIndex);
@@ -44,9 +41,9 @@ public:
 
     // methods
     Optimizer(const Graph& G, const Partition& P);
-    void optimize();
-    //moveNodesFast();
-    //Partition refinePartition() const;
+    //Partition optimize();
+    //Partition moveNodesFast();
+    //Partition refinePartition();
     //Partition mergeNodesSubset(const Community& subset);
     //Graph aggregateGraph(const Graph& G, const Partition& P);
     //double constantPotts(double gamma);
