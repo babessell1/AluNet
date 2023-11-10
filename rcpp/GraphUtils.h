@@ -18,9 +18,10 @@ public:
     int getNodeIndex(const std::string& node) const;
     std::string getNodeName(int index) const;
     std::vector<int> getNodes() const;
+    void removeSingleConnections();
+    Rcpp::List graphToRList() const;
 };
 
-Rcpp::List graphToRList(const Graph& G);
 // listToGraph
 Graph listToGraph(const Rcpp::List& graphList);
 

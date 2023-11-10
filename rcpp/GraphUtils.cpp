@@ -35,20 +35,18 @@ std::vector<int> Graph::getNodes() const {
     return nodes;
 }
 
-Rcpp::List graphToRList(const Graph& G) {
-    int n = G.n;
-
+Rcpp::List Graph::graphToRList() const {
     Rcpp::CharacterVector from;
     Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
 
-    for (int i = 0; i < n; i++) {
-        std::string fromNode = G.getNodeName(i);
-        for (std::vector<int>::size_type j = 0; j < G.adj[i].size(); j++) {
-            std::string toNode = G.getNodeName(G.adj[i][j]);
+    for (int i : getNodes()) {
+        std::string fromNode = getNodeName(i);
+        for (std::vector<int>::size_type j = 0; j < adj[i].size(); j++) {
+            std::string toNode = getNodeName(adj[i][j]);
             from.push_back(fromNode);
             to.push_back(toNode);
-            weight.push_back(G.weights[i][j]);
+            weight.push_back(weights[i][j]);
         }
     }
 
@@ -95,6 +93,38 @@ Graph listToGraph(const Rcpp::List& graphList) {
     return G;
 }
 
+void Graph::removeSingleConnections() {
+    std::vector<int> nodesToRemove;
+
+    for (int i : getNodes()) {
+        if (adj[i].size() == 1) {
+            // Node has only one connection, mark for removal
+            nodesToRemove.push_back(i);
+        }
+    }
+
+   for (int i : nodesToRemove) {
+       // Remove node from nodeIndexMap
+       nodeIndexMap.erase(getNodeName(i));
+
+       // Remove node from adj
+       adj.erase(adj.begin() + i);
+
+       // Remove node from weights
+       weights.erase(weights.begin() + i);
+
+       // Remove node from adj and weights of other nodes
+       for (int j : getNodes()) {
+           for (std::vector<int>::size_type k = 0; k < adj[j].size(); k++) {
+               if (adj[j][k] == i) {
+                   adj[j].erase(adj[j].begin() + k);
+                   weights[j].erase(weights[j].begin() + k);
+               }
+           }
+       }
+   }
+}
+
 // [[Rcpp::export]]
 Rcpp::List createGraphFromMatrix(const Rcpp::NumericMatrix& edgeWeights) {
     Graph G(edgeWeights.nrow());
@@ -107,12 +137,13 @@ Rcpp::List createGraphFromMatrix(const Rcpp::NumericMatrix& edgeWeights) {
         }
     }
 
-    return graphToRList(G);
+    return G.graphToRList();
 }
 
 // [[Rcpp::export]]
 Rcpp::List createGraphFromList(const Rcpp::List& graphList) {
-    Graph G = listToGraph(graphList);
-    return graphToRList(G);
+    Graph G = listToGraph(graphList); // Convert R list
+    G.removeSingleConnections();
+    return G.graphToRList();
 }
 
