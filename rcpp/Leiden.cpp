@@ -7,26 +7,20 @@
 ############################ COMMUNITY CLASS ###################################
 */
 // Construct a community base on a set of node indices, and a community index
-Community::Community(const std::vector<int>& nodes, int index) {
-    this->nodeIndices = nodes;
-    this->communityIndex = index;
-    this->number_of_nodes = nodes.size();
-
-}
-
+Community::Community(const std::vector<int>& nodes, int index)
+    : number_of_nodes(nodes.size()), nodeIndices(nodes), communityIndex(index) {}
 /*
 ################################################################################
 ############################ PARTITION CLASS ###################################
 */
 // Construct a partition based on a set of communities
-Partition::Partition(const std::vector<Community>& communities) {
-    this->communities = communities;
+Partition::Partition(const std::vector<Community>& communities) : communities(communities) {
     // Populate communityIndices based on the communities in the partition
-    for (int i = 0; i < communities.size(); i++) {
+    for (size_t i = 0; i < communities.size(); i++) {
         this->communityIndices.push_back(communities[i].communityIndex);
     }
     // Populate communityIndexMap based on the communities in the partition
-    for (int i = 0; i < communities.size(); i++) {
+    for (size_t i = 0; i < communities.size(); i++) {
         this->communityIndexMap.insert({communities[i].communityIndex, communities[i]});
     }
 }
@@ -74,12 +68,10 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
 ################################################################################
 ############################ OPTIMIZER CLASS ###################################
 */
-// Construct an optimizer based on a graph and a partition
-Optimizer::Optimizer(const Graph& G) {
-    this->G = G;
-    this->P = initializePartition(G);
-}
 
+
+// Construct an optimizer based on a graph and a partition
+Optimizer::Optimizer(const Graph& G, const Partition& P) : G(G), P(P) {}
 
 /*
 Partition Optimizer::moveNodesFast() {
@@ -122,7 +114,7 @@ Partition Optimizer::optimize() {
 }
 
 */
-Partition Optimizer::initializePartition() {
+Partition initializePartition(const Graph& G) {
     std::vector<Community> communities;
 
     // Assign each node to its own community
@@ -136,7 +128,6 @@ Partition Optimizer::initializePartition() {
     Partition P(communities);
 
     return P;
-
 }
 
 // [[Rcpp::export]]
@@ -145,9 +136,10 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     // Create a graph from the R List
     // use listToGraph from GraphUtils.cpp
     Graph G = listToGraph(graphList);
+    Partition P = initializePartition(G);
 
     // Create an Optimizer
-    Optimizer optim(G);
+    Optimizer optim(G, P);
 
     for (int i = 0; i < iterations; i++) {
         // Run the Leiden algorithm
@@ -157,7 +149,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // get the communities from the partition
     std::vector<int> communities;
-    for (int i = 0; i < P.communities.size(); i++) {
+    for (size_t i = 0; i < P.communities.size(); i++) {
         communities.push_back(P.communities[i].communityIndex);
     }
 
