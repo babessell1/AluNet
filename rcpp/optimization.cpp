@@ -35,9 +35,9 @@
 
 // [[Rcpp::export]]
 double Optimization::optimization_partition(
-    Rcpp::vector<Partition*> partitions, 
-    Rcpp::vector<double> weights, 
-    Rcpp::vector<bool> const& is_memeber_fixed, 
+    std::vector<Partition*> partitions, 
+    std::vector<double> weights, 
+    std::vector<bool> const& is_memeber_fixed, 
     size_t max_common_size){
 
 
@@ -52,7 +52,8 @@ double Optimization::optimization_partition(
     }
 
     // get the resulting graph of the layers
-    Rcpp::vector<Graph*> graphs(number_of_classifications);
+    // initialization of the graph structure
+    std::vector<Graph*> graphs(number_of_classifications);
     for(size_t i = 0; i < number_of_classifications; i++){
         graphs[i] = partitions[i]->get_graph(); // return the graphs of the specific partition i;
     }
@@ -61,17 +62,19 @@ double Optimization::optimization_partition(
     // we only take the fist one
 
     // when initializing, we have number_of_nodes == 1.
-    size_t number_of_nodes = graphs[0]->number_of_nodes(); 
+    std::vector<int> get_nodes = graphs[0]->getNodes();
+    
+    size_t number_of_nodes = get_nodes.size(); 
     // check and if not, we should throw an error
     
     for(size_t i = 0; i < number_of_classifications; i++){
-        if(graphs[i]->number_of_nodes() != number_of_nodes)
+        if(graphs[i]->getNodes().size() != number_of_nodes)
             throw Exception("Number of nodes are not equal for all graphs.");
     }
 
     // we should fix some membership for fixed nodes
-    Rcpp::vector<size_t> fixed_nodes;
-    Rcpp::vector<size_t> fixed_membership(number_of_nodes);
+    std::vector<size_t> fixed_nodes;
+    std::vector<size_t> fixed_membership(number_of_nodes);
 
     // is_member_fixed is a vector that contains whether j is fixed
     for(size_t j = 0; j < number_of_nodes; j++){
@@ -84,8 +87,8 @@ double Optimization::optimization_partition(
     // initialize the vector of collapsed graphs for all layers
     // collapsing graphs is a part of a layer-by-layer optimization process
     // where the partition is optimized at each level.
-    Rcpp::vector<Graph* > collapsed_graphs(number_of_classifications);
-    Rcpp::vector<Partitions*> collapsed_partitions(number_of_classifications);
+    std::vector<Graph* > collapsed_graphs(number_of_classifications);
+    std::vector<Partitions*> collapsed_partitions(number_of_classifications);
 
     for(size_t j = 0; j < number_of_classifications; j++){
         collapsed_graphs[j] = graphs[j];
@@ -94,11 +97,11 @@ double Optimization::optimization_partition(
 
     // Declare which nodes in the collapsed graph are fixed, which to start is
     // simply equal to is_membership_fixed
-    Rcpp::vector<bool> is_collpased_membership_fixed(is_memeber_fixed);
+    std::vector<bool> is_collpased_membership_fixed(is_memeber_fixed);
 
     // start a vector indicating the aggregating node (initilizing with n)
     // and it maps from the original node to the corresponding aggregated nodes.
-    Rcpp::vector<size_t> aggregate_node_per_individual_node = range(number_of_nodes);
+    std::vector<size_t> aggregate_node_per_individual_node = range(number_of_nodes);
 
     // now we define whether it is possible to further refine
     bool aggregate_further = true; // give a flag
@@ -132,10 +135,10 @@ double Optimization::optimization_partition(
         // collapse graph
         // if refine the graph, we separate communities in slightly more
         // fine-grained parts for which we collapse the graph.
-        Rcpp::vector<Paritions* > sub_collapsed_partitions(number_of_classifications);
+        std::vector<Paritions* > sub_collapsed_partitions(number_of_classifications);
 
-        Rcpp::vector<Graph*> new_collapsed_graph(number_of_classifications);
-        Rcpp::vector<Partitions* > new_collapsed_partitions(number_of_classifications);
+        std::vector<Graph*> new_collapsed_graph(number_of_classifications);
+        std::vector<Partitions* > new_collapsed_partitions(number_of_classifications);
     
         if(this->refine_partition){
             // first create a new partition, which should be a sub partition
@@ -168,16 +171,16 @@ double Optimization::optimization_partition(
         }
 
         // determine the membership for the collapsed graph
-        Rcpp::vector<size_t> new_collapsed_membership(new_collapsed_graph[0]->number_of_nodes());
+        std::vector<size_t> new_collapsed_membership(new_collapsed_graph[0]->getNodes().size());
 
-        for(size_t i = 0; i < collapsed_graphs[0]->number_of_nodes(); i++){
+        for(size_t i = 0; i < collapsed_graphs[0]->getNodes().size(); i++){
             size_t new_aggregate_node = sub_collapsed_partitions[0]->membership(i);
             new_collapsed_membership[new_aggregate_node] = collapsed_partitions[0]->membership(i);
         }
 
         // determine which collapsed nodes are fixed
         is_collapsed_membership_fixed.clear();
-        is_collapsed_membership_fixed.resize(new_collapsed_graphs[0]->number_of_nodes(), false);
+        is_collapsed_membership_fixed.resize(new_collapsed_graphs[0]->getNodes().size(), false);
         for(size_t i = 0; i < number_of_nodes; i++){
             if(is_memeber_fixed[i]){
                 is_collapsed_membership_fixed[aggregate_node_per_individual_node[i]] = true;
@@ -209,7 +212,7 @@ double Optimization::optimization_partition(
     }
 
     // If not all memberships are fixed, then check if there has been any changes since the last time
-    aggregate_further &= (new_collapsed_graphs[0]->number_of_nodes()) && (collapsed_graphs[0]->number_of_nodes() > collapsed_partitions[0]->number_of_communities());
+    aggregate_further &= (new_collapsed_graphs[0]->getNodes().size()) && (collapsed_graphs[0]->getNodes().size() > collapsed_partitions[0]->number_of_communities());
     
     // delete the collapsed partitions and graphs
     for(size_t j = 0; j < number_of_classifications; j++){
@@ -255,23 +258,16 @@ double Optimization::optimization_partition(
   return improv;
 }
 
-double Optimization::move_nodes(Rcpp::vector<Partition*> partitions, Rcpp::vector<double> weights, Rcpp::vector<bool> const& is_member_fixed, size_t max_community_size)
+double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<double> weights, std::vector<bool> const& is_member_fixed, size_t max_community_size)
 {
-
-    // the first criterion is to find all the unchangeable items
-    // i.e., fixed nodes are stable ones
-
-    // skip these nodes when using gready algorithm to find improvements
-
-    // delete empty communities so that we won't have uncessary commons
-
-    // mark all changable neighbors as unstable and rerun the function
-    // to find all chengable.
+    // check the number of partitions
+    // Define number_of_classifications as the size of the partitions vector
     size_t number_of_classifications = partitions.size();
     if (number_of_classifications == 0) {
         return -1.0;
     }
-    Rcpp::vector<Graph*> graphs(number_of_classifications);
+    // Create a vector of Graph pointers with the size of the number of partitions
+    std::vector<Graph*> graphs(number_of_classifications);
     for (size_t i = 0; i < number_of_classifications; i++) {
         graphs[i] = partitions[i]->get_graph();
     }
@@ -279,15 +275,17 @@ double Optimization::move_nodes(Rcpp::vector<Partition*> partitions, Rcpp::vecto
     // number of nodes in the graph
     // just like the explannation in the optimization function
     // the number of nodes should be equal
-    size_t number_of_nodes = graphs[0]->number_of_nodes();
-    
+    // Define the number_of_nodes as the size of the node set in the first graph
+    size_t number_of_nodes = graphs[0]->getNodes().size();
 
     // get the fixed membership from the iterations
     // we should fix some membership for fixed nodes
-    Rcpp::vector<size_t> fixed_nodes;
-    Rcpp::vector<size_t> fixed_membership(number_of_nodes);
+    // Initialize a vector for fixed_nodes and fixed_membership using number_of_nodes
+    std::vector<size_t> fixed_nodes;
+    std::vector<size_t> fixed_membership(number_of_nodes);
 
     // is_member_fixed is a vector that contains whether j is fixed
+    // Populate fixed_nodes and fixed_membership for each node that is fixed
     for (size_t j = 0; j < number_of_nodes; j++) {
         if (is_memeber_fixed[j]) { // if fixed
             fixed_nodes.push_back(j);
@@ -295,6 +293,138 @@ double Optimization::move_nodes(Rcpp::vector<Partition*> partitions, Rcpp::vecto
         }
     }
 
-    
+    double total_improvement = 0.0;
+    // Assert the node size of each graph is equal to number_of_nodes
+    for(Graph* graph: graphs){
+        if(graph->getNodes().size() != n){
+            throw Exception("Number of nodes are not equal for all graphs.");
+        }
+    }
+
+    int number_of_moves = 0; // initialize number_of_moves to 0
+    // Copy is_member_fixed into is_node_stable
+    std::vector<bool> is_node_stable(is_member_fixed);
+
+    // now we first establish the number of the 
+    // we should shuffle the order which is greedy
+    // and we should use queue to operate the result
+    // Create a vector to hold nodes that are not fixed
+    std::vector<size_t> nodes;
+    for(size_t i = 0; i != is_member_fixed.size(); i++){
+        if(!is_member_fixed[i]){
+            nodes.push_back(i);
+        }
+    }
+
+    // then we should resample the nodes
+    resample()
+    // Initialize a queue using the nodes in the current order
+    std::deque<size_t> vertex_order(nodes.begin(), nodes.end());
+
+    // itialize a vector for storing the combined community and initialize a vector for communities
+    std::vector<bool> combined_community(partitions[0]->number_of_communities(), false);
+    std::vector<size_t> communities;
+
+    // repeat the process until the queue is empty
+    // Process nodes in the order from the queue
+    while(!vertex_order.empty()){
+        size_t first_vertex = vertex_order.front(); vertex_order.pop_front();
+        
+        // Clear comms
+        // Clear previous community assignments
+        for (size_t comm : communities)
+            combined_community[comm] = false;
+        communities.clear();
+
+        // current community
+        // Assign current node's community
+        size_t first_vertex_community = partitions[0]->membership(first_vertex);
+        // Initialize current node's community
+        for(size_t community = 0; community < partitions[0]->number_of_communities(); community++){
+            for(size_t i = 0; i < number_of_classifications; i++){
+                if(partitions[i]->number_of_nodes_in_community(community) > 0 && !combined_community[community]){
+                    communities.push_back(community);
+                    combined_community[community] = true;
+                    break; // Break from for loop in layer
+                }
+            }
+        }
+        // Initialize max_community and max_improvement
+        size_t max_community = first_vertex_community;
+        double max_improvement = (0 < max_community_size && max_community_size < partitions[0]->community_size(first_vertex_community) ? -INFINITY : 10 * DBL_EPSILON);
+        double v_size = graphs[0]->size_of_nodes(first_vertex);
+        
+        // this is the key part
+        // Evaluate best community to move current node
+        for (size_t comm : communities){
+            // If the community is too large, continue
+            if(0 < max_community_size && max_community_size < partitions[0]->community_size(comm) + v_size){
+                continue;
+            }
+
+            double possible_improv = 0.0;
+
+            // Evaluate improvement of moving for each partition
+            for (size_t i = 0; i < number_of_classifications; i++){
+                // Make sure to multiply it by the weight per layer
+                // use the function that returns the difference of moving this node to another community.
+                possible_improv += weights[i] * partitions[i]->diff_move(first_vertex, comm);
+
+            }
+            // Update maximum improvement and community
+            if (possible_improv > max_improv)
+            {
+                max_comm = comm;
+                max_improv = possible_improv;
+            }
+        }
+        // Clear communities for next node
+        // Clear comms
+        communities.clear();
+        is_node_stable[first_vertex] = true;
+
+        // If we actually plan to move the nove
+        if (max_comm != first_vertex_community)
+        {
+        // Keep track of improvement
+            total_improvement += max_improv;
+
+            for (size_t i = 0; i < number_of_classifications; i++){
+                Partitions* partition = partitions[i];
+                partition->move_node(first_vertex, max_comm);
+            }
+
+            // Mark neighbours as unstable (if not in new community and not fixed)
+            // Update stability of neighboring nodes
+             for (Graph* graph : graphs)
+            {
+                for (size_t u : graph->get_neighbours(first_vertex)){
+                    
+                    if (is_node_stable[u] && partitions[0]->membership(u) != max_comm && !is_membership_fixed[u])
+                    {
+                        vertex_order.push_back(u);
+                        is_node_stable[u] = false;
+                    }
+                }
+            }
+            // Keep track of number of moves
+            number_of_moves += 1;
+        }
+    }
+
+//Renumber the communities so that they are numbered 0,...,q-1 where q is
+// the number of communities. This also removes any empty communities, as they
+// will not be given a new number.
+    // Renumber communities to remove any gaps
+    partitions[0]->renumber_communities();
+    if(renumber_fixed_nodes)
+        partitions[0]->renumber_communities(fixed_nodes, fixed_membership);
+    vector<size_t> const& membership = partitions[0]->membership();
+    // Replicate membership across partitions
+    for (size_t i = 1; i < number_of_classifications; i++)
+    {
+        partitions[i]->set_membership(membership);
+    }
+    return total_improvement;
 }
 

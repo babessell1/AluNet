@@ -1,15 +1,8 @@
 #ifndef OPTIMIZATION_H
 #define OPTIMIZATION_H
 
-#include <Rcpp.h>
-using namespace Rcpp;
-
-#include <iostream>
-
-#include <vector>
-#include <set>
-#include <map>
-#include <cfloat>
+#include "Leiden.h"
+#include <deque>
 /*
     These packages should be included in our code,
     but we should modify it if Rcpp not supports these.
