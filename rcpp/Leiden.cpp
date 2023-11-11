@@ -124,7 +124,8 @@ double Optimizer::constantPotts(double gamma) const {
     double objective = 0.0;
     // Implement the constant Potts model objective function
     // Placeholder, replace with actual logic
-    return objective;
+    
+    return H;
 }
 
 */

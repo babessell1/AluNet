@@ -39,6 +39,21 @@ std::vector<int> Graph::getNodes() const {
     return nodes;
 }
 
+// get neighbors of a node based on index
+std::vector<int> Graph::getNeighbors(int nodeIndex) const {
+    return adj[nodeIndex];
+}
+
+// get weight of an edge based on node indices
+double Graph::getWeight(int u, int v) const {
+    for (std::vector<int>::size_type i = 0; i < adj[u].size(); i++) {
+        if (adj[u][i] == v) {
+            return weights[u][i];
+        }
+    }
+    Rcpp::stop("Edge not found: " + std::to_string(u) + " " + std::to_string(v));
+}
+
 // convert custom graph object to R list
 Rcpp::List Graph::graphToRList() const {
     Rcpp::CharacterVector from;

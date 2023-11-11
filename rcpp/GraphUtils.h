@@ -20,6 +20,8 @@ public:
     std::vector<int> getNodes() const;
     void removeSingleConnections();
     Rcpp::List graphToRList() const;
+    std::vector<int> getNeighbors(int nodeIndex) const;
+    double getWeight(int u, int v) const;
 };
 
 // listToGraph
