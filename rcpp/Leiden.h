@@ -41,6 +41,8 @@ public:
         return communities[communityIndex].size();
     }
     double quality(double resolution_parameter);
+    void renumber_communities();
+    void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership);
 };
 
 class Optimizer {
