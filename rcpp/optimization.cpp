@@ -252,7 +252,7 @@ double Optimization::optimization_partition(
     // Loop over all other partitions, set their membership to the one from partition[0] and add their quality to the total quality
   for (size_t j = 1; j < number_of_classifications; j++)
   {
-    partitions[j]->set_membership(membership);
+    partitions[j]->updateCommunityMembership(membership);
     quality_score += partitions[j]->quality()*layer_weights[j];
   }
   return improv;
@@ -423,8 +423,7 @@ double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<
     // Replicate membership across partitions
     for (size_t i = 1; i < number_of_classifications; i++)
     {
-        partitions[i]->set_membership(membership);
+        partitions[i]->updateCommunityMembership(membership);
     }
     return total_improvement;
 }
-
