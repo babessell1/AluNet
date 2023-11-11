@@ -258,7 +258,7 @@ double Optimization::optimization_partition(
   return improv;
 }
 
-double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<double> weights, std::vector<bool> const& is_member_fixed, size_t max_community_size)
+double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<double> weights, std::vector<bool> const& is_member_fixed, size_t max_community_size, bool renumber_fixed_nodes)
 {
     // check the number of partitions
     // Define number_of_classifications as the size of the partitions vector
@@ -286,10 +286,12 @@ double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<
 
     // is_member_fixed is a vector that contains whether j is fixed
     // Populate fixed_nodes and fixed_membership for each node that is fixed
-    for (size_t j = 0; j < number_of_nodes; j++) {
-        if (is_memeber_fixed[j]) { // if fixed
-            fixed_nodes.push_back(j);
-            fixed_membership[j] = partitions[0]->membership(j);
+    if(renumber_fixed_nodes){
+        for (size_t j = 0; j < number_of_nodes; j++) {
+            if (is_memeber_fixed[j]) { // if fixed
+                fixed_nodes.push_back(j);
+                fixed_membership[j] = partitions[0]->membership(j);
+            }
         }
     }
 
@@ -426,4 +428,88 @@ double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<
         partitions[i]->updateCommunityMembership(membership);
     }
     return total_improvement;
+}
+
+
+double Optimiser::merge_nodes(std::vector<Partition*> partitions, 
+    std::vector<double> weights, 
+    std::vector<bool> const& is_memeber_fixed, 
+    size_t max_common_size,
+    int consider_commons,
+    bool renumber_fixed_nodes)
+{
+    // number of classifications
+    size_t number_of_classifications = partitions.size();
+    if(number_of_classifications == 0){
+        return -1.0;
+    }
+
+    // get the graph and initialization of the graph using 0
+    std::vector<Graph*> graphs(number_of_classifications);
+    for(size_t i = 0; i < number_of_classifications; i++){
+        graphs[i] = partitions[i]->get_graph();
+    }
+
+    // number of nodes in the graph
+    size_t number_of_nodes = graphs[0]->getNodes().size(); 
+    // check and if not, we should throw an error
+
+    // we should fix some membership for fixed nodes
+    std::vector<size_t> fixed_nodes;
+    std::vector<size_t> fixed_membership(number_of_nodes);
+
+    // is_member_fixed is a vector that contains whether j is fixed
+    if(renumber_fixed_nodes){
+        for (size_t j = 0; j < number_of_nodes; j++) {
+            if (is_memeber_fixed[j]) { // if fixed
+                fixed_nodes.push_back(j);
+                fixed_membership[j] = partitions[0]->membership(j);
+            }
+        }
+    }
+
+    double total_improvement = 0.0;
+    // Assert the node size of each graph is equal to number_of_nodes
+    for(Graph* graph: graphs){
+        if(graph->getNodes().size() != n){
+            throw Exception("Number of nodes are not equal for all graphs.");
+        }
+    }
+
+    // Establish vertex order, skipping fixed nodes
+    std::vector<size_t> nodes;
+    for(size_t j = 0; j != number_of_nodes; j++){
+        if(!is_membership_fixed[j])
+            nodes.push_back(j);
+    }
+
+    // make it random just like the algorithm descriptions
+    shuffle();
+
+    // itialize a vector for storing the combined community and initialize a vector for communities
+    std::vector<bool> combined_community(partitions[0]->number_of_communities(), false);
+    std::vector<size_t> communities;
+
+    // Iterate over all nodes
+    for( size_t i : nodes){
+        size_t i_within_community = partition[0]->membership(i);
+        // Clear comms
+        for (size_t comm : communities){
+            combined_community[comm] = false;
+        }
+        communities.clear();
+
+        if(partitions[0]->number_of_nodes_in_community(comm) == 1){
+            for(size_t comm = 0; comm < partitions[0]->number_of_communities(); comm++){
+                for(size_t i = 0; i < number_of_classifications; i++){
+                    if(partitions[i]->number_of_nodes_in_community(comm) > 0 && !combined_community[comm]){
+                        communities.push_back(comm);
+                        combined_community[comm] = true;
+                        break; // Break from for loop in layer
+                    }
+                }
+            }
+        }
+    }
+
 }
