@@ -8,7 +8,42 @@
 */
 // Construct a community base on a set of node indices, and a community index
 Community::Community(const std::vector<std::vector<int>>& nodes, int index)
-    : number_of_nodes(nodes.size()), communityIndex(index), nodeIndices(nodes) {}
+    : communityIndex(index), nodeIndices(nodes) {}
+
+// get the sum of weights of all edges in the community
+double Community::aggregateWeights(Graph& G) {
+    double weight_sum = 0.0;
+    // for each subset of nodes in the community
+    for (std::vector<int>& subset : nodeIndices) {
+        // for each node in the subset
+        for (int& nodeIndex : subset) {
+            // get the neighbors of the node
+            std::vector<int> neighbors = G.getNeighbors(nodeIndex);
+            // for each neighbor of the node
+            for (int& neighborIndex : neighbors) {
+                // if the neighbor is in the community
+                if (std::find(subset.begin(), subset.end(), neighborIndex) != subset.end()) {
+                    // add the weight of the edge to the sum
+                    weight_sum += G.getWeight(nodeIndex, neighborIndex);
+                }
+            }
+        }
+    }
+    return weight_sum;
+}
+
+// get the number of nodes in the community
+size_t Community::size() {
+    int num_nodes = 0;
+    // for each subset of nodes in the community
+    for (std::vector<int>& subset : nodeIndices) {
+        // add the size of the subset to the sum
+        num_nodes += subset.size();
+    }
+    // convert num_nodes int to size
+    size_t c_size = num_nodes;
+    return c_size;
+}
 /*
 ################################################################################
 ############################ PARTITION CLASS ###################################
@@ -26,7 +61,7 @@ Partition::Partition(const std::vector<Community>& communities) : communities(co
 }
 
 // get indices of communities in the partition (different from node indices!)
-std::vector<int> Partition::getCommunityIndices() {
+std::vector<int> Partition::getCommunityIndices() const {
     // get community indices
     // from communityIndexMap
     std::vector<int> indices;
@@ -36,7 +71,6 @@ std::vector<int> Partition::getCommunityIndices() {
 
     return indices;
 }
-
 
 // flatten the partition, last step of the optimization step in the paper
  void Partition::flattenPartition() {
@@ -49,7 +83,7 @@ std::vector<int> Partition::getCommunityIndices() {
         // flatten the subsets
         std::vector<int> flat_set;
         for (std::vector<int>& subset : subsets) {
-            for (int nodeIndex : subset) {
+            for (int& nodeIndex : subset) {
                 flat_set.push_back(nodeIndex);
             }
         }
@@ -59,36 +93,66 @@ std::vector<int> Partition::getCommunityIndices() {
     }
 }
 
-
 void Partition::addCommunity(const Community& newCommunity) {
     // Add the new community to the communities vector
     communities.push_back(newCommunity);
-    // Update the communityIndexMap with the new community's index
-    communityIndexMap[newCommunity.communityIndex] = communities.size() - 1;
+    // update communityIndices
+    communityIndices.push_back(newCommunity.communityIndex);
+    // update communityIndexMap
+    communityIndexMap.insert({newCommunity.communityIndex, newCommunity});
 }
 
+// move a node from one community to another
 void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) {
-    // Check if the new community index is valid
+    // Check if the new community index is valid, note that it will be a vector if not the end
+    /* doesnt work
     if (communityIndexMap.find(newCommunityIndex) == communityIndexMap.end()) {
         Rcpp::stop("Invalid community index: " + std::to_string(newCommunityIndex));
     }
+    */
+    // Find the current community of the node, get the index of the community and remove the node from the community
+    for (auto& comm : communityIndexMap) {
+        auto& subsets = comm.second.nodeIndices;
 
-    // Find the current community of the node
-    for (auto& community : communities) {
-        auto& nodeIndices = community.nodeIndices;
-        auto it = std::find(nodeIndices.begin(), nodeIndices.end(), nodeIndex);
-        if (it != nodeIndices.end()) {
-            // Remove the node from its current community
-            nodeIndices.erase(it);
-            break;
+        // Use iterators to avoid issues with erasing elements while iterating
+        // we arent using a reference to the subset, because we are erasing elements from it
+        for (auto it = subsets.begin(); it != subsets.end(); ) {
+            auto& subset = *it;
+
+            // If the node is in the subset
+            auto nodeIt = std::find(subset.begin(), subset.end(), nodeIndex);
+            if (nodeIt != subset.end()) {
+                // Remove the node from the subset
+                // this will erase, even though subset is a const reference
+                // because it is a pointer to it which is not const?
+                subset.erase(nodeIt);
+
+                // If the subset is empty, remove the subset from the community
+                if (subset.empty()) {
+                    it = subsets.erase(it);
+                } else {
+                    ++it;
+                }
+
+                // Break the loop after finding and updating the node
+                break;
+            } else {
+                // Move to the next subset
+                ++it;
+            }
         }
     }
-
+    
     // Add the node to the new community
-    communities[communityIndexMap[newCommunityIndex]].nodeIndices.push_back(nodeIndex);
+    auto comm = communityIndexMap.find(newCommunityIndex);
+    if (comm != communityIndexMap.end()) {
+        auto& subsets = comm->second.nodeIndices;
+        subsets.push_back({nodeIndex});
+    }
 }
 
-double Partition::quality(double resolution_parameter) {
+/*
+double Partition::quality_messyImplementation(double resolution_parameter) {
     double mod = 0.0;
     for (size_t c = 0; c < this->number_of_communities(); c++) {
         double csize = this->community_size(c);
@@ -98,13 +162,7 @@ double Partition::quality(double resolution_parameter) {
     }
     return (2.0 - this->graph->is_directed()) * mod;
 }
-
-double Partition::total_weight_in_community(size_t communityIndex) {
-    double total_weight = 0.0;
-    // Implement logic to calculate total weight of edges within the community
-    // This will depend on how you've structured your Community and Graph classes
-    return total_weight;
-}
+*/
 
 /*
 void Partition::renumber_communities() {
@@ -159,12 +217,10 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
 }
 
 */
-
 /*
 ################################################################################
 ############################ OPTIMIZER CLASS ###################################
 */
-
 // Construct an optimizer based on a graph and a partition
 Optimizer::Optimizer(const Graph& G, const Partition& P) : G(G), P(P) {}
 
@@ -224,7 +280,6 @@ void Optimizer::optimize() {
     P.flattenPartition();
 }
 
-
 Partition initializePartition(const Graph& G) {
     std::vector<Community> communities;
 
@@ -242,7 +297,6 @@ Partition initializePartition(const Graph& G) {
 
     return P;
 }
-
 
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {

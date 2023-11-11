@@ -2,7 +2,10 @@
 using namespace Rcpp;
 #include "GraphUtils.h"
 
-Graph::Graph(int n) : n(n), adj(n), weights(n) {};
+Graph::Graph(int n) : n(n), adj(n), weights(n) {
+    isDirected = false;
+    possibleEdges = n * (n - 1) / 2;
+};
 
 // add new edge to the graph, give it the two node names to connect and the weight
 void Graph::addEdge(const std::string& u, const std::string& v, double w) {

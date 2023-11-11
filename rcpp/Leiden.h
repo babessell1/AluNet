@@ -7,13 +7,13 @@
 class Community {
 public:
     // properties
-    size_t number_of_nodes;
     int communityIndex; 
     std::vector<std::vector<int>> nodeIndices;  // node indices nested in their subset group
     
-    
     // methods
     Community(const std::vector<std::vector<int>>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
+    double aggregateWeights(Graph& G); // sum of weights of all edges in the community
+    size_t size(); // number of nodes in the community
 };
 
 class Partition {
@@ -25,7 +25,7 @@ public:
 
     // methods
     Partition(const std::vector<Community>& communities);
-    std::vector<int> getCommunityIndices();
+    std::vector<int> getCommunityIndices() const;
     void flattenPartition();
     void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //size_t number_of_nodes();
@@ -34,15 +34,9 @@ public:
     //void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //std::vector<int> getCommunityIndices();
     //int getCommunityIndex(int nodeIndex);
-    inline size_t number_of_nodes_in_community(size_t communityIndex) {
-        if (communityIndex >= communities.size()) {
-            Rcpp::stop("Invalid community index: " + std::to_string(communityIndex));
-        }
-        return communities[communityIndex].size();
-    }
-    double quality(double resolution_parameter);
-    void renumber_communities();
-    void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership);
+    //double quality(double resolution_parameter);
+    //void renumber_communities();
+    //void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership);
 };
 
 class Optimizer {
