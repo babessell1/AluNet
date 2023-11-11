@@ -42,11 +42,11 @@ public:
 class Optimizer {
 public:
     // properties
-    Graph G;
-    Partition P;
+    Graph& G;
+    Partition& P;
 
     // methods
-    Optimizer(const Graph& G, const Partition& P);
+    Optimizer(Graph& G, Partition& P);
     void optimize();
     //moveNodesFast();
     //Partition refinePartition() const;

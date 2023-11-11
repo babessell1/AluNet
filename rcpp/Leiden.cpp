@@ -114,9 +114,9 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
     for (auto& comm : communityIndexMap) {
         auto& subsets = comm.second.nodeIndices;
 
-        // Use iterators to avoid issues with erasing elements while iterating
-        // we arent using a reference to the subset, because we are erasing elements from it
+        // Find the subset containing the node
         for (auto it = subsets.begin(); it != subsets.end(); ) {
+            // be careful with the reference to the iterator
             auto& subset = *it;
 
             // If the node is in the subset
@@ -222,7 +222,7 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
 ############################ OPTIMIZER CLASS ###################################
 */
 // Construct an optimizer based on a graph and a partition
-Optimizer::Optimizer(const Graph& G, const Partition& P) : G(G), P(P) {}
+Optimizer::Optimizer(Graph& G, Partition& P) : G(G), P(P) {}
 
 /*
 Partition Optimizer::moveNodesFast() {
@@ -313,6 +313,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     // Create an Optimizer
     Optimizer optim(G, P);
 
+    // Run the Leiden algorithm for the specified number of iterations
     for (int i = 0; i < iterations; i++) {
         // Run the Leiden algorithm
         optim.optimize();
@@ -320,8 +321,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // get the communities from the partition
     std::vector<int> communities;
-    for (size_t i = 0; i < P.communities.size(); i++) {
-        communities.push_back(P.communities[i].communityIndex);
+    for (size_t i = 0; i < optim.P.communities.size(); i++) {
+        communities.push_back(optim.P.communities[i].communityIndex);
     }
 
     // Convert the vector of communities to an R List
@@ -330,7 +331,6 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     );
 
 
-    // return R integer 0 to R for now
     return result;
 
 
