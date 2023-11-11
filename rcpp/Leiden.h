@@ -27,12 +27,14 @@ public:
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices();
     void flattenPartition();
+    void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //size_t number_of_nodes();
-    //void addCommunity(const Community& newCommunity);
+    void addCommunity(const Community& newCommunity);
     //void removeCommunity(int communityIndex);
     //void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //std::vector<int> getCommunityIndices();
     //int getCommunityIndex(int nodeIndex);
+    double quality(double resolution_parameter);
 };
 
 class Optimizer {
