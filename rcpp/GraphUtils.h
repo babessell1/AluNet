@@ -20,6 +20,12 @@ public:
     std::vector<int> getNodes() const;
     void removeSingleConnections();
     Rcpp::List graphToRList() const;
+    inline double Graph::possible_edges(double csize) {// Assuming an undirected graph
+        return csize * (csize - 1) / 2; }
+
+    inline bool Graph::is_directed() {// Update this based on your Graph class implementation
+        return false; // or true if it's a directed graph
+    }
 };
 
 // listToGraph
