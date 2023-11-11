@@ -393,6 +393,7 @@ double Optimization::move_nodes(std::vector<Partition*> partitions, std::vector<
 
             for (size_t i = 0; i < number_of_classifications; i++){
                 Partitions* partition = partitions[i];
+                // actually move the nodes
                 partition->move_node(first_vertex, max_comm);
             }
 
@@ -509,7 +510,50 @@ double Optimiser::merge_nodes(std::vector<Partition*> partitions,
                     }
                 }
             }
+
+            size_t max_community = i_within_community;
+            double max_improvement = (0 < max_community_size && max_community_size < partitions[0]->community_size(i_within_community) ? -INFINITY : 0);
+            double v_size = graphs[0]->size_of_nodes(i);
+        
+            for(size_t comm : communities){
+                // Do not create too-large communities.
+                if(0 < max_community_size && max_community_size < partititions[0]->community_size(comm) + v_size){
+                    continue;
+                }
+                double possible_improv = 0;
+
+                for(size_t i = 0; i < number_of_classifications; i++){
+                    possible_improv += weights[i] * partitions[i]->diff_move(i_within_community, comm);
+                }
+
+                if(possible_improv >= max_improvement){
+                    max_community = comm;
+                    max_improvement = possible_improv;
+                }
+            }
+
+            if(max_community != i_within_community){
+                // Keep track of improvement
+                total_improv += max_improvement;
+
+                for(size_t i = 0; i < number_of_classifications; i++){
+                    Partition* partition = partitions[i];
+
+                    // actually move the node
+                    partition->move_node(v, max_comm);
+                }
+            }
         }
     }
+
+    partitions[0]->renumber_communities();
+    if (renumber_fixed_nodes)
+        partitions[0]->renumber_communities(fixed_nodes, fixed_membership);
+    std::vector<size_t> const& membership = partitions[0]->membership();
+    for(size_t i = 0; i < number_of_classifications; i++){
+        partitions[i]->updateCommunityMembership(membership);
+    }
+
+    return total_improvement;
 
 }
