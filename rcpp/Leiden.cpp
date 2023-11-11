@@ -107,6 +107,32 @@ double Partition::total_weight_in_community(size_t communityIndex) {
 }
 
 /*
+void Partition::renumber_communities() {
+    std::unordered_map<size_t, size_t> newCommunityIndices;
+    size_t newIndex = 0;
+
+    // Remove empty communities first
+    communities.erase(std::remove_if(communities.begin(), communities.end(),
+                                     [](const Community& community) { return community.nodeIndices.empty(); }),
+                      communities.end());
+
+    // Assign new indices to communities
+    for (auto& community : communities) {
+        size_t oldIndex = community.communityIndex;
+        if (newCommunityIndices.find(oldIndex) == newCommunityIndices.end()) {
+            newCommunityIndices[oldIndex] = newIndex++;
+        }
+        community.communityIndex = newCommunityIndices[oldIndex];
+    }
+
+    // Rebuild the communityIndexMap to reflect the new indexing
+    communityIndexMap.clear();
+    for (size_t i = 0; i < communities.size(); ++i) {
+        communityIndexMap[communities[i].communityIndex] = i;
+    }
+}
+*/
+/*
 size_t Partition::number_of_nodes() {
     // Implement the logic to return the number of nodes in the partition
     return graph.n; // Assuming n is the number of nodes in the graph
