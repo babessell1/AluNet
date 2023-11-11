@@ -59,6 +59,53 @@ std::vector<int> Partition::getCommunityIndices() {
     }
 }
 
+
+void Partition::addCommunity(const Community& newCommunity) {
+    // Add the new community to the communities vector
+    communities.push_back(newCommunity);
+    // Update the communityIndexMap with the new community's index
+    communityIndexMap[newCommunity.communityIndex] = communities.size() - 1;
+}
+
+void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) {
+    // Check if the new community index is valid
+    if (communityIndexMap.find(newCommunityIndex) == communityIndexMap.end()) {
+        Rcpp::stop("Invalid community index: " + std::to_string(newCommunityIndex));
+    }
+
+    // Find the current community of the node
+    for (auto& community : communities) {
+        auto& nodeIndices = community.nodeIndices;
+        auto it = std::find(nodeIndices.begin(), nodeIndices.end(), nodeIndex);
+        if (it != nodeIndices.end()) {
+            // Remove the node from its current community
+            nodeIndices.erase(it);
+            break;
+        }
+    }
+
+    // Add the node to the new community
+    communities[communityIndexMap[newCommunityIndex]].nodeIndices.push_back(nodeIndex);
+}
+
+double Partition::quality(double resolution_parameter) {
+    double mod = 0.0;
+    for (size_t c = 0; c < this->number_of_communities(); c++) {
+        double csize = this->community_size(c);
+        double w = this->total_weight_in_community(c);
+        double comm_possible_edges = this->graph->possible_edges(csize);
+        mod += w - resolution_parameter * comm_possible_edges;
+    }
+    return (2.0 - this->graph->is_directed()) * mod;
+}
+
+double Partition::total_weight_in_community(size_t communityIndex) {
+    double total_weight = 0.0;
+    // Implement logic to calculate total weight of edges within the community
+    // This will depend on how you've structured your Community and Graph classes
+    return total_weight;
+}
+
 /*
 size_t Partition::number_of_nodes() {
     // Implement the logic to return the number of nodes in the partition

@@ -27,12 +27,20 @@ public:
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices();
     void flattenPartition();
+    void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //size_t number_of_nodes();
-    //void addCommunity(const Community& newCommunity);
+    void addCommunity(const Community& newCommunity);
     //void removeCommunity(int communityIndex);
     //void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //std::vector<int> getCommunityIndices();
     //int getCommunityIndex(int nodeIndex);
+    inline size_t number_of_nodes_in_community(size_t communityIndex) {
+        if (communityIndex >= communities.size()) {
+            Rcpp::stop("Invalid community index: " + std::to_string(communityIndex));
+        }
+        return communities[communityIndex].size();
+    }
+    double quality(double resolution_parameter);
 };
 
 class Optimizer {
