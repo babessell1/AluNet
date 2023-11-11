@@ -4,6 +4,7 @@ using namespace Rcpp;
 
 Graph::Graph(int n) : n(n), adj(n), weights(n) {};
 
+// add new edge to the graph, give it the two node names to connect and the weight
 void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     int uIndex = getNodeIndex(u);
     int vIndex = getNodeIndex(v);
@@ -11,6 +12,7 @@ void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     weights[uIndex].push_back(w);
 }
 
+// get node index from node name
 int Graph::getNodeIndex(const std::string& node) const {
     if (nodeIndexMap.find(node) != nodeIndexMap.end()) {
         return nodeIndexMap.at(node);
@@ -18,6 +20,7 @@ int Graph::getNodeIndex(const std::string& node) const {
     Rcpp::stop("Node not found: " + node);
 }
 
+// get node name from node index
 std::string Graph::getNodeName(int index) const {
     for (const auto& entry : nodeIndexMap) {
         if (entry.second == index) {
@@ -27,6 +30,7 @@ std::string Graph::getNodeName(int index) const {
     Rcpp::stop("Index not found: " + std::to_string(index));
 }
 
+// get all node indices in the graph
 std::vector<int> Graph::getNodes() const {
     std::vector<int> nodes;
     for (const auto& entry : nodeIndexMap) {
@@ -35,6 +39,7 @@ std::vector<int> Graph::getNodes() const {
     return nodes;
 }
 
+// convert custom graph object to R list
 Rcpp::List Graph::graphToRList() const {
     Rcpp::CharacterVector from;
     Rcpp::CharacterVector to;
@@ -59,6 +64,7 @@ Rcpp::List Graph::graphToRList() const {
     return result;
 }
 
+// convert R list to custom graph object
 Graph listToGraph(const Rcpp::List& graphList) {
     Rcpp::CharacterVector from = graphList["from"];
     Rcpp::CharacterVector to = graphList["to"];
@@ -89,10 +95,12 @@ Graph listToGraph(const Rcpp::List& graphList) {
 
         G.addEdge(fromNode, toNode, w);
     }
-
+    G.removeSingleConnections();
     return G;
 }
 
+// trim the graph by removing nodes with only one connection
+// might consider defining a minimum number of connections to keep
 void Graph::removeSingleConnections() {
     std::vector<int> nodesToRemove;
 
@@ -116,15 +124,21 @@ void Graph::removeSingleConnections() {
        // Remove node from adj and weights of other nodes
        for (int j : getNodes()) {
            for (std::vector<int>::size_type k = 0; k < adj[j].size(); k++) {
+
                if (adj[j][k] == i) {
                    adj[j].erase(adj[j].begin() + k);
                    weights[j].erase(weights[j].begin() + k);
+                   // remove from the map
                }
            }
        }
    }
+   // reset the number of nodes
+   n = nodeIndexMap.size(); 
 }
 
+// create custorm graph object from R matrix (adjacency matrix)
+// might not work anymore
 // [[Rcpp::export]]
 Rcpp::List createGraphFromMatrix(const Rcpp::NumericMatrix& edgeWeights) {
     Graph G(edgeWeights.nrow());
@@ -140,10 +154,10 @@ Rcpp::List createGraphFromMatrix(const Rcpp::NumericMatrix& edgeWeights) {
     return G.graphToRList();
 }
 
+// create custom graph object from R list
 // [[Rcpp::export]]
 Rcpp::List createGraphFromList(const Rcpp::List& graphList) {
     Graph G = listToGraph(graphList); // Convert R list
-    G.removeSingleConnections();
     return G.graphToRList();
 }
 

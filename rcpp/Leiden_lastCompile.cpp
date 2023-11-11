@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 #include "GraphUtils.h"
-#include "Leiden.h"
+#include "Leiden_lastCompile.h"
 
 /*
 ################################################################################

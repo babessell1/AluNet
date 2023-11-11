@@ -8,13 +8,12 @@ class Community {
 public:
     // properties
     size_t number_of_nodes;
-    int communityIndex;  // Index for the community
-    // set property through constructor
-    std::vector<std::vector<int>> nodeIndices;  // Store node indices associated with the community in their subset structure
+    int communityIndex; 
+    std::vector<std::vector<int>> nodeIndices;  // node indices nested in their subset group
     
     
-    // methods rember to convert input to vector in a vector
-    Community(const std::vector<std::vector<int>>& nodes, int index);
+    // methods
+    Community(const std::vector<std::vector<int>>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
 };
 
 class Partition {
