@@ -124,8 +124,8 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
 // Function to get the community of a given vertex
 size_t get_community_of_vertex(size_t vertex) {
   // Check if the vertex is in the map
-  auto it = vertex_to_community_map.find(vertex);
-  if (it != vertex_to_community_map.end()) {      
+  auto it = communityIndexMap.find(vertex);
+  if (it != communityIndexMap.end()) {      
     // Return the community of the vertex
     return it->second;
   } else {
@@ -133,6 +133,7 @@ size_t get_community_of_vertex(size_t vertex) {
       throw std::runtime_error("Vertex not found in the partition");
     }
   }
+
 
 double Partition::diff_move(size_t vertex, size_t new_community){
   // calculate the difference between moving vertex to a new community
