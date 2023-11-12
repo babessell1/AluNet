@@ -2,9 +2,15 @@
 using namespace Rcpp;
 #include "GraphUtils.h"
 
-Graph::Graph(int n) : n(n), adj(n), weights(n) {
+/*
+##############################################
+####### GRAPH CLASS FUNCTIONS ################
+*/
+Graph::Graph(int n) : n(n), adj(n), edge_weights(n) {
     isDirected = false;
     possibleEdges = n * (n - 1) / 2;
+    // for now, all nodes have the same weight
+    node_weights = std::vector<int>(n, 1);
 };
 
 // add new edge to the graph, give it the two node names to connect and the weight
@@ -12,7 +18,7 @@ void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     int uIndex = getNodeIndex(u);
     int vIndex = getNodeIndex(v);
     adj[uIndex].push_back(vIndex);
-    weights[uIndex].push_back(w);
+    edge_weights[uIndex].push_back(w);
 }
 
 // get node index from node name
@@ -51,7 +57,7 @@ std::vector<int> Graph::getNeighbors(int nodeIndex) const {
 double Graph::getWeight(int u, int v) const {
     for (std::vector<int>::size_type i = 0; i < adj[u].size(); i++) {
         if (adj[u][i] == v) {
-            return weights[u][i];
+            return edge_weights[u][i];
         }
     }
     Rcpp::stop("Edge not found: " + std::to_string(u) + " " + std::to_string(v));
@@ -69,7 +75,7 @@ Rcpp::List Graph::graphToRList() const {
             std::string toNode = getNodeName(adj[i][j]);
             from.push_back(fromNode);
             to.push_back(toNode);
-            weight.push_back(weights[i][j]);
+            weight.push_back(edge_weights[i][j]);
         }
     }
 
@@ -81,7 +87,10 @@ Rcpp::List Graph::graphToRList() const {
 
     return result;
 }
-
+/*
+##############################################
+####### R INTERFACE FUNCTIONS ################
+*/
 // convert R list to custom graph object
 Graph listToGraph(const Rcpp::List& graphList) {
     Rcpp::CharacterVector from = graphList["from"];
@@ -137,7 +146,7 @@ void Graph::removeSingleConnections() {
        adj.erase(adj.begin() + i);
 
        // Remove node from weights
-       weights.erase(weights.begin() + i);
+       edge_weights.erase(edge_weights.begin() + i);
 
        // Remove node from adj and weights of other nodes
        for (int j : getNodes()) {
@@ -145,7 +154,7 @@ void Graph::removeSingleConnections() {
 
                if (adj[j][k] == i) {
                    adj[j].erase(adj[j].begin() + k);
-                   weights[j].erase(weights[j].begin() + k);
+                   edge_weights[j].erase(edge_weights[j].begin() + k);
                    // remove from the map
                }
            }

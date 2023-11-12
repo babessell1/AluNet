@@ -8,11 +8,12 @@ class Community {
 public:
     // properties
     int communityIndex; 
-    std::vector<std::vector<int>> nodeIndices;  // node indices nested in their subset group
+    std::vector<int> nodeIndices;  // node indices nested in their subset group
+    //int nodeCount;  // number of nodes in the community
     
     // methods
-    Community(const std::vector<std::vector<int>>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
-    double aggregateWeights(Graph& G); // sum of weights of all edges in the community
+    Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
+    double aggregateWeights(Graph& G); // sum weights of all edges in the community and count number of nodes
     size_t size(); // number of nodes in the community
 };
 
@@ -31,7 +32,6 @@ public:
     //size_t number_of_nodes();
     void addCommunity(const Community& newCommunity);
     //void removeCommunity(int communityIndex);
-    //void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
     //std::vector<int> getCommunityIndices();
     //int getCommunityIndex(int nodeIndex);
     //double quality(double resolution_parameter);
@@ -44,11 +44,12 @@ public:
     // properties
     Graph& G;
     Partition& P;
+    double gamma;
 
     // methods
-    Optimizer(Graph& G, Partition& P);
+    Optimizer(Graph& G, Partition& P, double gamma);
     void optimize();
-    //moveNodesFast();
+    //bool moveNodesFast();
     //Partition refinePartition() const;
     //Partition mergeNodesSubset(const Community& subset);
     //Graph aggregateGraph(const Graph& G, const Partition& P);

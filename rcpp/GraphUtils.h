@@ -11,7 +11,8 @@ public:
     int n;
     std::map<std::string, int> nodeIndexMap;
     std::vector<std::vector<int>> adj;
-    std::vector<std::vector<double>> weights;
+    std::vector<std::vector<double>> edge_weights;
+    std::vector<int> node_weights;
     bool isDirected;
     int possibleEdges;
 
@@ -28,6 +29,18 @@ public:
 
 // listToGraph
 Graph listToGraph(const Rcpp::List& graphList);
+
+class RandomGenerator {
+public:
+    static std::vector<int> generateRandomPermutation(int n) {
+        std::vector<int> permutation(n);
+        for (int i = 0; i < n; ++i) {
+            permutation[i] = i;
+        }
+        std::random_shuffle(permutation.begin(), permutation.end());
+        return permutation;
+    }
+};
 
 
 #endif
