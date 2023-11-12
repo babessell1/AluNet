@@ -13,6 +13,7 @@ public:
     std::vector<std::vector<int>> adj;
     std::vector<std::vector<double>> edge_weights;
     std::vector<int> node_weights;
+    std::vector<int> nodes;
     bool isDirected;
     int possibleEdges;
 
@@ -25,6 +26,7 @@ public:
     Rcpp::List graphToRList() const;
     std::vector<int> getNeighbors(int nodeIndex) const;
     double getWeight(int u, int v) const;
+    void updateNodeProperties();
 };
 
 // listToGraph

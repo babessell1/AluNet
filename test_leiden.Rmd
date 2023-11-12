@@ -15,7 +15,7 @@ Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
 Sys.which("make")
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
-sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
+#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
 ```
 
 ```{r}
@@ -33,12 +33,22 @@ g <- graph.data.frame(graph_data)
 edge_weights <- E(g)$w
 V(g)$label <- NA
 E(g)$label <- NA
-layout <- layout_with_fr(g)
-#plot(g)
-plot.igraph(g, layout = layout, vertex.size = 10, vertex.label.dist = 2, edge.alpha = 0.5)
+layout <- layout_with_fr(g, dim=2)
 
+# Increase the size of the plot
+par(mar = c(1, 1, 1, 1))  # Adjust margins if needed
+layout <- layout_with_fr(g, dim = 2)
+
+# Set the size of the plot device using the 'width' and 'height' parameters
+#png("test_graph.png", width = 800, height = 800)  # Adjust width and height as needed
+
+# Plot the graph with smaller nodes
+plot.igraph(g, layout = layout, vertex.size = 2, vertex.label.dist = 2, edge.alpha = 0.5)
+
+#dev.off()  # Close the plot device
 ```
 
 ```{r}
+g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
 communities <- runLeiden(g_list, 2)
 ```

@@ -297,7 +297,7 @@ Partition initializePartition(const Graph& G) {
     // Assign each node to its own community
     // for each node in the getNodes
     int communityIndex = 0;
-    for (int nodeIndex : G.getNodes()) {
+    for (int nodeIndex : G.nodes) {
         // Construct a community with a single node
         Community community({nodeIndex}, communityIndex);
         communities.push_back(community);
