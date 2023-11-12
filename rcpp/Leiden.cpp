@@ -118,6 +118,51 @@ void Partition::updateCommunityMembership(int nodeIndex, int newCommunityIndex) 
 } 
 
 /*
+// ######################################NOTE#####################################
+// ########we should define the following two functions
+
+// Function to get the community of a given vertex
+size_t get_community_of_vertex(size_t vertex) {
+  // Check if the vertex is in the map
+  auto it = communityIndexMap.find(vertex);
+  if (it != communityIndexMap.end()) {      
+    // Return the community of the vertex
+    return it->second;
+  } else {
+      // Handle the case where the vertex is not found
+      throw std::runtime_error("Vertex not found in the partition");
+    }
+  }
+
+
+double Partition::diff_move(size_t vertex, size_t new_community){
+  // calculate the difference between moving vertex to a new community
+  // and the keeping the vertex to the original community
+  size_t old_community = this->get_community_of_vertex(vertex);
+  
+  // If the vertex is already in the new community, the difference is zero
+  if (original_community == new_community) {
+    return 0.0;      
+  }
+
+  // Calculate the quality of the current state
+  double original_quality = this->quality();
+
+  // Temporarily move the vertex to the new community
+  this->move_vertex_to_community(vertex, new_community);
+  
+  // Calculate the quality after the move
+  double new_quality = this->quality();
+
+  // Move the vertex back to its original community
+  this->.move_vertex_to_community(vertex, original_community);
+  // The difference in quality is the new quality minus the original quality
+  return new_quality - original_quality;
+}
+
+*/
+
+/*
 double Partition::quality_messyImplementation(double resolution_parameter) {
     double mod = 0.0;
     for (size_t c = 0; c < this->number_of_communities(); c++) {
