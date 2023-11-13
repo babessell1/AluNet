@@ -15,7 +15,7 @@ Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
 Sys.which("make")
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
-sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
+#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
 ```
 
 ```{r}
@@ -45,14 +45,20 @@ layout <- layout_with_fr(g, dim = 2)
 png("test_graph.png", width = 8000, height = 8000)  # Adjust width and height as needed
 
 # Plot the graph with smaller nodes
-plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1)
+plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)
 
 dev.off()  # Close the plot device
-plot.igraph(g, layout = layout, vertex.size = 2, vertex.label.dist = 2, edge.alpha = 0.5)
+plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)
 ```
 
 ```{r}
 g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
 print(length(unique(c(g_list[["to"]], g_list[["from"]]))))
-communities <- runLeiden(g_list, 2)
+output <- runLeiden(g_list, 2)
+```
+```{r}
+print(output$communities[1])
+print(output$communities[length(output$communities)])
+print(output$nodes[1])
+print(output$nodes[length(output$nodes)])
 ```

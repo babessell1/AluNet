@@ -106,8 +106,7 @@ Rcpp::List Graph::graphToRList() const {
     Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
 
-    // print len nodes
-    Rcpp::Rcout << "Nodes: " << nodes.size() << std::endl;
+    Rcpp::Rcout << "Writing to R List" << std::endl;
 
     for (int i : nodes) { 
         std::string fromNode = getNodeName(i);
@@ -134,7 +133,6 @@ Rcpp::List Graph::graphToRList() const {
 void Graph::removeSingleConnections() {
     // print information about nodes and edges before removal
     Rcpp::Rcout << "Nodes before removal: " << n << std::endl;
-    Rcpp::Rcout << "Adjacency size before removal: " << adj.size() << std::endl;
 
     std::vector<int> to_remove;
     for (auto it = adj.begin(); it != adj.end(); /* no increment here */) {
@@ -146,8 +144,6 @@ void Graph::removeSingleConnections() {
             ++it;
         }
     }
-    
-    Rcpp::Rcout << "Nodes to remove: " << to_remove.size() << std::endl;
 
     // create new maps and vectors using new indices
     std::map<std::string, int> new_node_index_map;
@@ -189,7 +185,6 @@ void Graph::removeSingleConnections() {
 
     // print information about new structure
     Rcpp::Rcout << "New nodes size: " << new_nodes.size() << std::endl;
-    Rcpp::Rcout << "New adjacency size: " << new_adj.size() << std::endl;
 
     // reassign members with the new maps and vectors
     nodeIndexMap = new_node_index_map;
@@ -198,11 +193,6 @@ void Graph::removeSingleConnections() {
     edge_weights = new_edge_weights;
     node_weights = new_node_weights;
     n = nodes.size();
-
-    // print information about final structure
-    Rcpp::Rcout << "Nodes after reassignment: " << nodes.size() << std::endl;
-    Rcpp::Rcout << "Adjacency size after reassignment: " << adj.size() << std::endl;
-    Rcpp::Rcout << "Edges after reassignment: " << edge_weights.size() << std::endl;
 
     // check that the set of nodes is the same as the set of keys in the adjacency list
     std::set<int> node_set(nodes.begin(), nodes.end());
@@ -229,7 +219,6 @@ void Graph::removeSingleConnections() {
     if (node_set != node_weight_set) {
         Rcpp::stop("Nodes and node weights do not match");
     }
-
 }
 /*
 ##############################################
@@ -244,7 +233,7 @@ Graph listToGraph(const Rcpp::List& graphList) {
     std::set<std::string> uniqueNodes;
 
     // Collect unique nodes
-    Rcpp::Rcout << "Initializing graph" << std::endl;
+    Rcpp::Rcout << "Initializing graph..." << std::endl;
     for (int i = 0; i < from.size(); i++) {
         std::string fromNode = Rcpp::as<std::string>(from[i]);
         std::string toNode = Rcpp::as<std::string>(to[i]);
@@ -272,12 +261,9 @@ Graph listToGraph(const Rcpp::List& graphList) {
         G.addEdge(fromNode, toNode, w);
     }
 
-    Rcpp::Rcout << "update props" << std::endl;
     G.updateNodeProperties();
-    Rcpp::Rcout << "remove single connections" << std::endl;
+    Rcpp::Rcout << "Removing Single Connections..." << std::endl;
     G.removeSingleConnections();
-    Rcpp::Rcout << "update props" << std::endl;
-    G.updateNodeProperties();
 
     return G;
 }

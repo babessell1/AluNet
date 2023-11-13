@@ -20,22 +20,21 @@ public:
 class Partition {
 public:
     // properties
-    std::vector<int> communityIndices;
     std::unordered_map<int, Community> communityIndexMap;
-    std::vector<Community> communities;
 
     // methods
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices() const;
     void flattenPartition();
-    void updateCommunityMembership(int nodeIndex, int newCommunityIndex);
+    void updateCommunityMembershipSearch(int node_index, int new_community_index);
+    void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
     //size_t number_of_nodes();
     void addCommunity(const Community& newCommunity);
 size_t get_community_of_vertex(size_t vertex);
 double diff_move(size_t vertex, size_t new_community);
     //void removeCommunity(int communityIndex);
     //std::vector<int> getCommunityIndices();
-    //int getCommunityIndex(int nodeIndex);
+    //int getCommunityIndex(int node_index);
     //double quality(double resolution_parameter);
     //void renumber_communities();
     //void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership);
