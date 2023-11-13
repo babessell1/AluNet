@@ -4,6 +4,7 @@
 #include <Rcpp.h>
 #include <vector>
 #include <set>
+#include <random>
 #include <unordered_map>
 
 class Graph {
