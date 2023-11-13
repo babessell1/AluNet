@@ -141,7 +141,7 @@ test_that("Optimizer class functions work correctly", {
   expect_true(optimizer$moveNodesFast())
   
   refined_partition <- optimizer$refinePartition()
-  expect_true(is(refined_partition, "Partition"))  # Check if refined_partition is a valid Partition object
+  expect_true(is(refined_partition, "Partition"))  
   
   subset <- create_community(3, 1001:1500)  
   merged_partition <- optimizer$mergeNodesSubset(subset)
