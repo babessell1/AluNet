@@ -30,8 +30,8 @@ public:
     void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
     //size_t number_of_nodes();
     void addCommunity(const Community& newCommunity);
-size_t get_community_of_vertex(size_t vertex);
-double diff_move(size_t vertex, size_t new_community);
+    size_t get_community_of_vertex(size_t vertex);
+    double diff_move(size_t vertex, size_t new_community);
     //void removeCommunity(int communityIndex);
     //std::vector<int> getCommunityIndices();
     //int getCommunityIndex(int node_index);
