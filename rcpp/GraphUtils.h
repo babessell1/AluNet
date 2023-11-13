@@ -36,12 +36,27 @@ Graph listToGraph(const Rcpp::List& graphList);
 
 class RandomGenerator { 
 public:
-    static std::vector<int> generateRandomPermutation(int n) {
+/*    
+static std::vector<int> generateRandomPermutation(int n) {
         std::vector<int> permutation(n);
         for (int i = 0; i < n; ++i) {
             permutation[i] = i;
         }
         std::shuffle(permutation.begin(), permutation.end(), std::mt19937(std::random_device()()));
+        return permutation;
+    }
+*/
+    static std::vector<int> generateRandomPermutation(int n) {
+        std::vector<int> permutation(n);
+        for (int i = 0; i < n; ++i) {
+            permutation[i] = i;
+        }
+        // Create a random number generator
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        // Use std::shuffle instead of std::random_shuffle
+        std::shuffle(permutation.begin(), permutation.end(), g);
         return permutation;
     }
 };

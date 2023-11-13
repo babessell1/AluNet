@@ -1,7 +1,6 @@
 #ifndef LEIDEN_H
 #define LEIDEN_H
 
-#include <Rcpp.h>
 #include "GraphUtils.h"
 
 class Optimizer {
