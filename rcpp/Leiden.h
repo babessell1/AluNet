@@ -21,6 +21,7 @@ class Partition {
 public:
     // properties
     std::unordered_map<int, Community> communityIndexMap;
+    std::unordered_map<int, int> nodeCommunityMap;
 
     // methods
     Partition(const std::vector<Community>& communities);

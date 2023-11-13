@@ -40,6 +40,11 @@ Partition::Partition(const std::vector<Community>& communities) {
     for (const auto& community : communities) {
         // add the community to the community map
         communityIndexMap.insert({community.communityIndex, community});
+        // for each node in the community
+        for (int node_index : community.nodeIndices) {
+            // add the node to the node map
+            nodeCommunityMap.insert({node_index, community.communityIndex});
+        }
     }
 }
     
@@ -241,6 +246,7 @@ bool Optimizer::moveNodesFast() {
 
     std::vector<bool> stable_nodes(G.n, false); // track which nodes have not moved
     std::vector<double> cluster_weights(G.n, 0.0);
+    std::vector<double> edge_weights_per_cluster(G.n, 0.0);  // track the sum of edge weights per cluster
     std::vector<int> nodes_per_cluster(G.n, 0);  // track the number of nodes in each cluster (more efficient than calling size() on each cluster)
     std::vector<int> unused_clusters(G.n-1, 0);  // track which clusters are empty
     std::vector<int> n_neighboring_clusters(G.n, 0);  // track the number of neighboring clusters for each cluster
@@ -248,7 +254,11 @@ bool Optimizer::moveNodesFast() {
     int n_unused_clusters = 0;
     int n_unstable_nodes = G.n;
 
-    std::vector<int> node_queue = RandomGenerator::generateRandomPermutation(G.n);
+    std::queue<int> node_queue;
+    std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(G.n);
+    for (int node_index : random_nodes) {
+        node_queue.push(node_index);
+    }
 
     // initialize the cluster weights and nodes per cluster
     for (const auto& entry : node_indexMap) {
@@ -256,7 +266,7 @@ bool Optimizer::moveNodesFast() {
         cluster_weights[node_index] = G.node_weights[node_index];
         nodes_per_cluster[node_index]++;
     }
-    // get revered node index map second values
+    // get the node indices in the graph
     std::vector<int> node_indices
     for (auto entry : node_indexMap) {
         node_indices.push_back(entry.second);
@@ -272,8 +282,60 @@ bool Optimizer::moveNodesFast() {
         }
     }
 
-    // .... not done
+    do {
+        j = node_queue.front();
+        node_queue.pop();
+        // if the node is stable, skip it
+        // get current community of node j
+        c_idx = P.nodeCommunityMap.at(j);
+*/
+        /*
+        * Identify the neighboring clusters of the currently selected
+        * node, that is, the clusters with which the currently selected
+        * node is connected. An empty cluster is also included in the set
+        * of neighboring clusters. In this way, it is always possible that
+        * the currently selected node will be moved to an empty cluster.
+        */
+/*
+        // get the neighbors of node j
+        std::vector<int> neighbors = G.getNeighbors(j);
+        // get the neighboring clusters of node j
+        std::set<int> neighboring_clusters;
+        for (int nn_idx : neighbors) {  // neighbors of node j
+            // get the community of the neighbor
+            int nc_idx = P.nodeCommunityMap.at(nn_idx);  // nieghbor community index
+            // add the community to the neighboring clusters
+            neighboring_clusters.insert(nc_idx);
+            // 
 
+        }
+        // find an empty cluster, first check if only self is in the current cluster
+        // if true, then the current cluster is empty
+        if (P.communityIndexMap.at(c_idx).size() == 1) {
+            // add the current cluster to the neighboring clusters
+            neighboring_clusters.push_back(c_idx);
+        } else {
+            // get first empty cluster
+            int empty_cluster = unused_clusters[0];
+            // add the empty cluster to the neighboring clusters
+            neighboring_clusters.push_back(empty_cluster);
+        }
+*/
+        /*
+        * For each neighboring cluster of the currently selected node,
+        * calculate the increment of the quality function obtained by
+        * moving the currently selected node to the neighboring cluster.
+        * Determine the neighboring cluster for which the increment of the
+        * quality function is largest. The currently selected node will be
+        * moved to this optimal cluster. In order to guarantee convergence
+        * of the algorithm, if the old cluster of the currently selected
+        * node is optimal but there are also other optimal clusters, the
+        * currently selected node will be moved back to its old cluster.
+        */
+/*
+        // initialize the best cluster and the best quality
+
+    }
 }
 */
 

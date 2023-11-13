@@ -20,13 +20,14 @@ Graph::Graph(int n) : n(n) {
     for (int i = 0; i < n; ++i) {
       edge_weights[i] = std::vector<double>();
     }
-    this->edge_weights = edge_weights;
+    this->edgeWeights = edge_weights;
     // initialize node weights map
     std::unordered_map<int, double> node_weights;
     // for now, all nodes have the same weight
     for (int i = 0; i < n; ++i) {
       node_weights[i] = 1.0;
     }
+    this->nodeWeights = node_weights;
     // initialize nodes
     std::vector<int> nodes;
     for (int i = 0; i < n; ++i) {
@@ -43,11 +44,11 @@ void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     int u_idx = getNodeIndex(u);
     int v_idx = getNodeIndex(v);
     adj[u_idx].push_back(v_idx);
-    edge_weights[u_idx].push_back(w);
+    edgeWeights[u_idx].push_back(w);
 
     if (!isDirected) { // check if graph is undirected.
         adj[v_idx].push_back(u_idx);
-        edge_weights[v_idx].push_back(w);
+        edgeWeights[v_idx].push_back(w);
     }
 }
 
@@ -91,7 +92,7 @@ std::vector<int> Graph::getNeighbors(int n_idx) const {
 // get weight of an edge based on node indices
 double Graph::getWeight(int u, int v) const {
     const auto& u_edges = adj.at(u);
-    const auto& u_weights = edge_weights.at(u);
+    const auto& u_weights = edgeWeights.at(u);
     
     for (std::vector<int>::size_type i = 0; i < u_edges.size(); i++) {
         if (u_edges[i] == v) {
@@ -114,7 +115,7 @@ Rcpp::List Graph::graphToRList() const {
             std::string toNode = getNodeName(adj.at(i)[j]);
             from.push_back(fromNode);
             to.push_back(toNode);
-            weight.push_back(edge_weights.at(i)[j]);
+            weight.push_back(edgeWeights.at(i)[j]);
         }
     }
 
@@ -180,7 +181,7 @@ void Graph::removeSingleConnections() {
         
         new_adj[new_index] = new_neighbors;
         new_node_weights[new_index] = node_weights[old_index];
-        new_edge_weights[new_index] = edge_weights[old_index];
+        new_edge_weights[new_index] = edgeWeights[old_index];
     }
 
     // print information about new structure
@@ -190,7 +191,7 @@ void Graph::removeSingleConnections() {
     nodeIndexMap = new_node_index_map;
     nodes = new_nodes;
     adj = new_adj;
-    edge_weights = new_edge_weights;
+    edgeWeights = new_edge_weights;
     node_weights = new_node_weights;
     n = nodes.size();
 
@@ -205,7 +206,7 @@ void Graph::removeSingleConnections() {
     }
     // do the same for edge weights
     std::set<int> edge_set;
-    for (const auto& entry : edge_weights) {
+    for (const auto& entry : edgeWeights) {
         edge_set.insert(entry.first);
     }
     if (node_set != edge_set) {
