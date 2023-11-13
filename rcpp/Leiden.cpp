@@ -126,6 +126,8 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 // ######################################NOTE#####################################
 // ########we should define the following two functions
 
+// #################################
+// [[test it]]
 // Function to get the community of a given vertex
 size_t get_community_of_vertex(size_t vertex) {
   // Check if the vertex is in the map
@@ -139,6 +141,9 @@ size_t get_community_of_vertex(size_t vertex) {
     }
   }
 
+// not finished, should define an extra function named quality()
+// which counts the weights
+// [[test it]]
 double Partition::diff_move(size_t vertex, size_t new_community){
   // calculate the difference between moving vertex to a new community
   // and the keeping the vertex to the original community
@@ -167,6 +172,7 @@ double Partition::diff_move(size_t vertex, size_t new_community){
 */
 
 /*
+// should revise it to quality
 double Partition::quality_messyImplementation(double resolution_parameter) {
     double mod = 0.0;
     for (size_t c = 0; c < this->number_of_communities(); c++) {
@@ -180,6 +186,8 @@ double Partition::quality_messyImplementation(double resolution_parameter) {
 */
 
 /*
+// ################################
+// [[test it]]
 void Partition::renumber_communities() {
     std::unordered_map<size_t, size_t> newCommunityIndices;
     size_t newIndex = 0;

@@ -29,16 +29,17 @@ public:
     void flattenPartition();
     void updateCommunityMembershipSearch(int node_index, int new_community_index);
     void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
-    //size_t number_of_nodes();
+    //size_t number_of_nodes(); // could define a inline function
     void addCommunity(const Community& newCommunity);
     size_t get_community_of_vertex(size_t vertex);
     double diff_move(size_t vertex, size_t new_community);
-    //void removeCommunity(int communityIndex);
-    //std::vector<int> getCommunityIndices();
-    //int getCommunityIndex(int node_index);
-    //double quality(double resolution_parameter);
-    //void renumber_communities();
-    //void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership);
+    //void removeCommunity(int communityIndex); // should define this unction
+    //std::vector<int> getCommunityIndices(); // should define this unction
+    //int getCommunityIndex(int node_index); // should define this unction
+    //double quality(double resolution_parameter); // should define this unction
+    //void renumber_communities(); // should define this unction
+    //void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership); // should define this unction
+    //size_t membership(size_t vertex); function that returns vertex is in which community
 };
 
 class Optimizer {
