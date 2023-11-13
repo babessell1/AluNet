@@ -3,7 +3,7 @@ library(igraph)
 library(testthat)
 library(leidenAlg)
 
-sourceCpp("Leiden.cpp")
+sourceCpp("../rcpp/Leiden.cpp") # ues the rcpp file that is located in another directory
 
 generate_large_weighted_graph <- function(n, p) {
   graph <- erdos.renyi.game(n, p, type = "gnp", directed = FALSE)
