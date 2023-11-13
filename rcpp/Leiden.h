@@ -38,6 +38,7 @@ public:
     //double quality(double resolution_parameter); // should define this unction
     //void renumber_communities(); // should define this unction
     //void renumber_communities(std::vector<size_t> fixed_nodes, std::vector<size_t> fixed_membership); // should define this unction
+    //size_t membership(size_t vertex); function that returns vertex is in which community
 };
 
 class Optimizer {
