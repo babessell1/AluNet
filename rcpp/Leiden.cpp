@@ -18,9 +18,9 @@ double Community::aggregateWeights(Graph& G) {
         // get the neighbors of the node
         std::vector<int> neighbors = G.getNeighbors(node_index);
         // for each neighbor of the node
-        for (int& neighborIndex : neighbors) {
+        for (int& neighbor_index : neighbors) {
             // if the neighbor is in the community, add the weight of the edge to the sum
-            weight_sum += G.getWeight(node_index, neighborIndex);
+            weight_sum += G.getWeight(node_index, neighbor_index);
         }
     }
     return weight_sum;
@@ -133,7 +133,6 @@ size_t get_community_of_vertex(size_t vertex) {
       throw std::runtime_error("Vertex not found in the partition");
     }
   }
-
 
 double Partition::diff_move(size_t vertex, size_t new_community){
   // calculate the difference between moving vertex to a new community
@@ -333,12 +332,12 @@ Partition initializePartition(const Graph& G) {
 
     // Assign each node to its own community
     // for each node in the getNodes
-    int communityIndex = 0;
+    int community_index = 0;
     for (int node_index : G.nodes) {
         // Construct a community with a single node
-        Community community({node_index}, communityIndex);
+        Community community({node_index}, community_index);
         communities.push_back(community);
-        communityIndex++;
+        community_index++;
     }
 
     Partition P(communities);
@@ -393,7 +392,6 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
             nodes.push_back(node_index);
         }
     }
-
 
     // Convert the vector of communities to an R List
     Rcpp::List result = Rcpp::List::create(
