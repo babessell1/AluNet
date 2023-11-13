@@ -4,6 +4,7 @@
 #include <Rcpp.h>
 #include <vector>
 #include <set>
+#include <random>
 #include <unordered_map>
 
 class Graph {
@@ -16,6 +17,7 @@ public:
     std::vector<int> nodes;
     bool isDirected;
     int possibleEdges;
+    double totalEdgeWeight;
 
     Graph(int n);
     void addEdge(const std::string& u, const std::string& v, double w);
@@ -39,7 +41,7 @@ public:
         for (int i = 0; i < n; ++i) {
             permutation[i] = i;
         }
-        std::random_shuffle(permutation.begin(), permutation.end());
+        std::shuffle(permutation.begin(), permutation.end(), std::mt19937(std::random_device()()));
         return permutation;
     }
 };

@@ -1,217 +1,17 @@
 #include <Rcpp.h>
 #include "GraphUtils.h"
+#include "Community.h"
+#include "Partition.h"
 #include "Leiden.h"
 
-/*
-################################################################################
-############################ COMMUNITY CLASS ###################################
-*/
-// Construct a community base on a set of node indices, and a community index
-Community::Community(const std::vector<int>& nodes, int index)
-    : communityIndex(index), nodeIndices(nodes) {
-}
+#include <queue>
 
-// get the sum of weights of all edges in the community
-double Community::aggregateWeights(Graph& G) {
-    double weight_sum = 0.0;
-    for (int& node_index : nodeIndices) {
-        // get the neighbors of the node
-        std::vector<int> neighbors = G.getNeighbors(node_index);
-        // for each neighbor of the node
-        for (int& neighbor_index : neighbors) {
-            // if the neighbor is in the community, add the weight of the edge to the sum
-            weight_sum += G.getWeight(node_index, neighbor_index);
-        }
-    }
-    return weight_sum;
-}
 
-// get the number of nodes in the community
-size_t Community::size() {
-    return nodeIndices.size();
-}
-    
-/*
-################################################################################
-############################ PARTITION CLASS ###################################
-*/
-// Construct a partition based on a set of communities
-Partition::Partition(const std::vector<Community>& communities) {
-    for (const auto& community : communities) {
-        // add the community to the community map
-        communityIndexMap.insert({community.communityIndex, community});
-        // for each node in the community
-        for (int node_index : community.nodeIndices) {
-            // add the node to the node map
-            nodeCommunityMap.insert({node_index, community.communityIndex});
-        }
-    }
-}
-    
-// get indices of communities in the partition (different from node indices!)
-std::vector<int> Partition::getCommunityIndices() const {
-    // get community indices
-    // from communityIndexMap
-    std::vector<int> indices;
-    for (const auto& entry : communityIndexMap) {
-        indices.push_back(entry.first);
-    }
-
-    return indices;
-}
-
-// flatten the partition, last step of the optimization step in the paper
- void Partition::flattenPartition() {
-    // for each community index in the partition
-    for (int communityIndex : getCommunityIndices()) {
-        // get the community
-        auto comm = communityIndexMap.find(communityIndex);
-        // flatten the subsets
-        std::vector<int> flat_set;
-        for (int nidx : comm->second.nodeIndices) {
-            flat_set.push_back(nidx);
-        }
-        // set the flat set as the community in the map
-        // store as a vector of vectors!
-        comm->second.nodeIndices = flat_set;
-    }
-}
-
-void Partition::addCommunity(const Community& newCommunity) {
-    // Add the new community to the communities vector
-    communityIndexMap.insert({newCommunity.communityIndex, newCommunity});
-}
-
-// move a node from one community to another
-void Partition::updateCommunityMembershipSearch(int node_index, int new_community_index) {
-    // Find the current community of the node and remove the node from the community
-    bool found = false;
-    for (auto& entry : communityIndexMap) {
-        // if the node is in the community, (throw error if not found)
-        auto node_it = std::find(entry.second.nodeIndices.begin(), entry.second.nodeIndices.end(), node_index);
-        if (node_it != entry.second.nodeIndices.end()) {
-            // remove the node from the community
-            entry.second.nodeIndices.erase(node_it);
-            found = true;
-        }
-    }
-    if (!found) {
-        Rcpp::stop("Node not found in any community: " + std::to_string(node_index));
-    }
-
-    // Add the node to the new community
-    communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
-}
-
-void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
-    // Find the current community of the node and remove the node from the community
-    auto old_comm = communityIndexMap.find(old_community_index);
-    if (old_comm != communityIndexMap.end()) {
-        // if the node is in the community, remove it
-        auto node_it = std::find(old_comm->second.nodeIndices.begin(), old_comm->second.nodeIndices.end(), node_index);
-        if (node_it != old_comm->second.nodeIndices.end()) {
-            old_comm->second.nodeIndices.erase(node_it);
-        } else {
-            Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));
-        }
-    } else {
-        Rcpp::stop("Old community not found: " + std::to_string(old_community_index));
-    }
-
-    // Add the node to the new community
-    communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
-}
-
-/*
-// ######################################NOTE#####################################
-// ########we should define the following two functions
-
-// #################################
-// [[test it]]
-// Function to get the community of a given vertex
-size_t get_community_of_vertex(size_t vertex) {
-  // Check if the vertex is in the map
-  auto it = communityIndexMap.find(vertex);
-  if (it != communityIndexMap.end()) {      
-    // Return the community of the vertex
-    return it->second;
-  } else {
-      // Handle the case where the vertex is not found
-      throw std::runtime_error("Vertex not found in the partition");
-    }
-  }
+// [[test it]
 
 // not finished, should define an extra function named quality()
 // which counts the weights
 // [[test it]]
-double Partition::diff_move(size_t vertex, size_t new_community){
-  // calculate the difference between moving vertex to a new community
-  // and the keeping the vertex to the original community
-  size_t old_community = this->get_community_of_vertex(vertex);
-  
-  // If the vertex is already in the new community, the difference is zero
-  if (original_community == new_community) {
-    return 0.0;      
-  }
-
-  // Calculate the quality of the current state
-  double original_quality = this->quality();
-
-  // Temporarily move the vertex to the new community
-  this->move_vertex_to_community(vertex, new_community);
-  
-  // Calculate the quality after the move
-  double new_quality = this->quality();
-
-  // Move the vertex back to its original community
-  this->.move_vertex_to_community(vertex, original_community);
-  // The difference in quality is the new quality minus the original quality
-  return new_quality - original_quality;
-}
-
-*/
-
-/*
-// should revise it to quality
-double Partition::quality_messyImplementation(double resolution_parameter) {
-    double mod = 0.0;
-    for (size_t c = 0; c < this->number_of_communities(); c++) {
-        double csize = this->community_size(c);
-        double w = this->total_weight_in_community(c);
-        double comm_possible_edges = this->graph->possible_edges(csize);
-        mod += w - resolution_parameter * comm_possible_edges;
-    }
-    return (2.0 - this->graph->is_directed()) * mod;
-}
-*/
-
-// ################################
-// [[test it]]
-
-// purge empty communities
-void Partition::purgeEmptyCommunities() {
-    // Remove empty communities
-    for (auto it = communityIndexMap.begin(); it != communityIndexMap.end();) {
-        if (it->second.size() == 0) {
-            it = communityIndexMap.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    // renumber the communities to be consecutive
-    int new_index = 0;
-    for (auto& entry : communityIndexMap) {
-        entry.second.communityIndex = new_index;
-        // find index of the community to be updated in the nodeCommunityMap and update it
-        auto node_it = nodeCommunityMap.find(entry.first);
-        if (node_it != nodeCommunityMap.end()) {
-            node_it->second = new_index;
-        } else {
-            Rcpp::stop("Node not found in the node community map: " + std::to_string(entry.first));
-        }
-        new_index++;
-    }
-}
 
 /*
 size_t Partition::number_of_nodes() {
@@ -247,7 +47,30 @@ void Partition::updateCommunityMembership(int node_index, int new_community_inde
 // Construct an optimizer based on a graph and a partition
 Optimizer::Optimizer(Graph& G, Partition& P, double gamma) : G(G), P(P), gamma(gamma) {}
 
-/*
+double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
+  // calculate the difference between moving vertex to a new community
+
+    int old_c_idx = P.nodeCommunityMap.at(n_idx);  // keep track of the old community
+
+    // get quality of the partition before the move
+    double old_quality = P.calcQuality(gamma, G);
+
+    // make copy of the partition
+    Partition P_new = P;
+
+    // move the node to the new community
+    P_new.updateCommunityMembership(n_idx, old_c_idx, new_c_idx);
+    // purge empty communities
+    P_new.purgeEmptyCommunities(false);
+
+    // get quality of the partition after the move
+    double new_quality = P_new.calcQuality(gamma, G);
+
+    // return the difference in quality
+    return new_quality - old_quality;
+
+}
+
 // Leiden fast local move iteration
 bool Optimizer::moveNodesFast() {
     bool update = false;  // track if the partition has changed
@@ -264,24 +87,30 @@ bool Optimizer::moveNodesFast() {
 
     std::queue<int> node_queue;
     std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(G.n);
+
     for (int node_index : random_nodes) {
         node_queue.push(node_index);
     }
 
     // initialize the cluster weights and nodes per cluster
-    for (const auto& entry : node_indexMap) {
+    for (const auto& entry : G.nodeIndexMap) {
         int node_index = entry.second;
-        cluster_weights[node_index] = G.node_weights[node_index];
+        cluster_weights[node_index] = G.nodeWeights[node_index];
         nodes_per_cluster[node_index]++;
     }
     // get the node indices in the graph
-    std::vector<int> node_indices
-    for (auto entry : node_indexMap) {
+    std::vector<int> node_indices;
+    for (auto entry : G.nodeIndexMap) {
         node_indices.push_back(entry.second);
     }
     
     // for each node in the network (go backwards)
-    for (int nidx : node_indices.reverse()) {
+    std::vector<int> rev_node_indices;
+    for (int i = G.n - 1; i >= 0; i--) {
+        rev_node_indices.push_back(node_indices[i]);
+    }
+
+    for (int nidx : rev_node_indices) {
         // if no nodes in cluser
         if (nodes_per_cluster[nidx] == 0) {
             // add to unused clusters
@@ -290,13 +119,20 @@ bool Optimizer::moveNodesFast() {
         }
     }
 
+    /*
+    * Iterate over the nodeOrder array in a cyclical manner. When the end
+    * of the array has been reached, start again from the beginning. The
+    * queue of nodes that still need to be visited is given by
+    * nodeOrder[i], ..., nodeOrder[i + nUnstableNodes - 1]. Continue
+    * iterating until the queue is empty.
+    */
     do {
-        j = node_queue.front();
+        int j = node_queue.front();
         node_queue.pop();
         // if the node is stable, skip it
         // get current community of node j
-        c_idx = P.nodeCommunityMap.at(j);
-*/
+        int c_idx = P.nodeCommunityMap.at(j);
+
         /*
         * Identify the neighboring clusters of the currently selected
         * node, that is, the clusters with which the currently selected
@@ -304,31 +140,37 @@ bool Optimizer::moveNodesFast() {
         * of neighboring clusters. In this way, it is always possible that
         * the currently selected node will be moved to an empty cluster.
         */
-/*
+
         // get the neighbors of node j
         std::vector<int> neighbors = G.getNeighbors(j);
+        int n_neighboring_clusters = 1;  // track the number of neighboring clusters
         // get the neighboring clusters of node j
         std::set<int> neighboring_clusters;
+        // add empty cluster to neighboring clusters
+        neighboring_clusters.insert(unused_clusters[n_unused_clusters-1]);
         for (int nn_idx : neighbors) {  // neighbors of node j
             // get the community of the neighbor
             int nc_idx = P.nodeCommunityMap.at(nn_idx);  // nieghbor community index
-            // add the community to the neighboring clusters
-            neighboring_clusters.insert(nc_idx);
-            // 
-
+            // if edge weight of cluster is 0
+            if (edge_weights_per_cluster[nc_idx] == 0) {
+                // add to neighboring clusters
+                neighboring_clusters.insert(nc_idx);
+                n_neighboring_clusters++;
+            }
+            edge_weights_per_cluster[nc_idx] += P.communityIndexMap.at(nc_idx).getClusterWeight(G);
         }
         // find an empty cluster, first check if only self is in the current cluster
         // if true, then the current cluster is empty
         if (P.communityIndexMap.at(c_idx).size() == 1) {
             // add the current cluster to the neighboring clusters
-            neighboring_clusters.push_back(c_idx);
+            neighboring_clusters.insert(c_idx);
         } else {
             // get first empty cluster
             int empty_cluster = unused_clusters[0];
             // add the empty cluster to the neighboring clusters
-            neighboring_clusters.push_back(empty_cluster);
+            neighboring_clusters.insert(empty_cluster);
         }
-*/
+
         /*
         * For each neighboring cluster of the currently selected node,
         * calculate the increment of the quality function obtained by
@@ -340,12 +182,71 @@ bool Optimizer::moveNodesFast() {
         * node is optimal but there are also other optimal clusters, the
         * currently selected node will be moved back to its old cluster.
         */
-/*
+
         // initialize the best cluster and the best quality
+        int best_cluster = c_idx;
+        double best_quality_increment = 0.0;
+        // for each neighboring cluster
+        for (int nc_idx : neighboring_clusters) {
+            // calculate the quality of the move
+            double delta_q = deltaQuality(j, nc_idx, gamma);
+            // if the quality of the move is better than the best quality
+            if (delta_q > best_quality_increment) {
+                // update the best quality and best cluster
+                best_quality_increment = delta_q;
+                best_cluster = nc_idx;
+            }
+        }
+        // move selected nodet its new cluster
+        // update cluster stats
+        P.updateCommunityMembership(j, c_idx, best_cluster);
+        cluster_weights[best_cluster] += G.nodeWeights[j];
+        nodes_per_cluster[best_cluster]++;
+        if (best_cluster == unused_clusters[n_unused_clusters-1]) {
+            n_unused_clusters--;
+        }
+
+        // mark the node as stable, remove it from the queue
+        stable_nodes[j] = true;
+        n_unstable_nodes--;
+
+        /* if the new cluster of the currently selected node is different
+        from the old cluster, some further updating of statistics is 
+        performed. Also, neighbors of the currently selected node that do
+        not belong to the new cluster are marked as unstable and added to
+        the queue. 
+        */
+       if (best_cluster != c_idx) {
+            P.nodeCommunityMap.at(j) = best_cluster;
+            // do some extra managment if best cluster is the empty cluster?
+            // get the neighbors of node j
+            std::vector<int> neighbors = G.getNeighbors(j);
+            // get the neighboring clusters of node j
+            std::set<int> neighboring_clusters;
+            for (int nn_idx : neighbors) {
+                // get community of neighbor
+                int nc_idx = P.nodeCommunityMap.at(nn_idx);
+                // if the neighbor is stable and neighbor's cluster is not the best cluster
+                if (nc_idx != best_cluster && stable_nodes[nc_idx] == true) {
+                    stable_nodes[nc_idx] == false;
+                    n_unstable_nodes++;
+                    // add to node queue with this java logic
+                    // add to the end of the queue
+                    node_queue.push(nn_idx);
+                }
+            }
+            update = true;
+       }
+       // get next node in the queue
+    } while (n_unstable_nodes > 0);
+
+    if (update) {
+        // purge empty clusters
+        P.purgeEmptyCommunities(false);
 
     }
+    return update;
 }
-*/
 
 /*
 Partition Optimizer::moveNodesFast() {
@@ -372,13 +273,6 @@ Graph Optimizer::aggregateGraph(const Graph& G, const Partition& P) {
     return aggregatedGraph;
 }
 
-double Optimizer::constantPotts(double gamma) const {
-    double objective = 0.0;
-    // Implement the constant Potts model objective function
-    // Placeholder, replace with actual logic
-    
-    return H;
-}
 */
 void Optimizer::optimize() {
     // Implement the Leiden algorithm iteration here
@@ -454,7 +348,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     }
 
     // purge empty communities
-    optim.P.purgeEmptyCommunities();
+    optim.P.purgeEmptyCommunities(false);
 
     // get the communities from the partition
     std::vector<int> communities;

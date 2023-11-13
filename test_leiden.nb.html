@@ -1775,9 +1775,9 @@ Sys.which(&quot;make&quot;)</code></pre>
 <pre><code>                                         g++ 
 &quot;C:\\rtools43\\X86_64~1.POS\\bin\\G__~1.EXE&quot; </code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3NvdXJjZUNwcChcInJjcHAvY29tcGlsZV90ZXN0LmNwcFwiLCB2ZXJib3NlID0gVFJVRSwgcmVidWlsZCA9IFRSVUUpXG5zb3VyY2VDcHAoXCJyY3BwL0dyYXBoVXRpbHMuY3BwXCIsIHZlcmJvc2UgPSBGLCByZWJ1aWxkID0gVFJVRSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3NvdXJjZUNwcChcInJjcHAvY29tcGlsZV90ZXN0LmNwcFwiLCB2ZXJib3NlID0gVFJVRSwgcmVidWlsZCA9IFRSVUUpXG4jc291cmNlQ3BwKFwicmNwcC9HcmFwaFV0aWxzLmNwcFwiLCB2ZXJib3NlID0gRiwgcmVidWlsZCA9IFRSVUUpXG5gYGAifQ== -->
 <pre class="r"><code>#sourceCpp(&quot;rcpp/compile_test.cpp&quot;, verbose = TRUE, rebuild = TRUE)
-sourceCpp(&quot;rcpp/GraphUtils.cpp&quot;, verbose = F, rebuild = TRUE)</code></pre>
+#sourceCpp(&quot;rcpp/GraphUtils.cpp&quot;, verbose = F, rebuild = TRUE)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1833,8 +1833,8 @@ dev.off()  # Close the plot device</code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdC5pZ3JhcGgoZywgbGF5b3V0ID0gbGF5b3V0LCB2ZXJ0ZXguc2l6ZSA9IC4wMSwgdmVydGV4LmxhYmVsLmRpc3QgPSAyLCBlZGdlLmFscGhhID0gMSwgZWRnZS5hcnJvdy5zaXplID0gMClcbmBgYCJ9 -->
 <pre class="r"><code>plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-plot-begin eyJoZWlnaHQiOjQzMi42MzI5LCJ3aWR0aCI6NzAwLCJzaXplX2JlaGF2aW9yIjowLCJjb25kaXRpb25zIjpbXX0= -->
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAiwAAAFXCAMAAAC2pOVEAAAAA1BMVEX///+nxBvIAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAA0ElEQVR4nO3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7gbqaQABTzJwBwAAAABJRU5ErkJggg==" /></p>
+<!-- rnb-plot-begin eyJoZWlnaHQiOjM0My42MzQxLCJ3aWR0aCI6NTU2LCJzaXplX2JlaGF2aW9yIjowLCJjb25kaXRpb25zIjpbXX0= -->
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAq8AAAGoCAMAAABfUvyKAAAAA1BMVEX///+nxBvIAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABMklEQVR4nO3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODHAHO8AAE6ws00AAAAAElFTkSuQmCC" /></p>
 <!-- rnb-plot-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1867,8 +1867,8 @@ Nodes in community 168: </code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQob3V0cHV0JGNvbW11bml0aWVzWzFdKVxuYGBgIn0= -->
 <pre class="r"><code>print(output$communities[1])</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDE2OFxuIn0= -->
-<pre><code>[1] 168</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDE2N1xuIn0= -->
+<pre><code>[1] 167</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQob3V0cHV0JGNvbW11bml0aWVzW2xlbmd0aChvdXRwdXQkY29tbXVuaXRpZXMpXSlcbmBgYCJ9 -->
 <pre class="r"><code>print(output$communities[length(output$communities)])</code></pre>
@@ -1879,8 +1879,8 @@ Nodes in community 168: </code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQob3V0cHV0JG5vZGVzWzFdKVxuYGBgIn0= -->
 <pre class="r"><code>print(output$nodes[1])</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDE2OFxuIn0= -->
-<pre><code>[1] 168</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDE2N1xuIn0= -->
+<pre><code>[1] 167</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQob3V0cHV0JG5vZGVzW2xlbmd0aChvdXRwdXQkbm9kZXMpXSlcbmBgYCJ9 -->
 <pre class="r"><code>print(output$nodes[length(output$nodes)])</code></pre>

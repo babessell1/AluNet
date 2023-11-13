@@ -37,6 +37,15 @@ Graph::Graph(int n) : n(n) {
     // initialize node index map
     std::map<std::string, int> nodeIndexMap;
     this->nodeIndexMap = nodeIndexMap;
+
+    // calculate total edge weight
+    totalEdgeWeight = 0.0;
+    for (int i = 0; i < n; ++i) {
+        for (double weight : edgeWeights[i]) {
+            totalEdgeWeight += weight;
+        }
+    }
+    this->totalEdgeWeight = totalEdgeWeight;
 };
 
 // add new edge to the graph, give it the two node names to connect and the weight
@@ -130,16 +139,22 @@ Rcpp::List Graph::graphToRList() const {
 
 // trim the graph by removing nodes with only one connection
 // might consider defining a minimum number of connections to keep
-
 void Graph::removeSingleConnections() {
     // print information about nodes and edges before removal
     Rcpp::Rcout << "Nodes before removal: " << n << std::endl;
+
+    // track total removed edge weight
+    double removed_edge_weight = 0.0;
 
     std::vector<int> to_remove;
     for (auto it = adj.begin(); it != adj.end(); /* no increment here */) {
         // if a node has less than 2 outbound edges, mark it for removal
         if (it->second.size() < 2) {
             to_remove.push_back(it->first);
+            // add the weight of the edges to be removed to the total removed edge weight
+            for (double weight : edgeWeights[it->first]) {
+                removed_edge_weight += weight;
+            }
             it = adj.erase(it); // remove node with less than 2 edges
         } else {
             ++it;
@@ -194,6 +209,9 @@ void Graph::removeSingleConnections() {
     edgeWeights = new_edge_weights;
     nodeWeights = new_node_weights;
     n = nodes.size();
+
+    // update total edge weight
+    totalEdgeWeight -= removed_edge_weight;
 
     // check that the set of nodes is the same as the set of keys in the adjacency list
     std::set<int> node_set(nodes.begin(), nodes.end());
