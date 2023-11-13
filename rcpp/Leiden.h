@@ -29,6 +29,7 @@ public:
     void flattenPartition();
     void updateCommunityMembershipSearch(int node_index, int new_community_index);
     void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
+    void purgeEmptyCommunities();
     //size_t number_of_nodes(); // could define a inline function
     void addCommunity(const Community& newCommunity);
     size_t get_community_of_vertex(size_t vertex);

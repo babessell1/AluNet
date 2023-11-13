@@ -185,34 +185,34 @@ double Partition::quality_messyImplementation(double resolution_parameter) {
 }
 */
 
-/*
 // ################################
 // [[test it]]
-void Partition::renumber_communities() {
-    std::unordered_map<size_t, size_t> newCommunityIndices;
-    size_t newIndex = 0;
 
-    // Remove empty communities first
-    communities.erase(std::remove_if(communities.begin(), communities.end(),
-                                     [](const Community& community) { return community.nodeIndices.empty(); }),
-                      communities.end());
-
-    // Assign new indices to communities
-    for (auto& community : communities) {
-        size_t oldIndex = community.communityIndex;
-        if (newCommunityIndices.find(oldIndex) == newCommunityIndices.end()) {
-            newCommunityIndices[oldIndex] = newIndex++;
+// purge empty communities
+void Partition::purgeEmptyCommunities() {
+    // Remove empty communities
+    for (auto it = communityIndexMap.begin(); it != communityIndexMap.end();) {
+        if (it->second.size() == 0) {
+            it = communityIndexMap.erase(it);
+        } else {
+            ++it;
         }
-        community.communityIndex = newCommunityIndices[oldIndex];
     }
-
-    // Rebuild the communityIndexMap to reflect the new indexing
-    communityIndexMap.clear();
-    for (size_t i = 0; i < communities.size(); ++i) {
-        communityIndexMap[communities[i].communityIndex] = i;
+    // renumber the communities to be consecutive
+    int new_index = 0;
+    for (auto& entry : communityIndexMap) {
+        entry.second.communityIndex = new_index;
+        // find index of the community to be updated in the nodeCommunityMap and update it
+        auto node_it = nodeCommunityMap.find(entry.first);
+        if (node_it != nodeCommunityMap.end()) {
+            node_it->second = new_index;
+        } else {
+            Rcpp::stop("Node not found in the node community map: " + std::to_string(entry.first));
+        }
+        new_index++;
     }
 }
-*/
+
 /*
 size_t Partition::number_of_nodes() {
     // Implement the logic to return the number of nodes in the partition
@@ -452,6 +452,9 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     for (int node_index : optim.P.communityIndexMap.at(168).nodeIndices) {
         Rcpp::Rcout << node_index << std::endl;
     }
+
+    // purge empty communities
+    optim.P.purgeEmptyCommunities();
 
     // get the communities from the partition
     std::vector<int> communities;

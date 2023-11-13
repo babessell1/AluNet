@@ -180,7 +180,7 @@ void Graph::removeSingleConnections() {
         }
         
         new_adj[new_index] = new_neighbors;
-        new_node_weights[new_index] = node_weights[old_index];
+        new_node_weights[new_index] = nodeWeights[old_index];
         new_edge_weights[new_index] = edgeWeights[old_index];
     }
 
@@ -192,7 +192,7 @@ void Graph::removeSingleConnections() {
     nodes = new_nodes;
     adj = new_adj;
     edgeWeights = new_edge_weights;
-    node_weights = new_node_weights;
+    nodeWeights = new_node_weights;
     n = nodes.size();
 
     // check that the set of nodes is the same as the set of keys in the adjacency list
@@ -214,7 +214,7 @@ void Graph::removeSingleConnections() {
     }
     // do the same for node weights
     std::set<int> node_weight_set;
-    for (const auto& entry : node_weights) {
+    for (const auto& entry : nodeWeights) {
         node_weight_set.insert(entry.first);
     }
     if (node_set != node_weight_set) {
