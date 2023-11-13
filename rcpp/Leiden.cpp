@@ -1,5 +1,3 @@
-#include <Rcpp.h>
-#include "GraphUtils.h"
 #include "Leiden.h"
 
 /*
