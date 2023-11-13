@@ -1,7 +1,7 @@
 library(Rcpp)
 library(igraph)
 library(testthat)
-library(LeidenAlg)
+library(leidenAlg)
 
 sourceCpp("Leiden.cpp")
 
