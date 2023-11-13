@@ -6,12 +6,36 @@ using namespace Rcpp;
 ##############################################
 ####### GRAPH CLASS FUNCTIONS ################
 */
-Graph::Graph(int n) : n(n), adj(n), edge_weights(n) {
+Graph::Graph(int n) : n(n) {
     isDirected = false;
     possibleEdges = n * (n - 1) / 2;
+    // initailize adjacency map
+    std::unordered_map<int, std::vector<int>> adj;
+    for (int i = 0; i < n; ++i) {
+      adj[i] = std::vector<int>();
+    }
+    this->adj = adj;
+    // initialize edge weights map
+    std::unordered_map<int, std::vector<double>> edge_weights;
+    for (int i = 0; i < n; ++i) {
+      edge_weights[i] = std::vector<double>();
+    }
+    this->edge_weights = edge_weights;
+    // initialize node weights map
+    std::unordered_map<int, double> node_weights;
     // for now, all nodes have the same weight
-    node_weights = std::vector<int>(n, 1);
-    nodes = getNodes();
+    for (int i = 0; i < n; ++i) {
+      node_weights[i] = 1.0;
+    }
+    // initialize nodes
+    std::vector<int> nodes;
+    for (int i = 0; i < n; ++i) {
+      nodes.push_back(i);
+    }
+    this->nodes = nodes;
+    // initialize node index map
+    std::map<std::string, int> nodeIndexMap;
+    this->nodeIndexMap = nodeIndexMap;
 };
 
 // add new edge to the graph, give it the two node names to connect and the weight
@@ -60,33 +84,38 @@ void Graph::updateNodeProperties() {
 }
 
 // get neighbors of a node based on index
-std::vector<int> Graph::getNeighbors(int nodeIndex) const {
-    return adj[nodeIndex];
+std::vector<int> Graph::getNeighbors(int n_idx) const {
+    return adj.at(n_idx);
 }
 
 // get weight of an edge based on node indices
 double Graph::getWeight(int u, int v) const {
-    for (std::vector<int>::size_type i = 0; i < adj[u].size(); i++) {
-        if (adj[u][i] == v) {
-            return edge_weights[u][i];
+    const auto& u_edges = adj.at(u);
+    const auto& u_weights = edge_weights.at(u);
+    
+    for (std::vector<int>::size_type i = 0; i < u_edges.size(); i++) {
+        if (u_edges[i] == v) {
+            return u_weights[i];
         }
     }
     Rcpp::stop("Edge not found: " + std::to_string(u) + " " + std::to_string(v));
 }
-
 // convert custom graph object to R list
 Rcpp::List Graph::graphToRList() const {
     Rcpp::CharacterVector from;
     Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
 
+    // print len nodes
+    Rcpp::Rcout << "Nodes: " << nodes.size() << std::endl;
+
     for (int i : nodes) { 
         std::string fromNode = getNodeName(i);
-        for (size_t j = 0; j < adj[i].size(); j++) {
-            std::string toNode = getNodeName(adj[i][j]);
+        for (size_t j = 0; j < adj.at(i).size(); j++) {
+            std::string toNode = getNodeName(adj.at(i)[j]);
             from.push_back(fromNode);
             to.push_back(toNode);
-            weight.push_back(edge_weights[i][j]);
+            weight.push_back(edge_weights.at(i)[j]);
         }
     }
 
@@ -101,47 +130,106 @@ Rcpp::List Graph::graphToRList() const {
 
 // trim the graph by removing nodes with only one connection
 // might consider defining a minimum number of connections to keep
+
 void Graph::removeSingleConnections() {
-    std::vector<int> nodesToRemove;
+    // print information about nodes and edges before removal
+    Rcpp::Rcout << "Nodes before removal: " << n << std::endl;
+    Rcpp::Rcout << "Adjacency size before removal: " << adj.size() << std::endl;
 
-    // Adding a temporary debug print to check the size of nodes vector
-    Rcpp::Rcout << "Number of nodes in nodes vector before removal: " << nodes.size() << std::endl;
-
-    for (int i : nodes) {
-        if (adj[i].size() == 1) {
-            // Node has only one connection, mark for removal
-            nodesToRemove.push_back(i);
+    std::vector<int> to_remove;
+    for (auto it = adj.begin(); it != adj.end(); /* no increment here */) {
+        // if a node has less than 2 outbound edges, mark it for removal
+        if (it->second.size() < 2) {
+            to_remove.push_back(it->first);
+            it = adj.erase(it); // remove node with less than 2 edges
+        } else {
+            ++it;
         }
     }
+    
+    Rcpp::Rcout << "Nodes to remove: " << to_remove.size() << std::endl;
 
-    for (int i : nodesToRemove) {
-        // Remove node from nodeIndexMap
-        nodeIndexMap.erase(getNodeName(nodes[i]));
+    // create new maps and vectors using new indices
+    std::map<std::string, int> new_node_index_map;
+    std::unordered_map<int, std::vector<int>> new_adj;
+    std::unordered_map<int, std::vector<double>> new_edge_weights;
+    std::unordered_map<int, double> new_node_weights;
+    std::vector<int> new_nodes;
 
-        // Remove node from adj
-        adj.erase(adj.begin() + i);
+    // Populate new adjacency list and other maps
+    for (const auto& entry : adj) {
+        int old_index = entry.first;
+        int new_index = new_node_index_map.size();
+        new_node_index_map[getNodeName(old_index)] = new_index;
+        new_nodes.push_back(new_index);
 
-        // Remove node from weights
-        edge_weights.erase(edge_weights.begin() + i);
-
-        // Remove node from adj and weights of other nodes
-        for (int j : nodes) {
-            for (std::vector<int>::size_type k = 0; k < adj[j].size(); k++) {
-                if (adj[j][k] == i) {
-                    adj[j].erase(adj[j].begin() + k);
-                    edge_weights[j].erase(edge_weights[j].begin() + k);
-                }
+        // Update adjacency list based on new indices
+        auto& neighbors = entry.second;
+        // update neighbors based on new indices
+        std::vector<int> new_neighbors;
+        for (int neighbor : neighbors) {
+            auto it = new_node_index_map.find(getNodeName(neighbor));
+            if (it != new_node_index_map.end()) {
+                // update neighbors based on new indices
+                new_neighbors.push_back(it->second);
+            } else {
+                // Handle the case where the neighbor is not found in the map
+                // This may happen if the neighbor was removed
+                // You can choose to ignore it or handle it based on your requirements
+                // For now, I'll just pass
+                //Rcpp::Rcout << "Warning: Neighbor not found in new_node_index_map: " << neighbor << std::endl;
             }
+
         }
+        
+        new_adj[new_index] = new_neighbors;
+        new_node_weights[new_index] = node_weights[old_index];
+        new_edge_weights[new_index] = edge_weights[old_index];
     }
 
-    // reset the number of nodes
-    // nodes have changed, update them
-    n = nodeIndexMap.size();
-    updateNodeProperties();
+    // print information about new structure
+    Rcpp::Rcout << "New nodes size: " << new_nodes.size() << std::endl;
+    Rcpp::Rcout << "New adjacency size: " << new_adj.size() << std::endl;
 
-    // Adding a temporary debug print to check the size of nodes vector after removal
-    Rcpp::Rcout << "Number of nodes in nodes vector after removal: " << nodes.size() << std::endl;
+    // reassign members with the new maps and vectors
+    nodeIndexMap = new_node_index_map;
+    nodes = new_nodes;
+    adj = new_adj;
+    edge_weights = new_edge_weights;
+    node_weights = new_node_weights;
+    n = nodes.size();
+
+    // print information about final structure
+    Rcpp::Rcout << "Nodes after reassignment: " << nodes.size() << std::endl;
+    Rcpp::Rcout << "Adjacency size after reassignment: " << adj.size() << std::endl;
+    Rcpp::Rcout << "Edges after reassignment: " << edge_weights.size() << std::endl;
+
+    // check that the set of nodes is the same as the set of keys in the adjacency list
+    std::set<int> node_set(nodes.begin(), nodes.end());
+    std::set<int> adj_set;
+    for (const auto& entry : adj) {
+        adj_set.insert(entry.first);
+    }
+    if (node_set != adj_set) {
+        Rcpp::stop("Nodes and adjacency list do not match");
+    }
+    // do the same for edge weights
+    std::set<int> edge_set;
+    for (const auto& entry : edge_weights) {
+        edge_set.insert(entry.first);
+    }
+    if (node_set != edge_set) {
+        Rcpp::stop("Nodes and edge weights do not match");
+    }
+    // do the same for node weights
+    std::set<int> node_weight_set;
+    for (const auto& entry : node_weights) {
+        node_weight_set.insert(entry.first);
+    }
+    if (node_set != node_weight_set) {
+        Rcpp::stop("Nodes and node weights do not match");
+    }
+
 }
 /*
 ##############################################
@@ -156,6 +244,7 @@ Graph listToGraph(const Rcpp::List& graphList) {
     std::set<std::string> uniqueNodes;
 
     // Collect unique nodes
+    Rcpp::Rcout << "Initializing graph" << std::endl;
     for (int i = 0; i < from.size(); i++) {
         std::string fromNode = Rcpp::as<std::string>(from[i]);
         std::string toNode = Rcpp::as<std::string>(to[i]);
@@ -183,15 +272,11 @@ Graph listToGraph(const Rcpp::List& graphList) {
         G.addEdge(fromNode, toNode, w);
     }
 
-    // Check for nodes with zero connections
-    for (int i : G.getNodes()) {
-        if (G.getNeighbors(i).empty()) {
-            Rcpp::Rcerr << "Warning: Node has zero connections: " << G.getNodeName(i) << std::endl;
-        }
-    }
-
+    Rcpp::Rcout << "update props" << std::endl;
     G.updateNodeProperties();
+    Rcpp::Rcout << "remove single connections" << std::endl;
     G.removeSingleConnections();
+    Rcpp::Rcout << "update props" << std::endl;
     G.updateNodeProperties();
 
     return G;

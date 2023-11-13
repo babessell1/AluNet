@@ -8,7 +8,7 @@ class Community {
 public:
     // properties
     int communityIndex; 
-    std::vector<int> nodeIndices;  // node indices nested in their subset group
+    std::vector<int> nodeIndices;  // node indices
     //int nodeCount;  // number of nodes in the community
     
     // methods

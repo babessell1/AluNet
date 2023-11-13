@@ -10,9 +10,9 @@ class Graph {
 public:
     int n;
     std::map<std::string, int> nodeIndexMap;
-    std::vector<std::vector<int>> adj;
-    std::vector<std::vector<double>> edge_weights;
-    std::vector<int> node_weights;
+    std::unordered_map<int, std::vector<int>> adj;
+    std::unordered_map<int, std::vector<double>> edge_weights;
+    std::unordered_map<int, double> node_weights;
     std::vector<int> nodes;
     bool isDirected;
     int possibleEdges;
