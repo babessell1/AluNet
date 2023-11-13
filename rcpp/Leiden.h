@@ -12,6 +12,21 @@ public:
     
     // methods
     Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
+
+// Constructor to handle SEXP
+    Community(SEXP s) {
+        Rcpp::List communityList(s);
+
+        // Assuming the list contains a vector of integers for nodes and a single integer for the index
+        Rcpp::IntegerVector nodes = communityList["nodes"];
+        int index = Rcpp::as<int>(communityList["index"]);
+
+        // Convert IntegerVector to std::vector<int>
+        nodeIndices = Rcpp::as<std::vector<int>>(nodes);
+        communityIndex = index;
+    }
+
+
     double aggregateWeights(Graph& G); // sum weights of all edges in the community and count number of nodes
     size_t size(); // number of nodes in the community
 };
