@@ -4,6 +4,7 @@ Weighted Leiden algorithm for modeling Alu-mediated enhancer-promoter interactio
 
 ## Current Progress
 
-1. Finish the structure of ```Graph``` and other dependent functions
-2. prepared the data and read the data using the defined structure
-3. basic implementation of Leiden algorithm.
+1. Finished the structure of ```Graph```, ```Partition``` ```Community``` and necessary helper functions
+2. Finished functions for interfacing with R
+3. Currently testing moveNodesFast part of core algorithm and implementing other core algorithm logic
+4. Currently working on converting Multi-omics data inputs into useful weights for input
