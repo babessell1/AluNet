@@ -279,13 +279,12 @@ void Optimizer::optimize() {
     // This involve multiple steps, such as moveNodesFast, refinePartition, mergeNodesSubset, etc.
     bool done = false;
     while (!done) {
-        //moveNodesFast();
+        moveNodesFast();
         //Partition P_refined = refinePartition();
         //aggregateGraph(P_refined);
 
         // set true no matter what for now
         done = true;
-
     }
     // test 
     P.flattenPartition();
@@ -333,7 +332,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
         optim.optimize();
     }
 
-    // move node 168 to community 126
+    /* OLD TESTING CODE
+    move node 168 to community 126
     optim.P.updateCommunityMembership(168, 168, 126);
 
     // print nodes in community 126
@@ -349,6 +349,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // purge empty communities
     optim.P.purgeEmptyCommunities(false);
+
+    */
 
     // get the communities from the partition
     std::vector<int> communities;
