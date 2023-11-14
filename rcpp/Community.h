@@ -10,7 +10,6 @@ public:
     // properties
     int communityIndex; 
     std::vector<int> nodeIndices;  // node indices
-    //int nodeCount;  // number of nodes in the community
     
     // methods
     Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
