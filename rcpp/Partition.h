@@ -20,6 +20,21 @@ bool Partition::isSingleton(int node) const {
     // Check if the size of the community is 1, indicating a singleton
     return community.nodeIndices.size() == 1;
 }
+
+void Partition::moveNodeToCommunity(int node, int newCommunityIndex) {
+    int oldCommunityIndex = nodeCommunityMap[node]; // Get the current community of the node
+
+    // Remove node from the old community
+    auto& oldCommunity = communityIndexMap[oldCommunityIndex];
+    oldCommunity.nodeIndices.erase(std::remove(oldCommunity.nodeIndices.begin(), oldCommunity.nodeIndices.end(), node), oldCommunity.nodeIndices.end());
+
+    // Add node to the new community
+    auto& newCommunity = communityIndexMap[newCommunityIndex];
+    newCommunity.nodeIndices.push_back(node);
+
+    // Update the node's community in the map
+    nodeCommunityMap[node] = newCommunityIndex;
+}
 */
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices() const;
