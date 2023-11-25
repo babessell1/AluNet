@@ -267,9 +267,26 @@ Partition Optimizer::mergeNodesSubset(const Community& subset) {
     return mergedPartition;
 }
 
+// this is the main idea and the functions shuold be defined.
 Graph Optimizer::aggregateGraph(const Graph& G, const Partition& P) {
-    // Implement graph aggregation
-    Graph aggregatedGraph; // Placeholder, replace with actual logic
+    size_t numCommunities = P.numberOfCommunities();
+    Graph aggregatedGraph(numCommunities); 
+
+    // Iterate through each edge in the original graph
+    for (const auto& edge : G.getEdges()) { // Assuming getEdges() returns all edges in the graph
+        int u = edge.first;
+        int v = edge.second;
+        
+        int communityU = P.getCommunityOfNode(u); // Assuming getCommunityOfNode() gets the community of a node
+        int communityV = P.getCommunityOfNode(v);
+
+        // Add an edge between the communities in the aggregated graph
+        // This will handle multi-edges automatically if the same edge is added multiple times
+        // note that our addEdge function is string and should plug in the weight
+        // so the function should be revised
+        // aggregatedGraph.addEdge(communityU, communityV);
+    }
+
     return aggregatedGraph;
 }
 
