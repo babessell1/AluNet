@@ -35,6 +35,17 @@ void Partition::moveNodeToCommunity(int node, int newCommunityIndex) {
     // Update the node's community in the map
     nodeCommunityMap[node] = newCommunityIndex;
 }
+
+std::vector<int> Partition::getCommunityIndices() const {
+    std::vector<int> indices;
+    indices.reserve(communityIndexMap.size());
+
+    for (const auto& pair : communityIndexMap) {
+        indices.push_back(pair.first);
+    }
+
+    return indices;
+}
 */
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices() const;
