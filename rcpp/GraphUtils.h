@@ -29,6 +29,17 @@ public:
     std::vector<int> getNeighbors(int nodeIndex) const;
     double getWeight(int u, int v) const;
     void updateNodeProperties();
+/*
+bool Graph::isConnected(int node, const std::vector<int>& subsetNodes) {
+    // Assuming 'adj' is the adjacency list for each node
+    for (int target : subsetNodes) {
+        if (std::find(adj[node].begin(), adj[node].end(), target) != adj[node].end()) {
+            return true; // Node is connected to at least one node in the subset
+        }
+    }
+    return false; // Node is not connected to any nodes in the subset
+}
+*/
 };
 
 // listToGraph
