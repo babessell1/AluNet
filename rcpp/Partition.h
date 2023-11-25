@@ -13,10 +13,11 @@ public:
 
     // methods
 /*
-bool isSingleton(const Partition& partition, int node) {
-    int communityIndex = partition.nodeCommunityMap.at(node);
-    const auto& community = partition.communityIndexMap.at(communityIndex);
+bool Partition::isSingleton(int node) const {
+    int communityIndex = nodeCommunityMap.at(node); // Get the community index of the node
+    const auto& community = communityIndexMap.at(communityIndex); // Get the Community object
 
+    // Check if the size of the community is 1, indicating a singleton
     return community.nodeIndices.size() == 1;
 }
 */
