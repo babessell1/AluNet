@@ -265,8 +265,10 @@ Partition Optimizer::refinePartition() {
 Partition Optimizer::mergeNodesSubset(Graph& G, Partition& P, Community& subset) {
     std::vector<int> R; // Nodes to consider
     // Identify nodes that are well connected within subset S
-    for (int v : subset.nodeIndices) {
-        if (G.isConnected(v, subset)) { // Assuming a function isConnected is defined in GraphUtils
+    std::vector<int> subsetNodeIndices = subset.nodeIndices;
+    
+    for (int v : subsetNodeIndices) {
+        if (G.isConnected(v, subsetNodeIndices)) { // Assuming a function isConnected is defined in GraphUtils
             R.push_back(v);
         }
     }
