@@ -12,6 +12,14 @@ public:
     double quality;
 
     // methods
+/*
+bool isSingleton(const Partition& partition, int node) {
+    int communityIndex = partition.nodeCommunityMap.at(node);
+    const auto& community = partition.communityIndexMap.at(communityIndex);
+
+    return community.nodeIndices.size() == 1;
+}
+*/
     Partition(const std::vector<Community>& communities);
     std::vector<int> getCommunityIndices() const;
     void flattenPartition();
