@@ -10,9 +10,8 @@
 class Graph {
 public:
     int n;
-    std::map<std::string, int> nodeIndexMap;
-    std::unordered_map<int, std::vector<int>> adj;
-    std::unordered_map<int, std::vector<double>> edgeWeights;
+    std::unordered_map<std::string, int> nodeIndexMap;
+    std::unordered_map<int, std::unordered_map<int, double>> edgeWeights;
     std::unordered_map<int, double> nodeWeights;
     std::vector<int> nodes;
     bool isDirected;
@@ -24,11 +23,11 @@ public:
     int getNodeIndex(const std::string& node) const;
     std::string getNodeName(int index) const;
     std::vector<int> getNodes() const;
-    void removeSingleConnections();
+    void removeLowConnections(int min_connections);
     Rcpp::List graphToRList() const;
     std::vector<int> getNeighbors(int nodeIndex) const;
     double getWeight(int u, int v) const;
-    void updateNodeProperties();
+    void updateNodeProperties(bool remove_empty_nodes);
 };
 
 // listToGraph

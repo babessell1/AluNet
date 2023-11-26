@@ -169,20 +169,37 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
     double quality = 0.0;
     // for each node in the graph
     for (int node_idx : G.nodes) {
+
+        // print
+        Rcpp::Rcout << "neighbors of node " << node_idx << std::endl;
+        // print G.getNeighbors(node_idx);
+        for (int neigh_idx : G.getNeighbors(node_idx)) {
+            Rcpp::Rcout << neigh_idx << std::endl;
+        }
+
         // get the neighbors of the node
         for (int neigh_idx : G.getNeighbors(node_idx)) {
             // get the weight of the edge between the node and its neighbor
-            double edge_weight = G.edgeWeights.at(node_idx).at(neigh_idx);
+
+
+            //print G.edgeWeights.at(node_idx).at(neigh_idx);
+            Rcpp::Rcout << "edge weight: " <<  std::endl;
+            for (int i = 0; i < G.edgeWeights.at(node_idx).size(); i++) {
+                Rcpp::Rcout << i << G.edgeWeights.at(node_idx).at(i) << std::endl;
+            }
+
+            Rcpp::Rcout << "corn pop" << std::endl;
+
+            double edge_weight = G.edgeWeights.at(node_idx).at(neigh_idx);  
             // if the neighbor is in the same community as the node
+
             if (nodeCommunityMap.at(node_idx) == nodeCommunityMap.at(neigh_idx)) {
                 // add the edge weight to the quality
                 quality += edge_weight;
             }
         }
     }
-
-    // our graph has no self links, so we do not need to handle them
-
+    // our graph has no self links, so we do not need to handle them for now
     std::vector<double> p_weights = getPartitionWeights(G);
     // for each community in the partition, get the weight of the community and remove it from the quality
     for (int c_idx : getCommunityIndices()) {
