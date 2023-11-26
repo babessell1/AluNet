@@ -323,10 +323,59 @@ Partition Optimizer::refinePartition() {
     return refinedPartition;
 }
 
-Partition Optimizer::mergeNodesSubset(const Community& subset) {
-    // Implement refining a community
-    Partition mergedPartition; // Placeholder, replace with actual logic
-    return mergedPartition;
+// should complete the functions that are not yet defined
+Partition Optimizer::mergeNodesSubset(Graph& G, Partition& P, Community& subset) {
+    std::vector<int> R; // Nodes to consider
+    // Identify nodes that are well connected within subset S
+    std::vector<int> subsetNodeIndices = subset.nodeIndices;
+    
+    for (int v : subsetNodeIndices) {
+        if (G.isConnected(v, subsetNodeIndices)) { // Assuming a function isConnected is defined in GraphUtils
+            R.push_back(v);
+        }
+    }
+    
+    // Visit nodes in random order
+    std::shuffle(R.begin(), R.end(), std::default_random_engine(std::random_device{}()));
+    
+    for (int v : R) {
+        // Consider only nodes that have not yet been merged
+        if (P.isSingleton(v)) { // Assuming isSingleton checks if v is in a singleton community
+            std::vector<int> T; // Possible communities to merge
+            // Identify well-connected communities
+            for (int c : P.getCommunityIndices()) { // Assuming getCommunityIndices gets community indices
+                if (G.isConnected(v, P.getCommunity(c))) { // Assuming getCommunity gets the community object
+                    T.push_back(c);
+                }
+            }
+            
+            // If there are possible communities to merge
+            if (!T.empty()) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_real_distribution<> dis(0, 1);
+                double temperature = 1.0; // A starting temperature value, needs to be chosen based on the problem scale
+                int C_prime_index = -1;
+                double max_delta_quality = std::numeric_limits<double>::lowest();
+                
+                // Choose a random community C' with probability proportional to exp(delta_quality / temperature)
+                for (int c : T) {
+                    double delta_quality = P.deltaQuality(v, c, P.gamma);
+                    if (delta_quality > max_delta_quality && dis(gen) < exp(delta_quality / temperature)) {
+                        max_delta_quality = delta_quality;
+                        C_prime_index = c;
+                    }
+                }
+                
+                // If a community was chosen, move node v to community C'
+                if (C_prime_index != -1) {
+                    P.moveNodeToCommunity(v, C_prime_index); // Assuming moveNodeToCommunity performs the move
+                }
+            }
+        }
+    }
+    
+    return P; // Return the modified partition
 }
 
 // this is the main idea and the functions shuold be defined.
