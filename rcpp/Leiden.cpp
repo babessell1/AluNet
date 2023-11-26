@@ -452,7 +452,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     } while (!done);
 
-    // OLD TESTING CODE
+    /* OLD TESTING CODE
     //move node 168 to community 126
     optim.P.updateCommunityMembership(37, 0, 71);
 
@@ -469,6 +469,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // purge empty communities
     optim.P.purgeEmptyCommunities(false);
+
+    */
 
     // get the communities from the partition
     std::vector<int> communities;
