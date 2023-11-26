@@ -158,17 +158,14 @@ bool Optimizer::moveNodesFast() {
     */
 
     do {
-
-        // print start while loop
-        Rcpp::Rcout << "Start while loop" << std::endl;
         int j = node_queue[start++];
         // if the node is stable, skip it
         // get current community of node j
         int c_idx = P.nodeCommunityMap.at(j);
 
         // print node and community
-        Rcpp::Rcout << "Node: " << j << " Community: " << c_idx << std::endl;
-        
+        Rcpp::Rcout << "Moving node: " << j << " in community: " << c_idx << std::endl;
+
 
         /*
         * Identify the neighboring clusters of the currently selected
@@ -444,12 +441,16 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // Create an Optimizer
     Optimizer optim(G, P, gamma);
-
-    // Run the Leiden algorithm for the specified number of iterations
-    for (int i = 0; i < iterations; i++) {
+    
+    // Run the Leiden algorithm
+    bool done = false;  
+    do { 
         // Run the Leiden algorithm
         optim.optimize();
-    }
+        // temporary
+        done = true;
+
+    } while (!done);
 
     // OLD TESTING CODE
     //move node 168 to community 126
