@@ -250,6 +250,8 @@ bool Optimizer::moveNodesFast() {
        if (best_cluster != c_idx) {
             // update cluster stats
             P.updateCommunityMembership(j, c_idx, best_cluster);
+            // print node and new community
+            Rcpp::Rcout << "Moved node: " << j << " to community: " << best_cluster << std::endl;
             cluster_weights[best_cluster] += G.nodeWeights[j];
             nodes_per_cluster[best_cluster]++;
             if (best_cluster == unused_clusters[n_unused_clusters-1]) {
@@ -452,6 +454,17 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     } while (!done);
 
+    // print the number of communities
+    Rcpp::Rcout << "New number of communities: " << optim.P.communityIndexMap.size() << std::endl;
+
+    // print the nodes in each community
+    for (const auto& entry : optim.P.communityIndexMap) {
+        Rcpp::Rcout << "Community: " << entry.first << std::endl;
+        for (int node_index : entry.second.nodeIndices) {
+            Rcpp::Rcout << "Node: " << node_index << std::endl;
+        }
+    }
+    
     /* OLD TESTING CODE
     //move node 168 to community 126
     optim.P.updateCommunityMembership(37, 0, 71);

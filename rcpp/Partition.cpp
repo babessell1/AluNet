@@ -141,16 +141,16 @@ void Partition::purgeEmptyCommunities(bool renumber) {
         for (auto& entry : communityIndexMap) {
             // map the old index to the new index (old : new)
             old_index_to_new_index[entry.first] = new_index;
+            new_index++;
         }
         // use the map to update community indices in the communityIndexMap
-        for (auto& entry : old_index_to_new_index) {
+        for (auto& entry : communityIndexMap) {
             // get the community
-            auto comm = communityIndexMap.find(entry.first);
+            auto comm = entry.second;
             // update the community index
-            comm->second.communityIndex = entry.second;
+            comm.communityIndex = old_index_to_new_index[entry.first];
             // add the community to the new map
-            new_community_index_map.insert({entry.second, comm->second});
-            new_index++;
+            new_community_index_map.insert({comm.communityIndex, comm});
         }
         // update the community index map
         communityIndexMap = new_community_index_map;
