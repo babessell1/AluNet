@@ -71,5 +71,4 @@ static std::vector<int> generateRandomPermutation(int n) {
     }
 };
 
-
 #endif

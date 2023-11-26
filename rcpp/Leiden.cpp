@@ -67,15 +67,10 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
     // make copy of the partition
     Partition P_new = P;
 
-    // print updating temporary partition
-    Rcpp::Rcout << "Updating temporary partition" << std::endl;
-
     // move the node to the new community
     P_new.updateCommunityMembership(n_idx, old_c_idx, new_c_idx);
     // purge empty communities
 
-    // print purging empty communities
-    Rcpp::Rcout << "Purging empty communities in temp" << std::endl;
     P_new.purgeEmptyCommunities(false);
 
     // get quality of the partition after the move
@@ -103,48 +98,35 @@ bool Optimizer::moveNodesFast() {
     int n_unused_clusters = 0;
     int n_unstable_nodes = G.n;
 
-    std::queue<int> node_queue;
     std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(G.n);
 
     // print length of queue
     Rcpp::Rcout << "Length of queue: " << random_nodes.size() << std::endl;
 
-    for (int node_index : random_nodes) {
-        node_queue.push(node_index);
+    std::deque<int> node_queue(G.n);
+    int start = 0, end = G.n;
+    for (int i = 0; i < G.n; i++) {
+        node_queue[i] = random_nodes[i];
     }
-
-    // print "pushed"
-    Rcpp::Rcout << "Pushed" << std::endl;
 
     // initialize the cluster weights and nodes per cluster
     for (const auto& entry : G.nodeIndexMap) {
         int node_index = entry.second;
         cluster_weights[node_index] = G.nodeWeights[node_index];
         nodes_per_cluster[node_index]++;
-    
     }
-
-    // print "initialized cluster weights and nodes per cluster"
-    Rcpp::Rcout << "Initialized cluster weights and nodes per cluster" << std::endl;
-
 
     // get the node indices in the graph
     std::vector<int> node_indices;
     for (auto entry : G.nodeIndexMap) {
         node_indices.push_back(entry.second);
     }
-
-    // print "got node indices"
-    Rcpp::Rcout << "Got node indices" << std::endl;
     
     // for each node in the network (go backwards)
     std::vector<int> rev_node_indices;
     for (int i = G.n - 1; i >= 0; i--) {
         rev_node_indices.push_back(node_indices[i]);
     }
-
-    // print "reversed node indices"
-    Rcpp::Rcout << "Reversed node indices" << std::endl;
 
     for (int nidx : rev_node_indices) {
         // print nodes per cluster
@@ -157,12 +139,14 @@ bool Optimizer::moveNodesFast() {
         }
     }
 
-    // print "added unused clusters"
-    Rcpp::Rcout << "Added unused clusters" << std::endl;
-    // print them all
-    Rcpp::Rcout << "Unused clusters: " << std::endl;
-    for (int i = 0; i < n_unused_clusters; i++) {
-        Rcpp::Rcout << unused_clusters[i] << std::endl;
+    // add an empty cluster to the end of the unused clusters if there are no empty clusters
+    if (n_unused_clusters == 0) {
+        int new_comm_idx = size_t(P.communityIndexMap.size());
+        unused_clusters[n_unused_clusters] = new_comm_idx;
+        // also add it to the community index map
+        Community empty_community({}, new_comm_idx);
+        P.communityIndexMap.insert({new_comm_idx, empty_community});
+        n_unused_clusters++;
     }
 
     /*
@@ -172,14 +156,19 @@ bool Optimizer::moveNodesFast() {
     * nodeOrder[i], ..., nodeOrder[i + nUnstableNodes - 1]. Continue
     * iterating until the queue is empty.
     */
+
     do {
+
         // print start while loop
         Rcpp::Rcout << "Start while loop" << std::endl;
-        int j = node_queue.front();
-        node_queue.pop();
+        int j = node_queue[start++];
         // if the node is stable, skip it
         // get current community of node j
         int c_idx = P.nodeCommunityMap.at(j);
+
+        // print node and community
+        Rcpp::Rcout << "Node: " << j << " Community: " << c_idx << std::endl;
+        
 
         /*
         * Identify the neighboring clusters of the currently selected
@@ -189,21 +178,22 @@ bool Optimizer::moveNodesFast() {
         * the currently selected node will be moved to an empty cluster.
         */
 
-       // print "get neighborhood
-         Rcpp::Rcout << "Get neighborhood" << std::endl;
-
         // get the neighbors of node j
         std::vector<int> neighbors = G.getNeighbors(j);
         int n_neighboring_clusters = 1;  // track the number of neighboring clusters
         // get the neighboring clusters of node j
         std::set<int> neighboring_clusters;
+
+
         // add empty cluster to neighboring clusters
         neighboring_clusters.insert(unused_clusters[n_unused_clusters-1]);
         for (int nn_idx : neighbors) {  // neighbors of node j
             // get the community of the neighbor
             int nc_idx = P.nodeCommunityMap.at(nn_idx);  // nieghbor community index
+
             // if edge weight of cluster is 0
             if (edge_weights_per_cluster[nc_idx] == 0) {
+
                 // add to neighboring clusters
                 neighboring_clusters.insert(nc_idx);
                 n_neighboring_clusters++;
@@ -211,20 +201,17 @@ bool Optimizer::moveNodesFast() {
             edge_weights_per_cluster[nc_idx] += P.communityIndexMap.at(nc_idx).getClusterWeight(G);
         }
 
-        // print "ensuring empty cluster is in neighboring clusters"
-        Rcpp::Rcout << "Ensuring empty cluster is in neighboring clusters" << std::endl;
-
         // find an empty cluster, first check if only self is in the current cluster
         // if true, then the current cluster is empty
-        if (P.communityIndexMap.at(c_idx).size() == 1) {
+        //if (P.communityIndexMap.at(c_idx).size() == 1) {
             // add the current cluster to the neighboring clusters
-            neighboring_clusters.insert(c_idx);
-        } else {
+        //    neighboring_clusters.insert(c_idx);
+        //} else {
             // get first empty cluster
-            int empty_cluster = unused_clusters[0];
+        //    int empty_cluster = unused_clusters[0];
             // add the empty cluster to the neighboring clusters
-            neighboring_clusters.insert(empty_cluster);
-        }
+        //    neighboring_clusters.insert(empty_cluster);
+        //}
 
         /*
         * For each neighboring cluster of the currently selected node,
@@ -237,9 +224,6 @@ bool Optimizer::moveNodesFast() {
         * node is optimal but there are also other optimal clusters, the
         * currently selected node will be moved back to its old cluster.
         */
-
-        // print "finding best cluster"
-        Rcpp::Rcout << "Finding best cluster" << std::endl;
 
         // initialize the best cluster and the best quality
         int best_cluster = c_idx;
@@ -255,10 +239,6 @@ bool Optimizer::moveNodesFast() {
                 best_cluster = nc_idx;
             }
         }
-        // print cluster
-        Rcpp::Rcout << "Cluster was : " << c_idx << std::endl;
-        // print best cluster is: cluster
-        Rcpp::Rcout << "New best cluster is: " << best_cluster << std::endl;
 
         // mark the node as stable, remove it from the queue
         stable_nodes[j] = true;
@@ -283,28 +263,39 @@ bool Optimizer::moveNodesFast() {
             // do some extra managment if best cluster is the empty cluster?
             // get the neighbors of node j
             std::vector<int> neighbors = G.getNeighbors(j);
+
             // get the neighboring clusters of node j
             std::set<int> neighboring_clusters;
             for (int nn_idx : neighbors) {
                 // get community of neighbor
                 int nc_idx = P.nodeCommunityMap.at(nn_idx);
                 // if the neighbor is stable and neighbor's cluster is not the best cluster
-                if (nc_idx != best_cluster && stable_nodes[nc_idx] == true) {
-                    stable_nodes[nc_idx] == false;
+                if (nc_idx != best_cluster && stable_nodes[nn_idx] == true) {
+                    stable_nodes[nn_idx] = false;
                     n_unstable_nodes++;
-                    // add to node queue with this java logic
                     // add to the end of the queue
-                    node_queue.push(nn_idx);
+                    if (end == G.n) { // Queue is full, start from the beginning
+                        end = 0;
+                    }
+                    node_queue[end++] = nn_idx;
                 }
+         
             }
+
             update = true;
        }
+       // cyclic queue
+        if (start == G.n) {
+            start = 0;
+        }
+
+
        // get next node in the queue
     } while (n_unstable_nodes > 0);
 
     if (update) {
         // purge empty clusters
-        P.purgeEmptyCommunities(false);
+        P.purgeEmptyCommunities(true);
 
     }
     return update;
@@ -457,7 +448,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     // Run the Leiden algorithm for the specified number of iterations
     for (int i = 0; i < iterations; i++) {
         // Run the Leiden algorithm
-        //optim.optimize();
+        optim.optimize();
     }
 
     // OLD TESTING CODE
@@ -477,8 +468,6 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // purge empty communities
     optim.P.purgeEmptyCommunities(false);
-
-    //
 
     // get the communities from the partition
     std::vector<int> communities;

@@ -24,7 +24,7 @@ sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
 
 ```{r}
 #g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
-g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
 #g_list <- graphFromFitHIC("data/GSE148434_NS_all.5kb.1e-2.FitHiC.all.txt", "chr1")
 #g_list <- list(
 #  to =   c("1", "3", "5", "7", "7", "11", "11"),

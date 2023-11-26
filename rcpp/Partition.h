@@ -53,9 +53,9 @@ std::vector<int> Partition::getCommunityIndices() const {
     void updateCommunityMembershipSearch(int node_index, int new_community_index);
     void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
     int getNodeCommunity(int node_index);
-    void purgeEmptyCommunities(bool leave_one);
+    void purgeEmptyCommunities(bool renumber);
     void addCommunity(const Community& newCommunity);
-    std::vector<double> getPartitionWeights(const Graph& G) const;
+    std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
     double calcQuality(double gamma, const Graph& G) const;
 };
 
