@@ -98,6 +98,9 @@ void Partition::updateCommunityMembershipSearch(int node_index, int new_communit
 
     // Add the node to the new community
     communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
+
+    // update the node community map
+    nodeCommunityMap.at(node_index) = new_community_index;
 }
 
 void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
@@ -117,6 +120,9 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 
     // Add the node to the new community
     communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
+
+    // update the node community map
+    nodeCommunityMap.at(node_index) = new_community_index;
 }
 
 // ################################

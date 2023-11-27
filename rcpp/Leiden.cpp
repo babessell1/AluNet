@@ -64,6 +64,9 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
     // get quality of the partition before the move
     double old_quality = P.calcQuality(gamma, G);
 
+    // print old quality
+    Rcpp::Rcout << "Old quality: " << old_quality << std::endl;
+
     // make copy of the partition
     Partition P_new = P;
 
@@ -71,10 +74,11 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
     P_new.updateCommunityMembership(n_idx, old_c_idx, new_c_idx);
     // purge empty communities
 
-    P_new.purgeEmptyCommunities(false);
-
     // get quality of the partition after the move
     double new_quality = P_new.calcQuality(gamma, G);
+
+    // print new quality
+    Rcpp::Rcout << "New quality: " << new_quality << std::endl;
 
     // return the difference in quality
     return new_quality - old_quality;
@@ -158,14 +162,16 @@ bool Optimizer::moveNodesFast() {
     */
 
     do {
-        int j = node_queue[start++];
+        // print --------------
+        Rcpp::Rcout << "----------------------------------------" << std::endl;
+        // print start , end, and n unstable nodes
+        Rcpp::Rcout << "Start: " << start << std::endl;
+        Rcpp::Rcout << "End: " << end << std::endl;
+        Rcpp::Rcout << "n unstable nodes: " << n_unstable_nodes << std::endl;
+        int j = node_queue[start++];  // get the next node in the queue
         // if the node is stable, skip it
         // get current community of node j
         int c_idx = P.nodeCommunityMap.at(j);
-
-        // print node and community
-        Rcpp::Rcout << "Moving node: " << j << " in community: " << c_idx << std::endl;
-
 
         /*
         * Identify the neighboring clusters of the currently selected
@@ -226,8 +232,8 @@ bool Optimizer::moveNodesFast() {
         int best_cluster = c_idx;
         double best_quality_increment = 0.0;
         // for each neighboring cluster
+
         for (int nc_idx : neighboring_clusters) {
-            // calculate the quality of the move
             double delta_q = deltaQuality(j, nc_idx, gamma);
             // if the quality of the move is better than the best quality
             if (delta_q > best_quality_increment) {
@@ -258,24 +264,23 @@ bool Optimizer::moveNodesFast() {
                 n_unused_clusters--;
             }
 
-            P.nodeCommunityMap.at(j) = best_cluster;
+            //P.nodeCommunityMap.at(j) = best_cluster;
+
             // do some extra managment if best cluster is the empty cluster?
             // get the neighbors of node j
             std::vector<int> neighbors = G.getNeighbors(j);
-
-            // get the neighboring clusters of node j
-            std::set<int> neighboring_clusters;
             for (int nn_idx : neighbors) {
                 // get community of neighbor
                 int nc_idx = P.nodeCommunityMap.at(nn_idx);
+                // print neighbor and neighbor community
+                Rcpp::Rcout << "Neighbor: " << nn_idx << " in community: " << nc_idx << std::endl;
                 // if the neighbor is stable and neighbor's cluster is not the best cluster
-                if (nc_idx != best_cluster && stable_nodes[nn_idx] == true) {
+                if (nc_idx != best_cluster ) { // && stable_nodes[nn_idx] == true) {
+                    // print new unstable node found
+                    Rcpp::Rcout << "New unstable node found: " << nn_idx << std::endl;
                     stable_nodes[nn_idx] = false;
                     n_unstable_nodes++;
                     // add to the end of the queue
-                    if (end == G.n) { // Queue is full, start from the beginning
-                        end = 0;
-                    }
                     node_queue[end++] = nn_idx;
                 }
          
@@ -283,11 +288,11 @@ bool Optimizer::moveNodesFast() {
 
             update = true;
        }
-       // cyclic queue
-        if (start == G.n) {
-            start = 0;
+        // cyclic queue
+        // if the end of the queue has been reached
+        if (start == end) {
+            start = 0; // start at the beginning
         }
-
 
        // get next node in the queue
     } while (n_unstable_nodes > 0);
@@ -430,7 +435,7 @@ Partition initializePartition(const Graph& G) {
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // Set the resolution parameter
-    double gamma = 1.0;
+    double gamma = 100.0;
 
     // Create a graph from the R List
     // use listToGraph from GraphUtils.cpp
