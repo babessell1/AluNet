@@ -8,7 +8,7 @@ output: html_notebook
 library(Rcpp)
 library(igraph)
 library(Matrix)
-source("r/graphFromFitHIC.R")
+source("r/graphFromFitHIC.R")  
 update.packages("Rcpp")
 setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
@@ -57,12 +57,13 @@ plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.a
 ```
 
 ```{r}
-g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
 print(length(unique(c(g_list[["to"]], g_list[["from"]]))))
 output <- runLeiden(g_list, 2)
 print(output[["communities"]])
 print(output[["nodes"]])
 print(output[["node_names"]])
+# 4258
 ```
 
 ```{r}

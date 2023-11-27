@@ -50,22 +50,10 @@ Optimizer::Optimizer(Graph& G, Partition& P, double gamma) : G(G), P(P), gamma(g
 double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
   // calculate the difference between moving vertex to a new community
 
-    // print getting old community
-    Rcpp::Rcout << "Getting old community" << std::endl;
-
-    // print node index
-    Rcpp::Rcout << "Node index: " << n_idx << std::endl;
-
     int old_c_idx = P.nodeCommunityMap.at(n_idx);  // keep track of the old community
-
-    // print old community
-    Rcpp::Rcout << "Old community: " << old_c_idx << std::endl;
 
     // get quality of the partition before the move
     double old_quality = P.calcQuality(gamma, G);
-
-    // print old quality
-    Rcpp::Rcout << "Old quality: " << old_quality << std::endl;
 
     // make copy of the partition
     Partition P_new = P;
@@ -76,9 +64,6 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
 
     // get quality of the partition after the move
     double new_quality = P_new.calcQuality(gamma, G);
-
-    // print new quality
-    Rcpp::Rcout << "New quality: " << new_quality << std::endl;
 
     // return the difference in quality
     return new_quality - old_quality;
@@ -99,13 +84,13 @@ bool Optimizer::moveNodesFast() {
     // print starting message
     Rcpp::Rcout << "Starting move iteration" << std::endl;
 
+    //print initial quality
+    Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G) << std::endl;
+
     int n_unused_clusters = 0;
     int n_unstable_nodes = G.n;
 
     std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(G.n);
-
-    // print length of queue
-    Rcpp::Rcout << "Length of queue: " << random_nodes.size() << std::endl;
 
     std::deque<int> node_queue(G.n);
     int start = 0, end = G.n;
@@ -161,13 +146,31 @@ bool Optimizer::moveNodesFast() {
     * iterating until the queue is empty.
     */
 
+    int counter = 0;
+    int bar_width = 70; // bar width
+    Rcpp::Rcout << "Progress: ";
     do {
-        // print --------------
         Rcpp::Rcout << "----------------------------------------" << std::endl;
-        // print start , end, and n unstable nodes
+        counter++;
         Rcpp::Rcout << "Start: " << start << std::endl;
         Rcpp::Rcout << "End: " << end << std::endl;
         Rcpp::Rcout << "n unstable nodes: " << n_unstable_nodes << std::endl;
+        //Rcpp::Rcout << "n unused clusters: " << n_unused_clusters << std::endl;
+        //Rcpp::Rcout << "n neighboring clusters: " << n_neighboring_clusters.size() << std::endl;
+        //Rcpp::Rcout << "cluster weights: " << cluster_weights.size() << std::endl;
+        //Rcpp::Rcout << "edge weights per cluster: " << edge_weights_per_cluster.size() << std::endl;
+        //Rcpp::Rcout << "nodes per cluster: " << nodes_per_cluster.size() << std::endl;
+        //Rcpp::Rcout << "stable nodes: " << stable_nodes.size() << std::endl;
+        //Rcpp::Rcout << "node queue: " << node_queue.size() << std::endl;
+
+        // progress based on n unstable nodes
+        //double progress = ( 1 - (n_unstable_nodes / G.n) ) * 100;
+        // if multiple of 100
+        //if (counter % 100 == 0) {
+            // print progress bar
+        //    Rcpp::Rcout << progress << " %" << std::endl;
+        //} 
+
         int j = node_queue[start++];  // get the next node in the queue
         // if the node is stable, skip it
         // get current community of node j
@@ -253,6 +256,7 @@ bool Optimizer::moveNodesFast() {
         not belong to the new cluster are marked as unstable and added to
         the queue. 
         */
+
        if (best_cluster != c_idx) {
             // update cluster stats
             P.updateCommunityMembership(j, c_idx, best_cluster);
@@ -273,13 +277,16 @@ bool Optimizer::moveNodesFast() {
                 // get community of neighbor
                 int nc_idx = P.nodeCommunityMap.at(nn_idx);
                 // print neighbor and neighbor community
-                Rcpp::Rcout << "Neighbor: " << nn_idx << " in community: " << nc_idx << std::endl;
+                //Rcpp::Rcout << "Neighbor: " << nn_idx << " in community: " << nc_idx << std::endl;
                 // if the neighbor is stable and neighbor's cluster is not the best cluster
                 if (nc_idx != best_cluster ) { // && stable_nodes[nn_idx] == true) {
                     // print new unstable node found
-                    Rcpp::Rcout << "New unstable node found: " << nn_idx << std::endl;
+                    Rcpp::Rcout << "New unstable node: " << nn_idx << std::endl;
                     stable_nodes[nn_idx] = false;
                     n_unstable_nodes++;
+                    if (end == node_queue.size()) { // if the queue is full (should really set back to 0 when this happens since it is circular but having weird issues with that)
+                        node_queue.resize(node_queue.size() * 1.25);
+                    }
                     // add to the end of the queue
                     node_queue[end++] = nn_idx;
                 }
@@ -287,19 +294,34 @@ bool Optimizer::moveNodesFast() {
             }
 
             update = true;
-       }
+        }
+        // print end of iteration
+        //Rcpp::Rcout << "End of iteration: " << counter << std::endl;
         // cyclic queue
         // if the end of the queue has been reached
         if (start == end) {
             start = 0; // start at the beginning
         }
 
-       // get next node in the queue
     } while (n_unstable_nodes > 0);
 
     if (update) {
         // purge empty clusters
         P.purgeEmptyCommunities(true);
+
+        // print purged 
+        Rcpp::Rcout << "Purged empty clusters" << std::endl;
+
+        // print new quality
+        Rcpp::Rcout << "New quality: " << P.calcQuality(gamma, G) << std::endl;
+
+        // print largest community size
+        int largest_community_size = 0;
+        for (const auto& entry : P.communityIndexMap) {
+            if (entry.second.nodeIndices.size() > largest_community_size) {
+                largest_community_size = entry.second.nodeIndices.size();
+            }
+        }
 
     }
     return update;
@@ -403,7 +425,7 @@ void Optimizer::optimize() {
     bool done = false;
     while (!done) {
         moveNodesFast();
-        P.updateCommunityAssignments(G);  // store assignments for plotting later
+        //P.updateCommunityAssignments(G);  // store assignments for plotting later
         //Partition P_refined = refinePartition();
         //aggregateGraph(P_refined);
 
@@ -412,6 +434,8 @@ void Optimizer::optimize() {
     }
     // test 
     P.flattenPartition();
+    // print flattenedd
+    Rcpp::Rcout << "Flattened partition" << std::endl;
 }
 
 Partition initializePartition(const Graph& G) {
@@ -464,12 +488,12 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     Rcpp::Rcout << "New number of communities: " << optim.P.communityIndexMap.size() << std::endl;
 
     // print the nodes in each community
-    for (const auto& entry : optim.P.communityIndexMap) {
-        Rcpp::Rcout << "Community: " << entry.first << std::endl;
-        for (int node_index : entry.second.nodeIndices) {
-            Rcpp::Rcout << "Node: " << node_index << std::endl;
-        }
-    }
+    //for (const auto& entry : optim.P.communityIndexMap) {
+    //    Rcpp::Rcout << "Community: " << entry.first << std::endl;
+    //    for (int node_index : entry.second.nodeIndices) {
+    //        Rcpp::Rcout << "Node: " << node_index << std::endl;
+    //    }
+    //}
     
     /* OLD TESTING CODE
     //move node 168 to community 126

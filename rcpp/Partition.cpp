@@ -131,6 +131,8 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 void Partition::purgeEmptyCommunities(bool renumber) {
     // Remove empty communities
     for (auto it = communityIndexMap.begin(); it != communityIndexMap.end();) {
+        // causing segfaults
+        // print the community index and size
         if (it->second.size() == 0) {
             it = communityIndexMap.erase(it);
         } else {
