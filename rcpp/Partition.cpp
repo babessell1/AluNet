@@ -8,7 +8,7 @@
 ############################ PARTITION CLASS ###################################
 */
 // Construct a partition based on a set of communities
-Partition::Partition(const std::vector<Community>& communities) {
+Partition::Partition(const std::vector<Community>& communities, const Graph& G) {
     for (const auto& community : communities) {
         // add the community to the community map
         communityIndexMap.insert({community.communityIndex, community});
@@ -16,6 +16,8 @@ Partition::Partition(const std::vector<Community>& communities) {
         for (int node_index : community.nodeIndices) {
             // add the node to the node map
             nodeCommunityMap.insert({node_index, community.communityIndex});
+            // add the first community assignment to the node
+            communityAssignments.insert({G.getNodeName(node_index), {community.communityIndex}});
         }
     }
     // initialize the quality
@@ -125,9 +127,6 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
     nodeCommunityMap.at(node_index) = new_community_index;
 }
 
-// ################################
-// [[test it]]
-
 // purge empty communities
 void Partition::purgeEmptyCommunities(bool renumber) {
     // Remove empty communities
@@ -208,4 +207,16 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
     quality /= 2 * G.totalEdgeWeight;
 
     return quality;   
+}
+
+void Partition::updateCommunityAssignments(const Graph& G) {
+    // for each node
+    for (auto& entry : nodeCommunityMap) {
+        // get the node name
+        std::string node_name = G.getNodeName(entry.first);
+        // get the community index
+        int community_index = entry.second;
+        // add the community index to the node's community assignments
+        communityAssignments.at(node_name).push_back(community_index);
+    }
 }

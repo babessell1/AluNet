@@ -403,6 +403,7 @@ void Optimizer::optimize() {
     bool done = false;
     while (!done) {
         moveNodesFast();
+        P.updateCommunityAssignments(G);  // store assignments for plotting later
         //Partition P_refined = refinePartition();
         //aggregateGraph(P_refined);
 
@@ -426,7 +427,7 @@ Partition initializePartition(const Graph& G) {
         community_index++;
     }
 
-    Partition P(communities);
+    Partition P(communities, G);
 
     return P;
 }

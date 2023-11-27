@@ -9,6 +9,7 @@ public:
     // properties
     std::unordered_map<int, Community> communityIndexMap;
     std::unordered_map<int, int> nodeCommunityMap;
+    std::unordered_map<std::string, std::vector<int>> communityAssignments;
     double quality;
 
     // methods
@@ -47,7 +48,7 @@ std::vector<int> Partition::getCommunityIndices() const {
     return indices;
 }
 */
-    Partition(const std::vector<Community>& communities);
+    Partition(const std::vector<Community>& communities, const Graph& G);
     std::vector<int> getCommunityIndices() const;
     void flattenPartition();
     void updateCommunityMembershipSearch(int node_index, int new_community_index);
@@ -57,6 +58,7 @@ std::vector<int> Partition::getCommunityIndices() const {
     void addCommunity(const Community& newCommunity);
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
     double calcQuality(double gamma, const Graph& G) const;
+    void updateCommunityAssignments(const Graph& G);
 };
 
 #endif
