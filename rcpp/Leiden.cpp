@@ -535,3 +535,54 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     return result;
 
 }
+
+
+// should define in the .h file
+
+// Partition currentPartition;
+
+/*
+void Optimizer::refinePartition() {
+  bool improved = false;
+  do {
+        improved = false;
+        size_t numberOfNodes = currentPartition.number_of_nodes();
+
+        for (size_t i = 0; i < numberOfNodes; ++i) {
+          double bestQualityIncrease = 0.0;
+            int bestCommunityIndex = -1;
+            int originalCommunityIndex = currentPartition.getCommunityOfNode(i);
+            auto originalQuality = calculateQuality();
+            // I think that we would better define a refactor of the calculateQuality function because this would be more convenient and easy to understand hah
+
+            // Evaluate moving node to different clusters
+            size_t numberOfCommunities = currentPartition.number_of_communities();
+            for (size_t j = 0; j < numberOfCommunities; ++j) {
+                if (j != originalCommunityIndex) {
+
+                    // Move node to the new community and calculate quality
+                    currentPartition.updateCommunityMembership(i, j);
+                    clusters[originalClusterId].removeNode(node);
+
+                    double newQuality = calculateQuality();
+                    double qualityIncrease = newQuality - originalQuality;
+
+                    if (qualityIncrease > bestQualityIncrease) {
+                        bestQualityIncrease = qualityIncrease;
+                        bestCommunityIndex = j;
+                    }
+
+                    // Move node back to original community
+                   currentPartition.updateCommunityMembership(i, originalCommunityIndex);
+               }
+           }
+
+           // If a better community is found, move the node there
+           if (bestCommunityIndex != -1) {
+              currentPartition.updateCommunityMembership(i, bestCommunityIndex);
+              improved = true;
+          }
+        }
+    } while (improved);
+}
+*/
