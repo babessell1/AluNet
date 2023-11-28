@@ -28,6 +28,7 @@ public:
     std::vector<int> getNeighbors(int nodeIndex) const;
     double getWeight(int u, int v) const;
     void updateNodeProperties(bool remove_empty_nodes);
+    bool hasEdge(int u, int v) const;
 /*
 bool Graph::isConnected(int node, const std::vector<int>& subsetNodes) {
     // Assuming 'adj' is the adjacency list for each node
