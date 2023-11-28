@@ -284,7 +284,7 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
             for (int c : C.nodeIndices) {  // for each node in C
                 if (b == c) {  // if node is in both B and C
                     count_c_in_b++; // increment count of nodes in C that are also in B
-                } else {  // if node is in B but not C
+                } else if(G.hasEdge(b, c)) {  // if node is in B but not C
                     edge_weight_B_A += G.getWeight(b, c); // add the edge weight between B and C
                 }
             }
@@ -312,7 +312,7 @@ std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
         double edge_weight_B_v = 0.0;
         // calc the edge weights between B and B - v
         for (int b : B.nodeIndices) {
-            if (b != v) { // if node is not v
+            if (b != v && G.hasEdge(b, v)) { // if node is not v
                 edge_weight_B_v += G.getWeight(b, v);
             }
         }
