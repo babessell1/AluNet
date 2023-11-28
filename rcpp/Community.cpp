@@ -13,9 +13,9 @@ Community::Community(const std::vector<int>& nodes, int index)
 }
 
 // get the sum of weights of all edges in the community
-double Community::aggregateWeights(const Graph& G) {
+double Community::aggregateWeights(const Graph& G) const {
     double weight_sum = 0.0;
-    for (int& node_index : nodeIndices) {
+    for (int node_index : nodeIndices) {
         // get the neighbors of the node
         std::vector<int> neighbors = G.getNeighbors(node_index);
         // for each neighbor of the node
@@ -27,11 +27,11 @@ double Community::aggregateWeights(const Graph& G) {
     return weight_sum;
 }
 
-int Community::countPossibleEdges(const Graph& G) {
+int Community::countPossibleEdges(const Graph& G) const {
     // get the number of possible edges in the community, assuming undirected graph
     // do not count zero weight edges
     int n_possible_edges = 0;
-    for (int& node_index : nodeIndices) {
+    for (int node_index : nodeIndices) {
         // get the neighbors of the node
         std::vector<int> neighbors = G.getNeighbors(node_index);
         // count possible edges
@@ -47,7 +47,7 @@ int Community::countPossibleEdges(const Graph& G) {
 
 
 // get the number of nodes in the community
-size_t Community::size() {
+size_t Community::size() const {
     return nodeIndices.size();
 }
 

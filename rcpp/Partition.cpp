@@ -208,7 +208,7 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
     }
 
     // print total edge weight
-    Rcpp::Rcout << "Total edge weight: " << G.totalEdgeWeight << std::endl;
+    //Rcpp::Rcout << "Total edge weight: " << G.totalEdgeWeight << std::endl;
 
     quality /= 2 * G.totalEdgeWeight;
 

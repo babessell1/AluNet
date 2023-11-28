@@ -138,7 +138,7 @@ std::vector<int> Graph::getNeighbors(int n_idx) const {
 
 
 // get weight of an edge based on node indices
-double Graph::getWeight(int u, int v) const {
+double Graph::getWeight(int u, int v) const {  // find is slow, consider not checking if the edge exists
     if (edgeWeights.find(u) != edgeWeights.end()) {
         if (edgeWeights.at(u).find(v) != edgeWeights.at(u).end()) {
             return edgeWeights.at(u).at(v);
