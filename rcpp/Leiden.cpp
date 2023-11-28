@@ -377,6 +377,31 @@ void Optimizer::mergeNodesSubset(Community& S) {
     P.purgeEmptyCommunities(true); // purge empty communities
 }
 
+Graph Optimizer::aggregateGraph() {
+    size_t num_communities = P.communityIndexMap.size();
+    Graph aggregated_graph(num_communities);   // V <- P
+    
+    // Iterate through each edge in the original graph
+    for (const auto& u : G.edgeWeights) {
+        for (const auto& v : u.second) {
+
+            int u_idx = u.first;
+            int v_idx = v.first;
+            Rcpp::Rcout << "checking the first and second" << u_idx << v_idx << " this is okay";
+            double w = v.second;
+
+            int u_comm = P.nodeCommunityMap.at(u_idx);
+            int v_comm = P.nodeCommunityMap.at(v_idx);
+
+            // Add an edge between the communities if not already present, or update the weight if it is
+            aggregated_graph.edgeWeights[u_comm][v_comm] += w; // Assumes edgeWeights is a suitable data structure
+        }
+    }
+    aggregated_graph.updateNodeProperties(true); // update node properties
+
+    return aggregated_graph;
+}
+/* // This is what you have defined at Nov 27
 // this is the main idea and the functions shuold be defined.
 Graph Optimizer::aggregateGraph() {
     size_t num_communities = P.communityIndexMap.size();
@@ -410,7 +435,7 @@ Graph Optimizer::aggregateGraph() {
 
     return aggregated_graph;
 }
-
+*/
 void Optimizer::refinePartition(const Partition& P_original) {
     // Implement creating a new partition from the existing partition
     // copy the partition to P_original
