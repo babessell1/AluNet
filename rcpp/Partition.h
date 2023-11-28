@@ -59,6 +59,8 @@ std::vector<int> Partition::getCommunityIndices() const {
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
     double calcQuality(double gamma, const Graph& G) const;
     void updateCommunityAssignments(const Graph& G);
+    void makeSingleton(const Graph& G);
+    bool inSingleton(int node_index) const;
 };
 
 #endif

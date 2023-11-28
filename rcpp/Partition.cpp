@@ -204,7 +204,11 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
 
         // subtract the weight of the community from the quality
         quality -= gamma * c_weight * c_weight;
+
     }
+
+    // print total edge weight
+    Rcpp::Rcout << "Total edge weight: " << G.totalEdgeWeight << std::endl;
 
     quality /= 2 * G.totalEdgeWeight;
 
@@ -222,3 +226,42 @@ void Partition::updateCommunityAssignments(const Graph& G) {
         communityAssignments.at(node_name).push_back(community_index);
     }
 }
+
+void Partition::makeSingleton(const Graph& G) {
+    // initialize the community index map
+    std::unordered_map<int, Community> single_community_index_map;
+    std::unordered_map<int, int> single_node_community_map;
+    // for each node in the graph
+    for (int node_idx : G.nodes) {
+        // create a community for the node
+        Community comm({node_idx}, node_idx);
+        // add the community to the community index map
+        single_community_index_map.insert({node_idx, comm});
+        // add the node to the node community map
+        single_node_community_map.insert({node_idx, node_idx});
+    }
+    // update the community index map
+    communityIndexMap = single_community_index_map;
+    // update the node community map
+    nodeCommunityMap = single_node_community_map;
+}
+
+bool Partition::inSingleton(const int node_idx) const {
+    // if node is the only member of its community, return true
+    bool is_single = false;
+    // check if the node is in the community index map
+    auto comm_it = communityIndexMap.find(node_idx);
+    if (comm_it != communityIndexMap.end()) {
+        // if the node is in the community index map, check if it is the only member of the community
+        if (comm_it->second.size() == 1) {
+            is_single = true;
+        }
+    } else {
+        Rcpp::stop("Node not found in the community index map: " + std::to_string(node_idx));
+    }
+    return is_single;
+}
+
+
+
+
