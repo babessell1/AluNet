@@ -15,7 +15,7 @@ Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
 Sys.which("make")
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
-sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
+#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
 ```
 
 ```{r}
@@ -71,4 +71,87 @@ print(output$communities[1])
 print(output$communities[length(output$communities)])
 print(output$nodes[1])
 print(output$nodes[length(output$nodes)])
+```
+
+```{r}
+iterations <- 10
+
+numNodes <- 5
+
+# Define the weights for the edges
+weights <- rep(1, numNodes)
+weights <- weights / sum(weights)
+# Define edges such that each node has exactly two edges
+# For example, a simple ring where each node is connected to its next and previous node
+edges <- matrix(c(
+  1, 2,
+  2, 3,
+  3, 4,
+  4, 5,
+  5, 1, # Connecting the last node back to the first
+  1, 5, # Adding second set of connections to make two edges per node
+  2, 1,
+  3, 2,
+  4, 3,
+  5, 4
+), ncol = 2, byrow = TRUE)
+
+# Create the graph list with 'from', 'to', and 'weight' components
+graphList <- list(
+  from = as.character(edges[, 1]),
+  to = as.character(edges[, 2]),
+  weight = weights
+)
+
+# Now you can call runLeiden (make sure it's properly defined in your C++ code and exposed to R)
+result <- runLeiden(graphList, iterations)
+```
+
+
+```{r}
+# new test file
+numClusters <- 3  # Number of clusters
+nodesPerCluster <- 4  # Nodes in each cluster
+numSingletons <- 2  # Number of singletons
+
+# Initialize variables
+edges <- matrix(ncol = 2, nrow = 0)
+weights <- c()
+
+# Helper function to add a cluster
+add_cluster <- function(node_start) {
+  # Create a ring within the cluster
+  cluster_edges <- cbind(
+    (node_start:(node_start + nodesPerCluster - 1)),
+    c((node_start + 1):(node_start + nodesPerCluster - 1), node_start)
+  )
+  cluster_weights <- rep(1, nrow(cluster_edges))
+  list(edges = cluster_edges, weights = cluster_weights)
+}
+
+# Add clusters
+node_count <- 0
+for (i in 1:numClusters) {
+  cluster <- add_cluster(node_count)
+  edges <- rbind(edges, cluster$edges)
+  weights <- c(weights, cluster$weights)
+  node_count <- node_count + nodesPerCluster
+}
+
+# Adjust for 1-based indexing
+edges <- edges + 1
+
+# Add weights
+weights <- weights / sum(weights)  # Normalize weights
+
+# Create the graph list
+graphList <- list(
+  from = as.character(edges[, 1]),
+  to = as.character(edges[, 2]),
+  weight = weights
+)
+
+# Print graph information
+print(graphList)
+result <- runLeiden(graphList, iterations)
 ```
