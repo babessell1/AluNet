@@ -113,9 +113,9 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
         auto node_it = std::find(old_comm->second.nodeIndices.begin(), old_comm->second.nodeIndices.end(), node_index);
         if (node_it != old_comm->second.nodeIndices.end()) {
             old_comm->second.nodeIndices.erase(node_it);
-        } else {
+        }/* else {
             Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));
-        }
+        }*/ // I do not think that it is necessary but we can add the erase the old community to delete the old community
     } else {
         Rcpp::stop("Old community not found: " + std::to_string(old_community_index));
     }
@@ -125,6 +125,11 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 
     // update the node community map
     nodeCommunityMap.at(node_index) = new_community_index;
+     // check and handle empty old community
+    if (old_comm->second.nodeIndices.empty()) {
+        // Remove or flag the empty community as needed
+        communityIndexMap.erase(old_comm);
+    }
 }
 
 // purge empty communities
