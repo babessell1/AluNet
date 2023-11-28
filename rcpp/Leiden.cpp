@@ -284,7 +284,7 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
             for (int c : C.nodeIndices) {  // for each node in C
                 if (b == c) {  // if node is in both B and C
                     count_c_in_b++; // increment count of nodes in C that are also in B
-                } else {  // if node is in B but not C
+                } else if(G.hasEdge(b, c)) {  // if node is in B but not C
                     edge_weight_B_A += G.getWeight(b, c); // add the edge weight between B and C
                 }
             }
@@ -312,7 +312,7 @@ std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
         double edge_weight_B_v = 0.0;
         // calc the edge weights between B and B - v
         for (int b : B.nodeIndices) {
-            if (b != v) { // if node is not v
+            if (b != v && G.hasEdge(b, v)) { // if node is not v
                 edge_weight_B_v += G.getWeight(b, v);
             }
         }
@@ -377,6 +377,31 @@ void Optimizer::mergeNodesSubset(Community& S) {
     P.purgeEmptyCommunities(true); // purge empty communities
 }
 
+Graph Optimizer::aggregateGraph() {
+    size_t num_communities = P.communityIndexMap.size();
+    Graph aggregated_graph(num_communities);   // V <- P
+    
+    // Iterate through each edge in the original graph
+    for (const auto& u : G.edgeWeights) {
+        for (const auto& v : u.second) {
+
+            int u_idx = u.first;
+            int v_idx = v.first;
+            Rcpp::Rcout << "checking the first and second" << u_idx << v_idx << " this is okay";
+            double w = v.second;
+
+            int u_comm = P.nodeCommunityMap.at(u_idx);
+            int v_comm = P.nodeCommunityMap.at(v_idx);
+
+            // Add an edge between the communities if not already present, or update the weight if it is
+            aggregated_graph.edgeWeights[u_comm][v_comm] += w; // Assumes edgeWeights is a suitable data structure
+        }
+    }
+    aggregated_graph.updateNodeProperties(true); // update node properties
+
+    return aggregated_graph;
+}
+/* // This is what you have defined at Nov 27
 // this is the main idea and the functions shuold be defined.
 Graph Optimizer::aggregateGraph() {
     size_t num_communities = P.communityIndexMap.size();
@@ -410,7 +435,7 @@ Graph Optimizer::aggregateGraph() {
 
     return aggregated_graph;
 }
-
+*/
 void Optimizer::refinePartition(const Partition& P_original) {
     // Implement creating a new partition from the existing partition
     // copy the partition to P_original

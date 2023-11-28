@@ -150,9 +150,11 @@ std::vector<int> Graph::getNeighbors(int n_idx) const {
 
 // get weight of an edge based on node indices
 double Graph::getWeight(int u, int v) const {  // find is slow, consider not checking if the edge exists
-    if (edgeWeights.find(u) != edgeWeights.end()) {
-        if (edgeWeights.at(u).find(v) != edgeWeights.at(u).end()) {
-            return edgeWeights.at(u).at(v);
+    auto u_it = edgeWeights.find(u);
+    if (u_it != edgeWeights.end()) {
+        auto v_it = u_it->second.find(v);
+        if (v_it != u_it->second.end()) {
+            return v_it->second;
         }
     }
     // otherwise, throw an error
@@ -287,4 +289,13 @@ Graph listToGraph(const Rcpp::List& graphList) {
 Rcpp::List createGraphFromList(const Rcpp::List& graphList) {
     Graph G = listToGraph(graphList); // Convert R list
     return G.graphToRList();
+}
+
+bool Graph::hasEdge(int u, int v) const {
+    auto it = edgeWeights.find(u);
+    if (it != edgeWeights.end()) {
+        return it->second.find(v) != it->second.end();
+    }
+    return false;
+    
 }
