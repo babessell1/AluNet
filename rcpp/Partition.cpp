@@ -199,7 +199,7 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
         }
     }
     // our graph has no self links, so we do not need to handle them for now
-    std::unordered_map p_weights = getPartitionWeights(G);
+    std::unordered_map<int, double> p_weights = getPartitionWeights(G);
 
     // for each community in the partition, get the weight of the community and remove it from the quality
     for (int c_idx : getCommunityIndices()) {
