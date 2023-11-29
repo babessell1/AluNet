@@ -254,9 +254,6 @@ bool Optimizer::moveNodesFast() {
         // purge empty clusters
         P.purgeEmptyCommunities(true);
 
-        // print purged 
-        Rcpp::Rcout << "Purged empty clusters" << std::endl;
-
         // print new quality
         Rcpp::Rcout << "New quality: " << P.calcQuality(gamma, G) << std::endl;
 
@@ -381,11 +378,12 @@ void Optimizer::mergeNodesSubset(Community& S) {
             }
         }
     }
-    P.purgeEmptyCommunities(true); // purge empty communities
+    //P.purgeEmptyCommunities(true); // purge empty communities
 }
 
 Graph Optimizer::aggregateGraph() {
     size_t num_communities = P.communityIndexMap.size();
+
     Graph aggregated_graph(num_communities);   // V <- P
     
     // Iterate through each edge in the original graph
@@ -394,7 +392,7 @@ Graph Optimizer::aggregateGraph() {
 
             int u_idx = u.first;
             int v_idx = v.first;
-            Rcpp::Rcout << "checking the first and second" << u_idx << v_idx << " this is okay";
+
             double w = v.second;
 
             int u_comm = P.nodeCommunityMap.at(u_idx);
@@ -402,9 +400,30 @@ Graph Optimizer::aggregateGraph() {
 
             // Add an edge between the communities if not already present, or update the weight if it is
             aggregated_graph.edgeWeights[u_comm][v_comm] += w; // Assumes edgeWeights is a suitable data structure
+
+            // Add the node weights to the aggregated graph
+            aggregated_graph.nodeWeights[u_comm] += G.nodeWeights[u_idx];
+            aggregated_graph.nodeWeights[v_comm] += G.nodeWeights[v_idx];
+
+            // Update the total edge weight
+            aggregated_graph.totalEdgeWeight += w;
+
+            // Update the number of possible edges
+            if (aggregated_graph.edgeWeights[u_comm][v_comm] == 0) {
+                aggregated_graph.possibleEdges++;
+            }
+
+            // Add the nodes to the aggregated graph
+            aggregated_graph.nodes.push_back(u_comm);
+            aggregated_graph.nodes.push_back(v_comm);
+
+            // Update the node index map
+            aggregated_graph.nodeIndexMap.insert({std::to_string(u_comm), u_comm});
+            aggregated_graph.nodeIndexMap.insert({std::to_string(v_comm), v_comm});
         }
     }
-    aggregated_graph.updateNodeProperties(true); // update node properties
+
+    aggregated_graph.updateNodeProperties(false); // update node properties
 
     return aggregated_graph;
 }
@@ -451,35 +470,47 @@ void Optimizer::refinePartition(const Partition& P_original) {
     for (const auto& entry : P_original.communityIndexMap) {
         // get the community
         Community C = entry.second;
-        // merge the nodes
-        Rcpp::Rcout << "Merging nodes" << std::endl;
         mergeNodesSubset(C);
     }
+    P.purgeEmptyCommunities(true);
 }
 
-void Optimizer::optimize() {
+void Optimizer::optimize(int iterations) {
     // Implement the Leiden algorithm iteration here
     // This involve multiple steps, such as moveNodesFast, refinePartition, mergeNodesSubset, etc.
     bool done = false;
-    while (!done) {
-        moveNodesFast();
+    int counter = 0;
+    while (!done || iterations > counter) {
+        bool improved = moveNodesFast();
         std::vector<int> community_indices = P.getCommunityIndices();
+
+
         // if community size is equal to number of nodes, set done to true
-        if (static_cast<int>(community_indices.size()) == G.n) {
+        counter++;
+        if (static_cast<int>(community_indices.size()) == G.n || !improved) {
             done = true;
+
+        // otherwise, refine the partition and aggregate the graph
         } else {
             Partition P_save = P;  // but maintain a copy of the partition before refinement
             Rcpp::Rcout << "Refining partition" << std::endl;
             refinePartition(P_save);
+
+            // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;
-            G = aggregateGraph();  // aggregate the graph and set it to G
-            Rcpp::Rcout << "initialization of partition";
-            P = initializePartition(G);  // initialize the partition with the aggregated graph, this will set each node to its own community
-            Rcpp::Rcout << "Number of nodes: " << G.n << std::endl;
+            this->G = aggregateGraph();
+
+            // print the number of nodes in the aggregated graph
+            Rcpp::Rcout << "Aggregated number of nodes: " << G.n << std::endl;
+
+            this->P = initializePartition(G);
+        }
+
+        if (!improved) {
+            // print partition could not be improved
+            Rcpp::Rcout << "Partition could not be improved!" << std::endl;
         }
     }
-    // test 
-    Rcpp::Rcout << "flattenPartition";
     P.flattenPartition();
     // print flattenedd
     Rcpp::Rcout << "Flattened partition" << std::endl;
@@ -523,17 +554,10 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     Optimizer optim(G, P, gamma, temperature);
     
     // Run the Leiden algorithm
-    bool done = false;  
-    do { 
-        // Run the Leiden algorithm
-        optim.optimize();
-        // temporary
-        done = true;
-
-    } while (!done);
+    optim.optimize(iterations);
 
     // print the number of communities
-    Rcpp::Rcout << "New number of communities: " << optim.P.communityIndexMap.size() << std::endl;
+    Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
 
     // print the nodes in each community
     //for (const auto& entry : optim.P.communityIndexMap) {

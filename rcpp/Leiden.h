@@ -13,7 +13,7 @@ public:
 
     // methods
     Optimizer(Graph& G, Partition& P, double gamma, double temperature);
-    void optimize();
+    void optimize(int iterations);
     bool moveNodesFast();
     //Partition refinePartition() const;
     //Partition mergeNodesSubset(const Community& subset);
