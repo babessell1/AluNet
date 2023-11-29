@@ -84,25 +84,22 @@ std::unordered_map<int, double> Partition::getPartitionWeights(const Graph& G) c
 // move a node from one community to another
 void Partition::updateCommunityMembershipSearch(int node_index, int new_community_index) {
     // Find the current community of the node and remove the node from the community
-    bool found = false;
-    for (auto& entry : communityIndexMap) {
-        // if the node is in the community, (throw error if not found)
-        auto node_it = std::find(entry.second.nodeIndices.begin(), entry.second.nodeIndices.end(), node_index);
-        if (node_it != entry.second.nodeIndices.end()) {
-            // remove the node from the community
-            entry.second.nodeIndices.erase(node_it);
-            found = true;
-        }
+    
+    int current_community_index = nodeCommunityMap.at(node_index);
+    auto& current_community = communityIndexMap.at(current_community_index).nodeIndices;
+    auto node_it = std::find(current_community.begin(), current_community.end(), node_index);
+    if (node_it != current_community.end()) {
+        current_community.erase(node_it);
+    } else {
+        // Optional: Handle the case where the node is not found in its expected community
+        Rcpp::Rcout << "Warning: Node not found in its expected community: " + std::to_string(node_index) << std::endl;
     }
-    if (!found) {
-        Rcpp::stop("Node not found in any community: " + std::to_string(node_index));
-    }
+
+    // Update the node community map
+    nodeCommunityMap.at(node_index) = new_community_index;
 
     // Add the node to the new community
     communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
-
-    // update the node community map
-    nodeCommunityMap.at(node_index) = new_community_index;
 }
 
 void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
