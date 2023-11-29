@@ -19,7 +19,7 @@ public:
     //Partition mergeNodesSubset(const Community& subset);
     //Graph aggregateGraph(const Graph& G, const Partition& P);
     double calcQuality(double gamma);
-    double deltaQuality(int n_idx, int new_c_idx, double gamma) const;
+    double deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const;
     void refinePartition(const Partition& P_original);
     std::vector<int> getWellConnectedNodes(const Community& B) const;
     std::vector<Community> getWellConnectedCommunities(const Community& B) const;

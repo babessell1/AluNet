@@ -47,13 +47,16 @@ void Partition::updateCommunityMembership(int node_index, int new_community_inde
 // Construct an optimizer based on a graph and a partition
 Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double temperature) : G(G), P(P), gamma(gamma), temperature(temperature) {}
 
-double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
+double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const {
   // calculate the difference between moving vertex to a new community
 
     int old_c_idx = P.nodeCommunityMap.at(n_idx);  // keep track of the old community
 
-    // get quality of the partition before the move
-    double old_quality = P.calcQuality(gamma, G);
+    if (recalculate) {
+      // get quality of the partition before the move
+      double old_quality = P.calcQuality(gamma, G);
+      P.quality = old_quality;
+    }
 
     // make copy of the partition
     Partition P_new = P;
@@ -66,7 +69,7 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma) const {
     double new_quality = P_new.calcQuality(gamma, G);
 
     // return the difference in quality
-    return new_quality - old_quality;
+    return new_quality - P.quality;
 
 }
 
@@ -186,8 +189,10 @@ bool Optimizer::moveNodesFast() {
         double best_quality_increment = 0.0;
         // for each neighboring cluster
 
+        double quality = P.calcQuality(gamma, G);
+        P.quality = quality;
         for (int nc_idx : neighboring_clusters) {
-            double delta_q = deltaQuality(j, nc_idx, gamma);
+            double delta_q = deltaQuality(j, nc_idx, gamma, false);
             // if the quality of the move is better than the best quality
             if (delta_q > best_quality_increment) {
                 // update the best quality and best cluster
@@ -335,12 +340,14 @@ void Optimizer::mergeNodesSubset(Community& S) {
     std::shuffle(R.begin(), R.end(), std::default_random_engine(std::random_device{}()));
     for (int v : R) {
         // Consider only nodes that have not yet been merged
+        double quality = P.calcQuality(gamma, G);
+        P.quality = quality;
         if (P.inSingleton(v)) { // Assuming isSingleton checks if v is in a singleton community
             std::unordered_map<int, double> probabilities; // map community index to delta quality based probability
             for (const auto& C : T) { // for each well connected community contained in S
                 // calculate the delta quality of moving v to C
                 int c_idx = C.communityIndex;
-                double delta_quality = deltaQuality(v, c_idx, gamma);
+                double delta_quality = deltaQuality(v, c_idx, gamma, false);
                 if (delta_quality > 0) {  // if the quality improves
                     probabilities[c_idx] = exp(delta_quality / temperature); // add the probability to the map
                 }

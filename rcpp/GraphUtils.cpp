@@ -6,7 +6,7 @@
 ####### GRAPH CLASS FUNCTIONS ################
 */
 Graph::Graph(int n) : n(n) {
-    isDirected = false;
+    isDirected = false; 
     // initialize edge weights map
     std::unordered_map<int, std::unordered_map<int, double>> edge_weights;
     for (int i = 0; i < n; ++i) {
