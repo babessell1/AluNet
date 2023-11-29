@@ -363,6 +363,14 @@ Graph Optimizer::aggregateGraph() {
             int u_comm = P.nodeCommunityMap.at(u_idx);
             int v_comm = P.nodeCommunityMap.at(v_idx);
 
+            // TODO: HOW TO ACTUALLY HANDLE THE AGGREGATE WEIGHTS???
+            // do we add them, take the max, and for self looped edges, do we add the weight to the node weight? who knows!
+
+            // do NOT want self loops
+            if (u_comm == v_comm) {
+                continue;
+            }
+
             // Add an edge between the communities if not already present, or update the weight if it is
             aggregated_graph.edgeWeights[u_comm][v_comm] += w; // Assumes edgeWeights is a suitable data structure
 
