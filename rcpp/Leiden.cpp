@@ -466,6 +466,7 @@ void Optimizer::optimize() {
             refinePartition(P_save);
             Rcpp::Rcout << "Aggregating graph" << std::endl;
             G = aggregateGraph();  // aggregate the graph and set it to G
+            Rcpp::Rcout << "Initializing new partition" << std::endl;
             P = initializePartition(G);  // initialize the partition with the aggregated graph, this will set each node to its own community
             P.communityAssignments = P_save.communityAssignments;  // copy the community assignments from the original partition
             P.updateCommunityAssignments(G);  // update the community assignments
