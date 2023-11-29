@@ -442,7 +442,7 @@ void Optimizer::optimize(int iterations) {
         }
 
         if (!improved) {
-             print partition could not be improved
+            // print partition could not be improved
             Rcpp::Rcout << "Partition could not be improved!" << std::endl;
         }
     }
