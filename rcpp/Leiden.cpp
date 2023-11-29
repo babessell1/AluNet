@@ -441,10 +441,10 @@ void Optimizer::optimize(int iterations) {
             this->P = initializePartition(G);
         }
 
-        //if (!improved) {
-            // print partition could not be improved
-            //Rcpp::Rcout << "Partition could not be improved!" << std::endl;
-        //}
+        if (!improved) {
+             print partition could not be improved
+            Rcpp::Rcout << "Partition could not be improved!" << std::endl;
+        }
     }
     P.flattenPartition();
     // print flattenedd
