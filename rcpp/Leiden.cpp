@@ -480,21 +480,25 @@ void Optimizer::optimize(int iterations) {
 
 Partition initializePartition(Graph& G) {
     std::vector<Community> communities;
-
+    communities.reserve(G.nodes.size());
     // Assign each node to its own community
     // for each node in the getNodes
-    int community_index = 0;
     for (int node_index : G.nodes) {
         // Construct a community with a single node
-        Community community({node_index}, community_index);
+        Community community({ node_index }, node_index); // Use the node index as the community index
         communities.push_back(community);
-        community_index++;
     }
 
     Partition P(communities, G);
 
+    // Update the nodeCommunityMap in the Partition
+    for (int node_index : G.nodes) {
+        P.nodeCommunityMap[node_index] = node_index;
+    }
+
     return P;
 }
+
 
 
 
@@ -524,10 +528,35 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
     
     // Run the Leiden algorithm
     optim.optimize(iterations);
+    Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
+
 
     // print the number of communities
     Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
     
+    Rcpp::Rcout << "Starting community processing..." << std::endl;
+    Rcpp::List communities = Rcpp::List::create();
+    int communityCount = 0;
+
+    for (const auto& communityPair : optim.P.communityIndexMap) {
+        Rcpp::Rcout << "Processing community " << communityCount << std::endl;
+        Rcpp::Rcout << "Community ID: " << communityPair.first << " - Node indices: ";
+
+        for (int nodeIndex : communityPair.second.nodeIndices) {
+            Rcpp::Rcout << nodeIndex << " ";
+        }
+        Rcpp::Rcout << std::endl;
+
+        Rcpp::List communityData = Rcpp::List::create(
+            Rcpp::Named("nodes") = communityPair.second.nodeIndices
+        );
+        communities.push_back(communityData);
+        communityCount++;
+    }
+
+    Rcpp::Rcout << "Processed " << communityCount << " communities." << std::endl;
+    return Rcpp::List::create(Rcpp::Named("communities") = communities);
+
     /* OLD TESTING CODE
     //move node 168 to community 126
     optim.P.updateCommunityMembership(37, 0, 71);
