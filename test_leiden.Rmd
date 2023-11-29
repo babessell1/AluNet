@@ -12,11 +12,11 @@ source("r/graphFromFitHIC.R")
 update.packages("Rcpp")
 setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
-Sys.which("make")
+Sys.which("make") 
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
 #sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
-sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+#sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
 source("r/plot_graph.R")
 ```
 
@@ -27,12 +27,40 @@ g_list <- list(
   from=g[,2],
   weight=rep(1, length(g[,1]))
 )
-plot.graph(g_list, "karate_nodes.png")
-iterations <- 10
-gamma <- .01  # gamma > 0
+plot.graph(g_list, "karate_nodes.png", small_nodes=F)
+iterations <- 1
+gamma <- 0.5  # gamma > 0
 theta <- 0.01 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
+my_ldc <- list(
+  membership=result$communities,
+  nb_clusters=length(unique(result$communities)),
+  quality=result$quality,
+  algorithm="homemade_leiden",
+  vcount=length(result$communities)
+)
+g <- make_graph('Zachary')
+#plot(my_ldc, g)
 plot.graph(result, "karate_leiden.png")
+```
+
+```{r}
+g <- make_graph("Zachary")
+# By default CPM is used
+r <- quantile(strength(g))[2] / (gorder(g) - 1)
+# Set seed for sake of reproducibility
+set.seed(1)
+ldc <- cluster_leiden(
+  g,
+  resolution_parameter=gamma,
+  objective_function="CPM",
+  weights=g_list[["weight"]],
+  beta=theta,
+  n_iterations=iterations,
+  vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
+)
+print(ldc) 
+plot(ldc, g)
 ```
 
 
@@ -62,60 +90,4 @@ print(output[["communities"]])
 print(output[["nodes"]])
 print(output[["node_names"]])
 # 4258
-```
-
-```{r}
-print(output$communities[1])
-print(output$communities[length(output$communities)])
-print(output$nodes[1])
-print(output$nodes[length(output$nodes)])
-```
-
-```{r}
-# new test file
-numClusters <- 3  # Number of clusters
-nodesPerCluster <- 4  # Nodes in each cluster
-numSingletons <- 2  # Number of singletons
-
-# Initialize variables
-edges <- matrix(ncol = 2, nrow = 0)
-weights <- c()
-
-# Helper function to add a cluster
-add_cluster <- function(node_start) {
-  # Create a ring within the cluster
-  cluster_edges <- cbind(
-    (node_start:(node_start + nodesPerCluster - 1)),
-    c((node_start + 1):(node_start + nodesPerCluster - 1), node_start)
-  )
-  cluster_weights <- rep(1, nrow(cluster_edges))
-  list(edges = cluster_edges, weights = cluster_weights)
-}
-
-# Add clusters
-node_count <- 0
-for (i in 1:numClusters) {
-  cluster <- add_cluster(node_count)
-  edges <- rbind(edges, cluster$edges)
-  weights <- c(weights, cluster$weights)
-  node_count <- node_count + nodesPerCluster
-}
-
-# Adjust for 1-based indexing
-edges <- edges + 1
-
-# Add weights
-weights <- weights / sum(weights)  # Normalize weights
-
-# Create the graph list
-graphList <- list(
-  from = as.character(edges[, 1]),
-  to = as.character(edges[, 2]),
-  weight = weights
-)
-
-# Print graph information
-print(graphList)
-iterations <- 1
-result <- runLeiden(graphList, iterations)
 ```

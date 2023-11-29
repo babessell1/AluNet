@@ -10,6 +10,7 @@ public:
     Partition& P;
     double gamma;
     double theta;
+    std::unordered_map<std::string, int> communityAssignments;
 
     // methods
     Optimizer(Graph& G, Partition& P, double gamma, double theta);
@@ -22,8 +23,11 @@ public:
     std::vector<Community> getWellConnectedCommunities(const Community& B) const;
     void mergeNodesSubset(Community& S);
     Graph aggregateGraph();
-    
+    void updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int> original_nodeIndexMap);
 };
+
+// listToGraph
+Graph listToGraph(const Rcpp::List& graphList);
 
 Partition initializePartition(Graph& G);
 

@@ -24,15 +24,12 @@ public:
     std::string getNodeName(int index) const;
     std::vector<int> getNodes() const;
     void removeLowConnections(int min_connections);
-    Rcpp::List graphToRList() const;
+    Rcpp::List graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const;
     std::vector<int> getNeighbors(int nodeIndex) const;
     double getWeight(int u, int v) const;
     void updateNodeProperties(bool remove_empty_nodes);
     bool hasEdge(int u, int v) const;
 };
-
-// listToGraph
-Graph listToGraph(const Rcpp::List& graphList);
 
 class RandomGenerator { 
 public:

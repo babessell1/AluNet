@@ -160,7 +160,7 @@ double Graph::getWeight(int u, int v) const {  // find is slow, consider not che
 }
 
 // convert custom graph object to R list
-Rcpp::List Graph::graphToRList() const {
+Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
     Rcpp::CharacterVector from;
     Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
@@ -176,11 +176,19 @@ Rcpp::List Graph::graphToRList() const {
             weight.push_back(entry.second);
         }
     }
-
+    Rcpp::CharacterVector node_names;
+    Rcpp::NumericVector communities;
+    for (const auto& entry : community_assignments) {
+        node_names.push_back(entry.first);
+        communities.push_back(entry.second);
+    }
     Rcpp::List result = Rcpp::List::create(
         Rcpp::Named("from") = from,
         Rcpp::Named("to") = to,
-        Rcpp::Named("weight") = weight
+        Rcpp::Named("weight") = weight,
+        Rcpp::Named("communities") = communities,
+        Rcpp::Named("node_names") = node_names,
+        Rcpp::Named("quality") = quality
     );
 
     return result;
@@ -232,6 +240,15 @@ void Graph::removeLowConnections(int min_connections) {
     // Lastly, always ensure to update the node properties
     updateNodeProperties(true);
 
+}
+
+bool Graph::hasEdge(int u, int v) const {
+    auto it = edgeWeights.find(u);
+    if (it != edgeWeights.end()) {
+        return it->second.find(v) != it->second.end();
+    }
+    return false;
+    
 }
 
 /*
@@ -286,14 +303,7 @@ Graph listToGraph(const Rcpp::List& graphList) {
 // [[Rcpp::export]]
 Rcpp::List createGraphFromList(const Rcpp::List& graphList) {
     Graph G = listToGraph(graphList); // Convert R list
-    return G.graphToRList();
-}
-
-bool Graph::hasEdge(int u, int v) const {
-    auto it = edgeWeights.find(u);
-    if (it != edgeWeights.end()) {
-        return it->second.find(v) != it->second.end();
-    }
-    return false;
-    
+    double quality = 0.0;
+    std::unordered_map<std::string, int> community_assignments;
+    return G.graphToRList(community_assignments, quality);
 }

@@ -16,8 +16,6 @@ Partition::Partition(const std::vector<Community>& communities, const Graph& G) 
         for (int node_index : community.nodeIndices) {
             // add the node to the node map
             nodeCommunityMap.insert({node_index, community.communityIndex});
-            // add the first community assignment to the node
-            communityAssignments.insert({G.getNodeName(node_index), {community.communityIndex}});
         }
     }
     // initialize the quality
@@ -220,21 +218,6 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
     return quality;   
 }
 
-void Partition::updateCommunityAssignments(const Graph& G) {
-    for (auto& entry : nodeCommunityMap) {
-        std::string node_name = G.getNodeName(entry.first);
-        int community_index = entry.second;
-
-        auto it = communityAssignments.find(node_name);
-        if (it == communityAssignments.end()) {
-            // If not found, insert a new entry with an empty vector
-            it = communityAssignments.insert({node_name, {}}).first;
-            // Optionally reserve space if you have an estimate of the size
-            // it->second.reserve(estimated_size);
-        }
-        it->second.push_back(community_index);
-    }
-}
 void Partition::makeSingleton(const Graph& G) {
     // initialize the community index map
     std::unordered_map<int, Community> single_community_index_map;

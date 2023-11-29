@@ -9,7 +9,6 @@ public:
     // properties
     std::unordered_map<int, Community> communityIndexMap;
     std::unordered_map<int, int> nodeCommunityMap;
-    std::unordered_map<std::string, std::vector<int>> communityAssignments;
     double quality;
 
     // methods
@@ -23,7 +22,6 @@ public:
     void addCommunity(const Community& newCommunity);
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
     double calcQuality(double gamma, const Graph& G) const;
-    void updateCommunityAssignments(const Graph& G);
     void makeSingleton(const Graph& G);
     bool inSingleton(int node_index) const;
 };

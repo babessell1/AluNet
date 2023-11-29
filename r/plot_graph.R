@@ -1,5 +1,5 @@
 plot.graph <- function(g_list, filename, small_nodes=FALSE) {
-
+    print('corn')
     graph_data <- createGraphFromList(g_list)
     edges <- g_list$edges
     weights <- g_list$weights
