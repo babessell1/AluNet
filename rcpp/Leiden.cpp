@@ -461,21 +461,25 @@ void Optimizer::optimize(int iterations) {
 
 Partition initializePartition(Graph& G) {
     std::vector<Community> communities;
-
+    communities.reserve(G.nodes.size());
     // Assign each node to its own community
     // for each node in the getNodes
-    int community_index = 0;
     for (int node_index : G.nodes) {
         // Construct a community with a single node
-        Community community({node_index}, community_index);
+        Community community({ node_index }, node_index); // Use the node index as the community index
         communities.push_back(community);
-        community_index++;
     }
 
     Partition P(communities, G);
 
+    // Update the nodeCommunityMap in the Partition
+    for (int node_index : G.nodes) {
+        P.nodeCommunityMap[node_index] = node_index;
+    }
+
     return P;
 }
+
 
 /*
 ###################################################################################
