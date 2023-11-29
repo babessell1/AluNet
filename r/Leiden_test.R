@@ -3,6 +3,55 @@ library(igraph)
 library(testthat)
 library(leidenAlg)
 
+# new test file
+numClusters <- 3  # Number of clusters
+nodesPerCluster <- 4  # Nodes in each cluster
+numSingletons <- 2  # Number of singletons
+
+# Initialize variables
+edges <- matrix(ncol = 2, nrow = 0)
+weights <- c()
+
+# Helper function to add a cluster
+add_cluster <- function(node_start) {
+    # Create a ring within the cluster
+    cluster_edges <- cbind(
+        (node_start:(node_start + nodesPerCluster - 1)),
+        c((node_start + 1):(node_start + nodesPerCluster - 1), node_start)
+    )
+    cluster_weights <- rep(1, nrow(cluster_edges))
+    list(edges = cluster_edges, weights = cluster_weights)
+}
+
+# Add clusters
+node_count <- 0
+for (i in 1:numClusters) {
+    cluster <- add_cluster(node_count)
+    edges <- rbind(edges, cluster$edges)
+    weights <- c(weights, cluster$weights)
+    node_count <- node_count + nodesPerCluster
+}
+
+# Adjust for 1-based indexing
+edges <- edges + 1
+
+# Add weights
+weights <- weights / sum(weights)  # Normalize weights
+
+# Create the graph list
+graphList <- list(
+    from = as.character(edges[, 1]),
+    to = as.character(edges[, 2]),
+    weight = weights
+)
+
+# Print graph information
+print(graphList)
+iterations <- 10
+setwd("E:/umich/AluNet/r")
+sourceCpp("../rcpp/Leiden.cpp") # ues the rcpp file that is located in another directory
+result <- runLeiden(graphList, iterations)
+
 sourceCpp("../rcpp/Leiden.cpp") # ues the rcpp file that is located in another directory
 
 generate_large_weighted_graph <- function(n, p) {

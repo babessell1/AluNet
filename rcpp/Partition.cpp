@@ -199,7 +199,7 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
         }
     }
     // our graph has no self links, so we do not need to handle them for now
-    std::unordered_map p_weights = getPartitionWeights(G);
+    std::unordered_map<int, double> p_weights = getPartitionWeights(G);
 
     // for each community in the partition, get the weight of the community and remove it from the quality
     for (int c_idx : getCommunityIndices()) {
@@ -224,17 +224,20 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
 }
 
 void Partition::updateCommunityAssignments(const Graph& G) {
-    // for each node
     for (auto& entry : nodeCommunityMap) {
-        // get the node name
         std::string node_name = G.getNodeName(entry.first);
-        // get the community index
         int community_index = entry.second;
-        // add the community index to the node's community assignments
-        communityAssignments.at(node_name).push_back(community_index);
+
+        auto it = communityAssignments.find(node_name);
+        if (it == communityAssignments.end()) {
+            // If not found, insert a new entry with an empty vector
+            it = communityAssignments.insert({node_name, {}}).first;
+            // Optionally reserve space if you have an estimate of the size
+            // it->second.reserve(estimated_size);
+        }
+        it->second.push_back(community_index);
     }
 }
-
 void Partition::makeSingleton(const Graph& G) {
     // initialize the community index map
     std::unordered_map<int, Community> single_community_index_map;

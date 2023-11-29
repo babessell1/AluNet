@@ -93,7 +93,7 @@ bool Optimizer::moveNodesFast() {
     std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(G.n);
 
     std::deque<int> node_queue(G.n);
-    int start = 0, end = G.n;
+    size_t start = 0, end = G.n;
     for (int i = 0; i < G.n; i++) {
         node_queue[i] = random_nodes[i];
     }
@@ -256,7 +256,7 @@ bool Optimizer::moveNodesFast() {
         Rcpp::Rcout << "New quality: " << P.calcQuality(gamma, G) << std::endl;
 
         // print largest community size
-        int largest_community_size = 0;
+        size_t largest_community_size = 0;
         for (const auto& entry : P.communityIndexMap) {
             if (entry.second.nodeIndices.size() > largest_community_size) {
                 largest_community_size = entry.second.nodeIndices.size();
@@ -278,7 +278,7 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
         int size_C = entry.second.nodeIndices.size();
         // get the community
         Community C = entry.second;  // for each C in P
-        int count_c_in_b; // count the number of nodes in C that are in B
+        size_t count_c_in_b = 0; // count the number of nodes in C that are in B
         double edge_weight_B_A = 0.0;
         for (int b : B.nodeIndices) {  // for each node in B (subset)
             for (int c : C.nodeIndices) {  // for each node in C
@@ -458,7 +458,7 @@ void Optimizer::optimize() {
         moveNodesFast();
         std::vector<int> community_indices = P.getCommunityIndices();
         // if community size is equal to number of nodes, set done to true
-        if (community_indices.size() == G.n) {
+        if (static_cast<int>(community_indices.size()) == G.n) {
             done = true;
         } else {
             Partition P_save = P;  // but maintain a copy of the partition before refinement
@@ -466,13 +466,16 @@ void Optimizer::optimize() {
             refinePartition(P_save);
             Rcpp::Rcout << "Aggregating graph" << std::endl;
             G = aggregateGraph();  // aggregate the graph and set it to G
-            Rcpp::Rcout << "Initializing new partition" << std::endl;
+            Rcpp::Rcout << "initialization of partition";
             P = initializePartition(G);  // initialize the partition with the aggregated graph, this will set each node to its own community
+            Rcpp::Rcout << "update Community Assignment";
             P.communityAssignments = P_save.communityAssignments;  // copy the community assignments from the original partition
+            Rcpp::Rcout << "start updatting";
             P.updateCommunityAssignments(G);  // update the community assignments
         }
     }
     // test 
+    Rcpp::Rcout << "flattenPartition";
     P.flattenPartition();
     // print flattenedd
     Rcpp::Rcout << "Flattened partition" << std::endl;
