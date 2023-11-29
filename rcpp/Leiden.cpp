@@ -485,10 +485,6 @@ Partition initializePartition(Graph& G) {
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double theta) {
 
-    
-    //double gamma = .1;
-    //double theta = 0.01;
-
     // Create a graph from the R List
     // use listToGraph from GraphUtils.cpp
     Graph G = listToGraph(graphList);
@@ -503,10 +499,35 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
     
     // Run the Leiden algorithm
     optim.optimize(iterations);
+    Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
+
 
     // print the number of communities
     Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
     
+    Rcpp::Rcout << "Starting community processing..." << std::endl;
+    Rcpp::List communities = Rcpp::List::create();
+    int communityCount = 0;
+
+    for (const auto& communityPair : optim.P.communityIndexMap) {
+        Rcpp::Rcout << "Processing community " << communityCount << std::endl;
+        Rcpp::Rcout << "Community ID: " << communityPair.first << " - Node indices: ";
+
+        for (int nodeIndex : communityPair.second.nodeIndices) {
+            Rcpp::Rcout << nodeIndex << " ";
+        }
+        Rcpp::Rcout << std::endl;
+
+        Rcpp::List communityData = Rcpp::List::create(
+            Rcpp::Named("nodes") = communityPair.second.nodeIndices
+        );
+        communities.push_back(communityData);
+        communityCount++;
+    }
+
+    Rcpp::Rcout << "Processed " << communityCount << " communities." << std::endl;
+    return Rcpp::List::create(Rcpp::Named("communities") = communities);
+
     /* OLD TESTING CODE
     //move node 168 to community 126
     optim.P.updateCommunityMembership(37, 0, 71);
