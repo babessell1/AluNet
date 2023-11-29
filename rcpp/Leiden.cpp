@@ -36,6 +36,9 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool reca
     double new_quality = P_new.calcQuality(gamma, G);
 
     // return the difference in quality
+
+    // print delta quality
+    //Rcpp::Rcout << "Delta quality: " << new_quality - P.quality << std::endl;
     return new_quality - P.quality;
 
 }
@@ -217,22 +220,18 @@ bool Optimizer::moveNodesFast() {
 
     } while (n_unstable_nodes > 0);
 
-    if (update) {
-        // purge empty clusters
-        P.purgeEmptyCommunities(true);
+    // print new quality
+    Rcpp::Rcout << "New quality: " << P.calcQuality(gamma, G) << std::endl;
 
-        // print new quality
-        Rcpp::Rcout << "New quality: " << P.calcQuality(gamma, G) << std::endl;
-
-        // print largest community size
-        size_t largest_community_size = 0;
-        for (const auto& entry : P.communityIndexMap) {
-            if (entry.second.nodeIndices.size() > largest_community_size) {
-                largest_community_size = entry.second.nodeIndices.size();
-            }
+    // print largest community size
+    size_t largest_community_size = 0;
+    for (const auto& entry : P.communityIndexMap) {
+        if (entry.second.nodeIndices.size() > largest_community_size) {
+            largest_community_size = entry.second.nodeIndices.size();
         }
-
     }
+
+    P.purgeEmptyCommunities(true);
     return update;
 }
 
@@ -345,7 +344,6 @@ void Optimizer::mergeNodesSubset(Community& S) {
             }
         }
     }
-    //P.purgeEmptyCommunities(true); // purge empty communities
 }
 
 Graph Optimizer::aggregateGraph() {
@@ -395,7 +393,6 @@ Graph Optimizer::aggregateGraph() {
     return aggregated_graph;
 }
 
-/
 void Optimizer::refinePartition(const Partition& P_original) {
     // Implement creating a new partition from the existing partition
     // copy the partition to P_original
@@ -406,6 +403,8 @@ void Optimizer::refinePartition(const Partition& P_original) {
         Community C = entry.second;
         mergeNodesSubset(C);
     }
+    // print done merging nodes
+    Rcpp::Rcout << "Done merging nodes" << std::endl;
     P.purgeEmptyCommunities(true);
 }
 
@@ -426,9 +425,11 @@ void Optimizer::optimize(int iterations) {
 
         // otherwise, refine the partition and aggregate the graph
         } else {
+            Rcpp::Rcout << "debug 1 number of nodes: " << G.n << std::endl;
             Partition P_save = P;  // but maintain a copy of the partition before refinement
             Rcpp::Rcout << "Refining partition" << std::endl;
             refinePartition(P_save);
+            Rcpp::Rcout << "debug 2 number of nodes: " << G.n << std::endl;
 
             // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;
@@ -477,7 +478,7 @@ Partition initializePartition(Graph& G) {
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // Set the resolution parameter
-    double gamma = 1.0;
+    double gamma = .1;
     double temperature = 0.01;
 
     // Create a graph from the R List
@@ -518,29 +519,15 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     */
 
-    // get the communities from the partition
-    std::vector<int> communities;
-    std::vector<int> nodes;
-    for (const auto& entry : optim.P.communityIndexMap) {
-        communities.push_back(entry.first);
-        for (int node_index : entry.second.nodeIndices) {
-            nodes.push_back(node_index);
-        }
-    }
-
-    // creat vector of node names in the same order as the nodes vector
-    std::vector<std::string> node_names;
-    for (int node_index : nodes) {
-        node_names.push_back(G.getNodeName(node_index));
-    }
-
     // Convert the vector of communities to an R List
-    Rcpp::List result = Rcpp::List::create(
-        Rcpp::Named("communities") = communities,
-        Rcpp::Named("nodes") = nodes,
-        Rcpp::Named("node_names") = node_names
-    );
+    //Rcpp::List result = Rcpp::List::create(
+    //    Rcpp::Named("communities") = communities,
+    //    Rcpp::Named("nodes") = nodes,
+    //    Rcpp::Named("node_names") = node_names
+    //);
 
-    return result;
+    //return result;
+
+    return optim.G.graphToRList();
 
 }
