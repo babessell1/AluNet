@@ -235,8 +235,8 @@ void Graph::removeLowConnections(int min_connections) {
 }
 
 /*
-##############################################
-####### R INTERFACE FUNCTIONS ################
+###################################################################################
+####################### R INTERFACE FUNCTIONS #####################################
 */
 // convert R list to custom graph object
 Graph listToGraph(const Rcpp::List& graphList) {

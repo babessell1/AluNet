@@ -29,17 +29,6 @@ public:
     double getWeight(int u, int v) const;
     void updateNodeProperties(bool remove_empty_nodes);
     bool hasEdge(int u, int v) const;
-/*
-bool Graph::isConnected(int node, const std::vector<int>& subsetNodes) {
-    // Assuming 'adj' is the adjacency list for each node
-    for (int target : subsetNodes) {
-        if (std::find(adj[node].begin(), adj[node].end(), target) != adj[node].end()) {
-            return true; // Node is connected to at least one node in the subset
-        }
-    }
-    return false; // Node is not connected to any nodes in the subset
-}
-*/
 };
 
 // listToGraph
@@ -47,16 +36,6 @@ Graph listToGraph(const Rcpp::List& graphList);
 
 class RandomGenerator { 
 public:
-/*    
-static std::vector<int> generateRandomPermutation(int n) {
-        std::vector<int> permutation(n);
-        for (int i = 0; i < n; ++i) {
-            permutation[i] = i;
-        }
-        std::shuffle(permutation.begin(), permutation.end(), std::mt19937(std::random_device()()));
-        return permutation;
-    }
-*/
     static std::vector<int> generateRandomPermutation(int n) {
         std::vector<int> permutation(n);
         for (int i = 0; i < n; ++i) {

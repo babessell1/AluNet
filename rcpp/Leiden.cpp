@@ -468,6 +468,11 @@ Partition initializePartition(Graph& G) {
     return P;
 }
 
+/*
+###################################################################################
+####################### R INTERFACE FUNCTIONS #####################################
+*/
+
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 

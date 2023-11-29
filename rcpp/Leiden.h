@@ -15,9 +15,6 @@ public:
     Optimizer(Graph& G, Partition& P, double gamma, double temperature);
     void optimize(int iterations);
     bool moveNodesFast();
-    //Partition refinePartition() const;
-    //Partition mergeNodesSubset(const Community& subset);
-    //Graph aggregateGraph(const Graph& G, const Partition& P);
     double calcQuality(double gamma);
     double deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const;
     void refinePartition(const Partition& P_original);
