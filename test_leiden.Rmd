@@ -29,9 +29,9 @@ g_list <- list(
 )
 plot.graph(g_list, "karate_nodes.png")
 iterations <- 10
-gamma <- 1  # gamma > 0
+gamma <- .01  # gamma > 0
 theta <- 0.01 # good theta is 0.005 < 0.05
-result <- runLeiden(g_list, iterations, )
+result <- runLeiden(g_list, iterations, gamma, theta)
 plot.graph(result, "karate_leiden.png")
 ```
 
@@ -49,25 +49,8 @@ graph_data <- createGraphFromList(g_list)
 edges <- g_list$edges
 weights <- g_list$weights
 #print(graph_data)
-g <- graph.data.frame(graph_data)
-#print(g)
-edge_weights <- E(g)$w
-V(g)$label <- NA
-E(g)$label <- NA
-layout <- layout_with_fr(g, dim=2)
 
-# Increase the size of the plot
-par(mar = c(1, 1, 1, 1))  # Adjust margins if needed
-layout <- layout_with_fr(g, dim = 2)
-
-# Set the size of the plot device using the 'width' and 'height' parameters
-png("karate_test_nodes.png", width = 2000, height = 2000)  # Adjust width and height as needed
-
-# Plot the graph with smaller nodes
-plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)
-
-dev.off()  # Close the plot device
-plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)
+plot.graph(g_list, "hi-c_nodes.png", small_nodes=T)
 ```
 
 ```{r}
