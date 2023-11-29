@@ -16,21 +16,35 @@ Sys.which("make")
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
 #sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
+sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+source("r/plot_graph.R")
 ```
 
 ```{r}
-sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+g <- as_edgelist(make_graph('Zachary'))
+g_list <- list(
+  to=g[,1],
+  from=g[,2],
+  weight=rep(1, length(g[,1]))
+)
+plot.graph(g_list, "karate_nodes.png")
+iterations <- 10
+gamma <- 1  # gamma > 0
+theta <- 0.01 # good theta is 0.005 < 0.05
+result <- runLeiden(g_list, iterations, )
+plot.graph(result, "karate_leiden.png")
 ```
+
 
 ```{r}
 #g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
 g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
 #g_list <- graphFromFitHIC("data/GSE148434_NS_all.5kb.1e-2.FitHiC.all.txt", "chr1")
-#g_list <- list(
-#  to =   c("1", "3", "5", "7", "7", "11", "11"),
-#  from = c("0", "2", "4", "12", "8", "8", "12"),
-#  weight = c(1, 1, 1, 1, 1, 1, 1)
-#)
+g_list <- list(
+  to =   c("1", "3", "5", "7", "7", "11", "11"),
+  from = c("0", "2", "4", "12", "8", "8", "12"),
+  weight = c(1, 1, 1, 1, 1, 1, 1)
+)
 graph_data <- createGraphFromList(g_list)
 edges <- g_list$edges
 weights <- g_list$weights
@@ -47,7 +61,7 @@ par(mar = c(1, 1, 1, 1))  # Adjust margins if needed
 layout <- layout_with_fr(g, dim = 2)
 
 # Set the size of the plot device using the 'width' and 'height' parameters
-png("test_graph.png", width = 2000, height = 2000)  # Adjust width and height as needed
+png("karate_test_nodes.png", width = 2000, height = 2000)  # Adjust width and height as needed
 
 # Plot the graph with smaller nodes
 plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.alpha = 1, edge.arrow.size = 0)
@@ -57,8 +71,9 @@ plot.igraph(g, layout = layout, vertex.size = .01, vertex.label.dist = 2, edge.a
 ```
 
 ```{r}
-g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
+g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
 print(length(unique(c(g_list[["to"]], g_list[["from"]]))))
+g_list[["weight"]] <- g_list[["weight"]] / mean(g_list[["weight"]])
 output <- runLeiden(g_list, 2)
 print(output[["communities"]])
 print(output[["nodes"]])
@@ -72,41 +87,6 @@ print(output$communities[length(output$communities)])
 print(output$nodes[1])
 print(output$nodes[length(output$nodes)])
 ```
-
-```{r}
-iterations <- 10
-
-numNodes <- 5
-
-# Define the weights for the edges
-weights <- rep(1, numNodes)
-weights <- weights / sum(weights)
-# Define edges such that each node has exactly two edges
-# For example, a simple ring where each node is connected to its next and previous node
-edges <- matrix(c(
-  1, 2,
-  2, 3,
-  3, 4,
-  4, 5,
-  5, 1, # Connecting the last node back to the first
-  1, 5, # Adding second set of connections to make two edges per node
-  2, 1,
-  3, 2,
-  4, 3,
-  5, 4
-), ncol = 2, byrow = TRUE)
-
-# Create the graph list with 'from', 'to', and 'weight' components
-graphList <- list(
-  from = as.character(edges[, 1]),
-  to = as.character(edges[, 2]),
-  weight = weights
-)
-
-# Now you can call runLeiden (make sure it's properly defined in your C++ code and exposed to R)
-result <- runLeiden(graphList, iterations)
-```
-
 
 ```{r}
 # new test file
@@ -153,5 +133,6 @@ graphList <- list(
 
 # Print graph information
 print(graphList)
+iterations <- 1
 result <- runLeiden(graphList, iterations)
 ```

@@ -12,7 +12,7 @@
 ############################ OPTIMIZER CLASS ###################################
 */
 // Construct an optimizer based on a graph and a partition
-Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double temperature) : G(G), P(P), gamma(gamma), temperature(temperature) {}
+Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G), P(P), gamma(gamma), theta(theta) {}
 
 double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const {
   // calculate the difference between moving vertex to a new community
@@ -312,7 +312,7 @@ void Optimizer::mergeNodesSubset(Community& S) {
                 int c_idx = C.communityIndex;
                 double delta_quality = deltaQuality(v, c_idx, gamma, false);
                 if (delta_quality > 0) {  // if the quality improves
-                    probabilities[c_idx] = exp(delta_quality / temperature); // add the probability to the map
+                    probabilities[c_idx] = exp(delta_quality / theta); // add the probability to the map
                 }
             }
             // If there are possible communities to merge
@@ -483,11 +483,11 @@ Partition initializePartition(Graph& G) {
 */
 
 // [[Rcpp::export]]
-Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
+Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double theta) {
 
-    // Set the resolution parameter
-    double gamma = .1;
-    double temperature = 0.01;
+    
+    //double gamma = .1;
+    //double theta = 0.01;
 
     // Create a graph from the R List
     // use listToGraph from GraphUtils.cpp
@@ -499,7 +499,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     Rcpp::Rcout << "Number of communities: " << P.communityIndexMap.size() << std::endl;
 
     // Create an Optimizer
-    Optimizer optim(G, P, gamma, temperature);
+    Optimizer optim(G, P, gamma, theta);
     
     // Run the Leiden algorithm
     optim.optimize(iterations);

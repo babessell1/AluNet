@@ -9,10 +9,10 @@ public:
     Graph& G;
     Partition& P;
     double gamma;
-    double temperature;
+    double theta;
 
     // methods
-    Optimizer(Graph& G, Partition& P, double gamma, double temperature);
+    Optimizer(Graph& G, Partition& P, double gamma, double theta);
     void optimize(int iterations);
     bool moveNodesFast();
     double calcQuality(double gamma);
