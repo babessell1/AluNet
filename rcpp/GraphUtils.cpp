@@ -133,7 +133,6 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
     n = nodes.size();
 }
 
-
 // get neighbors of a node based on keys of the edgeWeights map
 std::vector<int> Graph::getNeighbors(int n_idx) const {
     std::vector<int> neighbors;
@@ -146,7 +145,6 @@ std::vector<int> Graph::getNeighbors(int n_idx) const {
          
     return neighbors;
 }
-
 
 // get weight of an edge based on node indices
 double Graph::getWeight(int u, int v) const {  // find is slow, consider not checking if the edge exists
@@ -178,7 +176,6 @@ Rcpp::List Graph::graphToRList() const {
             weight.push_back(entry.second);
         }
     }
-
 
     Rcpp::List result = Rcpp::List::create(
         Rcpp::Named("from") = from,
@@ -236,6 +233,7 @@ void Graph::removeLowConnections(int min_connections) {
     updateNodeProperties(true);
 
 }
+
 /*
 ##############################################
 ####### R INTERFACE FUNCTIONS ################

@@ -7,39 +7,6 @@
 #include <queue>
 #include <algorithm>
 
-// [[test it]
-
-// not finished, should define an extra function named quality()
-// which counts the weights
-// [[test it]]
-
-/*
-size_t Partition::number_of_nodes() {
-    // Implement the logic to return the number of nodes in the partition
-    return graph.n; // Assuming n is the number of nodes in the graph
-}
-
-Graph Partition::get_graph() {
-    // Implement the logic to return the graph object associated with the partition
-    return graph;
-}
-
-void Partition::addCommunity(const Community& newCommunity) {
-    // Implement logic to add a new community to the partition
-    communities.push_back(newCommunity);
-}
-
-void Partition::removeCommunity(int communityIndex) {
-    // Implement logic to remove a community from the partition
-    // You may want to handle the case where the index is out of bounds
-}
-
-void Partition::updateCommunityMembership(int node_index, int new_community_index) {
-    // Implement logic to update the community membership of a node
-    // You may want to handle the case where the indices are out of bounds
-}
-
-*/
 /*
 ################################################################################
 ############################ OPTIMIZER CLASS ###################################
@@ -427,41 +394,8 @@ Graph Optimizer::aggregateGraph() {
 
     return aggregated_graph;
 }
-/* // This is what you have defined at Nov 27
-// this is the main idea and the functions shuold be defined.
-Graph Optimizer::aggregateGraph() {
-    size_t num_communities = P.communityIndexMap.size();
-    Graph aggregated_graph(num_communities);   // V <- P
-    
-    // Iterate through each edge in the original graph
-    for (const auto& u : G.edgeWeights) {
-        for (const auto& v : u.second) {
 
-            int u_idx = u.first;
-            int v_idx = v.first;
-            double w = v.second;
-
-            // Get the community of each node
-            int u_comm = P.nodeCommunityMap.at(u_idx);
-            int v_comm = P.nodeCommunityMap.at(v_idx);
-
-            std::string u_name = std::to_string(u_comm);
-            std::string v_name = std::to_string(v_comm);
-
-            // if edge already exists, add the weight to the existing edge
-            if (aggregated_graph.edgeWeights[u_comm].find(v_comm) != aggregated_graph.edgeWeights[u_comm].end()) {
-                aggregated_graph.edgeWeights[u_comm][v_comm] += w;
-            } else {
-                // Add an edge between the communities in the aggregated graph
-                aggregated_graph.addEdge(u_name, v_name, w);
-            }
-        }
-    }
-    aggregated_graph.updateNodeProperties(true); // update node properties
-
-    return aggregated_graph;
-}
-*/
+/
 void Optimizer::refinePartition(const Partition& P_original) {
     // Implement creating a new partition from the existing partition
     // copy the partition to P_original
@@ -558,14 +492,6 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
 
     // print the number of communities
     Rcpp::Rcout << "Final number of communities: " << optim.P.communityIndexMap.size() << std::endl;
-
-    // print the nodes in each community
-    //for (const auto& entry : optim.P.communityIndexMap) {
-    //    Rcpp::Rcout << "Community: " << entry.first << std::endl;
-    //    for (int node_index : entry.second.nodeIndices) {
-    //        Rcpp::Rcout << "Node: " << node_index << std::endl;
-    //    }
-    //}
     
     /* OLD TESTING CODE
     //move node 168 to community 126
@@ -613,54 +539,3 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations) {
     return result;
 
 }
-
-
-// should define in the .h file
-
-// Partition currentPartition;
-
-/*
-void Optimizer::refinePartition() {
-  bool improved = false;
-  do {
-        improved = false;
-        size_t numberOfNodes = currentPartition.number_of_nodes();
-
-        for (size_t i = 0; i < numberOfNodes; ++i) {
-          double bestQualityIncrease = 0.0;
-            int bestCommunityIndex = -1;
-            int originalCommunityIndex = currentPartition.getCommunityOfNode(i);
-            auto originalQuality = calculateQuality();
-            // I think that we would better define a refactor of the calculateQuality function because this would be more convenient and easy to understand hah
-
-            // Evaluate moving node to different clusters
-            size_t numberOfCommunities = currentPartition.number_of_communities();
-            for (size_t j = 0; j < numberOfCommunities; ++j) {
-                if (j != originalCommunityIndex) {
-
-                    // Move node to the new community and calculate quality
-                    currentPartition.updateCommunityMembership(i, j);
-                    clusters[originalClusterId].removeNode(node);
-
-                    double newQuality = calculateQuality();
-                    double qualityIncrease = newQuality - originalQuality;
-
-                    if (qualityIncrease > bestQualityIncrease) {
-                        bestQualityIncrease = qualityIncrease;
-                        bestCommunityIndex = j;
-                    }
-
-                    // Move node back to original community
-                   currentPartition.updateCommunityMembership(i, originalCommunityIndex);
-               }
-           }
-
-           // If a better community is found, move the node there
-           if (bestCommunityIndex != -1) {
-              currentPartition.updateCommunityMembership(i, bestCommunityIndex);
-              improved = true;
-          }
-        }
-    } while (improved);
-}
-*/
