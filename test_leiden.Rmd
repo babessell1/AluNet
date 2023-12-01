@@ -20,6 +20,7 @@ sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
 source("r/plot_graph.R")
 ```
 
+
 ```{r}
 g <- as_edgelist(make_graph('Zachary'))
 g_list <- list(
@@ -33,7 +34,7 @@ plot.graph(g_list, "karate_nodes.png", small_nodes=F)
 
 # after clustering
 iterations <- 1
-gamma <- 0.5  # gamma > 0
+gamma <- 0.05  # gamma > 0
 theta <- 0.01 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
 plot.graph(result, "karate_leiden.png")
@@ -41,22 +42,43 @@ plot.graph(result, "karate_leiden.png")
 ```
 
 ```{r}
+graph_data <- createGraphFromList(g_list)
+edges <- g_list$edges
+weights <- g_list$weights
+# remove items of list that are not to from or weight
+graph_data$communities <-NULL
+graph_data$node_names <- NULL
+graph_data$quality <- NULL
+
+gdf <- graph.data.frame(graph_data)
+```
+
+```{r}
 gdf <- make_graph("Zachary")
 # By default CPM is used
-r <- quantile(strength(gdf))[2] / (gorder(gdf) - 1)
+#r <- quantile(strength(gdf))[2] / (gorder(gdf) - 1)
 # Set seed for sake of reproducibility
 set.seed(1)
 ldc <- cluster_leiden(
   gdf,
-  resolution_parameter=r,
+  resolution_parameter=gamma,
   objective_function="CPM",
   weights=g_list[["weight"]],
   beta=theta,
-  n_iterations=iterations,
+  n_iterations=1,
   vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
 )
 print(ldc) 
-plot(ldc, gdf)
+plot(
+  gdf,
+  layout = layout_with_fr(gdf),
+  vertex.color = ldc$membership,  # Color nodes based on community
+  #vertex.frame.color = community_colors,
+  edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
+  #vertex.label = V(gdf)$name,
+  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+  main = "Graph with Community Colors and Edge Weights"
+)
 ```
 
 ```{r}
@@ -68,13 +90,9 @@ g_list <- list(
   weight=rep(1, length(g[,1]))
 )
 
-g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+#g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
 
 # run leiden community deteciton
-# after clustering
-iterations <- 1
-gamma <- 0.01  # gamma > 0
-theta <- 0.01 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
 
 # graph info
@@ -103,7 +121,7 @@ get_community_colors <- function(num_communities) {
   rainbow(num_communities)
 }
 
-par(mfrow=c(1,2), mar=rep(1,4))
+#par(mfrow=c(1,2), mar=rep(1,4))
 
 # Change colors of nodes, polygons, and polygon borders
 num_communities <- length(unique(result$communities))
