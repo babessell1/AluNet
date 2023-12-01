@@ -555,7 +555,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
     }
 
     Rcpp::Rcout << "Processed " << communityCount << " communities." << std::endl;
-    return Rcpp::List::create(Rcpp::Named("communities") = communities);
+    //return Rcpp::List::create(Rcpp::Named("communities") = communities);
 
     /* OLD TESTING CODE
     //move node 168 to community 126

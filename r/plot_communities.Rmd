@@ -1,0 +1,87 @@
+```{r}
+# get graph
+g <- as_edgelist(make_graph('Zachary'))
+g_list <- list(
+  to=g[,1],
+  from=g[,2],
+  weight=rep(1, length(g[,1]))
+)
+
+# run leiden community deteciton
+# after clustering
+iterations <- 1
+gamma <- 0.1  # gamma > 0
+theta <- 0.01 # good theta is 0.005 < 0.05
+result <- runLeiden(g_list, iterations, gamma, theta)
+
+# graph info
+my_ldc <- list(
+)
+
+# for each community, add the nodes to the community my_ldc
+for (i in 1:length(unique(result$communities))) {
+  my_ldc[[i]] <-  list(
+    membership=result$communities,
+    nb_clusters=length(unique(result$communities)),
+    quality=result$quality,
+    algorithm="homemade_leiden",
+    vcount=length(result$communities)
+  )
+
+graph <- createGraphFromList(g_list)
+graph$communities <- NULL
+graph$node_names <- NULL
+graph$quality <- NULL
+gdf <- graph.data.frame(graph)
+
+V(gdf)$name <- 1:length(result$communities)
+V(gdf)$membership <- result$communities
+#plot(my_ldc, gdf)
+
+# Use a predefined color palette for edges (e.g., 'heat.colors')
+color_palette <- heat.colors(100)
+
+get_community_colors <- function(num_communities) {
+  rainbow(num_communities)
+}
+
+par(mfrow=c(1,2), mar=rep(1,4))
+
+# Change colors of nodes, polygons, and polygon borders
+num_communities <- length(unique(result$communities))
+community_colors <- get_community_colors(num_communities)
+
+# Plot the graph
+
+# Plot the graph
+plot(
+  gdf,
+  layout = layout_with_fr(gdf),
+  vertex.color = V(gdf)$membership,  # Color nodes based on community
+  vertex.frame.color = V(gdf)$membership,
+  edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
+  vertex.label = V(gdf)$name,
+  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+  main = "Graph with Community Colors and Edge Weights"
+)
+
+# Add a legend for community colors
+legend("topright", legend = unique(V(gdf)$membership),
+       col = 1:length(unique(V(gdf)$membership)), pch = 19,
+       title = "Communities", cex = 0.8)
+
+# plot the same nodes as the above but use 2 args to also plot the communities as polygons
+plot(
+    my_ldc, # pass the object with the communities
+    gdf, # pass the graph
+    layout = layout_with_fr(gdf),
+    vertex.color = V(gdf)$membership,  # Color nodes based on community
+    vertex.frame.color = V(gdf)$membership,
+    edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
+    vertex.label = V(gdf)$name,
+    edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+    main = "Graph with Community Colors and Edge Weights"
+)
+
+
+```
