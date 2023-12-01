@@ -164,7 +164,7 @@ void Partition::purgeEmptyCommunities(bool renumber) {
     }
 }
 
-double Partition::calcQuality(double gamma, const Graph& G) const {
+double Partition::calcQuality(double gamma, const Graph& G, bool modularity=false) const {
    /*
     Calculate the quality of the partition 1 / (2 * m) * sum(d(c[i], c[j]) * (a[i][j] - gamma * n[i] * n[j])),
     where:
@@ -178,6 +178,7 @@ double Partition::calcQuality(double gamma, const Graph& G) const {
 
     double quality = 0.0;
     // for each node in the graph
+
     for (int node_idx : G.nodes) {
 
         // get the neighbors of the node
