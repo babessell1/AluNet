@@ -44,6 +44,8 @@ void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     if (!isDirected) {
         edgeWeights[v_idx][u_idx] = w;
     }
+    // update total edge weight
+    totalEdgeWeight += w;
 }
 
 // get node index from node name
@@ -115,7 +117,8 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
 
     // calculate total edge weight
     double total_edge_weight = 0.0;
-    for (const auto& entry : new_edge_weights) {
+    //for (const auto& entry : new_edge_weights) {
+    for (const auto& entry : edgeWeights) {
         for (const auto& edge : entry.second) {
             total_edge_weight += edge.second;
         }
@@ -125,9 +128,9 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
     }
 
     // update Graph properties
-    edgeWeights = new_edge_weights;
-    nodeWeights = new_node_weights;
-    nodeIndexMap = new_node_index_map;
+    //edgeWeights = new_edge_weights;
+    //nodeWeights = new_node_weights;
+    //nodeIndexMap = new_node_index_map;
     totalEdgeWeight = total_edge_weight;
     nodes = getNodes();
     n = nodes.size();
@@ -238,7 +241,7 @@ void Graph::removeLowConnections(int min_connections) {
 
 
     // Lastly, always ensure to update the node properties
-    updateNodeProperties(true);
+    updateNodeProperties(false);
 
 }
 
@@ -292,9 +295,9 @@ Graph listToGraph(const Rcpp::List& graphList) {
         G.addEdge(fromNode, toNode, w);
     }
 
-    G.updateNodeProperties(true); // Updating nodes after adding all edges 
+    G.updateNodeProperties(false); // Updating nodes after adding all edges 
     Rcpp::Rcout << "Removing Low Connections..." << std::endl;
-    G.removeLowConnections(2); // Remove single connections
+    //G.removeLowConnections(2); // Remove single connections
 
     return G;
 }

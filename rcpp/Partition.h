@@ -13,6 +13,7 @@ public:
 
     // methods
     Partition(const std::vector<Community>& communities, const Graph& G);
+    Partition();
     std::vector<int> getCommunityIndices() const;
     void flattenPartition();
     void updateCommunityMembershipSearch(int node_index, int new_community_index);
@@ -21,7 +22,7 @@ public:
     void purgeEmptyCommunities(bool renumber);
     void addCommunity(const Community& newCommunity);
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
-    double calcQuality(double gamma, const Graph& G) const;
+    double calcQuality(double gamma, const Graph& G, bool quality) const;
     void makeSingleton(const Graph& G);
     bool inSingleton(int node_index) const;
 };

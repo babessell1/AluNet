@@ -22,8 +22,8 @@ public:
     std::vector<int> getWellConnectedNodes(const Community& B) const;
     std::vector<Community> getWellConnectedCommunities(const Community& B) const;
     void mergeNodesSubset(Community& S);
-    Graph aggregateGraph() const;
-    void updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap);
+    Graph aggregateGraph();
+    void updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int> original_nodeIndexMap);
 };
 
 // listToGraph

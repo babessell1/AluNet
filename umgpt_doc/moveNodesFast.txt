@@ -1,8 +1,0 @@
-pasted 11/26 version of moveNodesFast and asked:
-
-Why is my while loop only undergoing a single iteration:
-
-Important part of response which I utilized:
-Potential loop issue: In your while loop, the line stable_nodes[nc_idx] == false;
-
- should actually be stable_nodes[nc_idx] = false; if you are trying to set the node as unstable.
