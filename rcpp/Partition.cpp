@@ -12,11 +12,11 @@ Partition::Partition(const std::vector<Community>& communities, const Graph& G) 
     for (const auto& community : communities) {
         // add the community to the community map
         //communityIndexMap.insert({community.communityIndex, community});
-        communityIndexMap.emplace(community.communityIndex, community);
+        communityIndexMap.emplace(community.getCommunityIndex(), community);
         // for each node in the community
-        for (int node_index : community.nodeIndices) {
+        for (int node_index : community.getNodeIndices()) {
             // add the node to the node map
-            nodeCommunityMap.insert({node_index, community.communityIndex});
+            nodeCommunityMap.insert({node_index, community.getCommunityIndex()});
         }
     }
     // initialize the quality
@@ -45,27 +45,37 @@ std::vector<int> Partition::getCommunityIndices() const {
 // flatten the partition, last step of the optimization step in the paper
  void Partition::flattenPartition() {
     // for each community index in the partition
-    for (int communityIndex : getCommunityIndices()) {
+    //for (int communityIndex : getCommunityIndices()) { slow
+    std::vector<int> flat_set;
+    std::unordered_map<int, int> new_node_community_map;
+    for (auto& entry : communityIndexMap) {  // for each community in the partition
+        int community_index = entry.first;
         // get the community
-        auto comm = communityIndexMap.find(communityIndex);
+        auto comm = communityIndexMap.find(community_index);
         // flatten the subsets
         std::vector<int> flat_set;
-        for (int nidx : comm->second.nodeIndices) {
-            flat_set.push_back(nidx);
+        for (int nidx : comm->second.getNodeIndices()) {  // for each node in the community
+            flat_set.push_back(nidx);  // add the node to the flat set
+            new_node_community_map.insert({nidx, 0});  // update the node community map
         }
+        // remove the community from the community index map
         // set the flat set as the community in the map
         // store as a vector of vectors!
-        comm->second.nodeIndices = std::move(flat_set);
+        //comm->second.nodeIndices = std::move(flat_set);
     }
+    // set the flat set partition as one community with all nodes
+    setCommunityIndexMap({{0, Community(flat_set, 0)}});
+    // set the node community map
+    setNodeCommunityMap(new_node_community_map);
 }
 
 void Partition::addCommunity(const Community& newCommunity) {
     // Add the new community to the communities vector
-    communityIndexMap.insert({newCommunity.communityIndex, newCommunity});
+    communityIndexMap.insert({newCommunity.getCommunityIndex(), newCommunity});
 }
 
 // Function to get the community of a given vertex
-int Partition::getNodeCommunity(int n_idx) {
+int Partition::getNodeCommunity(int n_idx) const {
     // get the community of the node
     auto node_it = nodeCommunityMap.find(n_idx);
     if (node_it != nodeCommunityMap.end()) {
@@ -92,7 +102,7 @@ void Partition::updateCommunityMembershipSearch(int node_index, int new_communit
     // Find the current community of the node and remove the node from the community
     
     int current_community_index = nodeCommunityMap.at(node_index);
-    auto& current_community = communityIndexMap.at(current_community_index).nodeIndices;
+    auto current_community = communityIndexMap.at(current_community_index).getNodeIndices();
     auto node_it = std::find(current_community.begin(), current_community.end(), node_index);
     if (node_it != current_community.end()) {
         current_community.erase(node_it);
@@ -104,18 +114,30 @@ void Partition::updateCommunityMembershipSearch(int node_index, int new_communit
     // Update the node community map
     nodeCommunityMap.at(node_index) = new_community_index;
 
-    // Add the node to the new community
-    communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
+    //communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index); // bad practice?
+
+    // use getters and setters instead, it is safer
+    // get the old community
+    auto update_community = communityIndexMap.at(new_community_index).getNodeIndices();
+    // Add the node to the old community
+    update_community.push_back(node_index);
+    // set the new community
+    communityIndexMap.at(new_community_index).setNodeIndices(update_community);
 }
 
 void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
     // Find the current community of the node and remove the node from the community
+
+    Rcpp::Rcout << "move node " << node_index << " from " << old_community_index << " to " << new_community_index << std::endl;
     auto old_comm = communityIndexMap.find(old_community_index);
+
+    // check if the old community is in the community index map,
     if (old_comm != communityIndexMap.end()) {
+        Rcpp::Rcout << "Old community found: " << old_community_index << std::endl;
         // if the node is in the community, remove it
-        auto node_it = std::find(old_comm->second.nodeIndices.begin(), old_comm->second.nodeIndices.end(), node_index);
-        if (node_it != old_comm->second.nodeIndices.end()) {
-            old_comm->second.nodeIndices.erase(node_it);
+        auto node_it = std::find(old_comm->second.getNodeIndices().begin(), old_comm->second.getNodeIndices().end(), node_index);
+        if (node_it != old_comm->second.getNodeIndices().end()) {
+            old_comm->second.getNodeIndices().erase(node_it);  // 
         } else {
             Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));
         } // I do not think that it is necessary but we can add the erase the old community to delete the old community
@@ -124,13 +146,23 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
     }
 
     // Add the node to the new community
-    communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
+    //communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
+    // use getters and setters instead, it is safer
+
+    Rcpp::Rcout << "New community index to map 1: " << new_community_index << std::endl;
+    communityIndexMap.at(new_community_index).addNodeIndex(node_index);
 
     // update the node community map
+    Rcpp::Rcout << "New community index to map 2: " << new_community_index << std::endl;
     nodeCommunityMap.at(node_index) = new_community_index;
 
+    // remove the node from the old community
+    Rcpp::Rcout << "Old community index to map: " << old_community_index << std::endl;
+    communityIndexMap.at(old_community_index).removeNodeIndex(node_index);
+
+    Rcpp::Rcout << "Old community size: " << communityIndexMap.at(old_community_index).size() << std::endl;
      // check and handle empty old community
-    if (old_comm->second.nodeIndices.empty()) {
+    if (old_comm->second.getNodeIndices().empty()) {
         // Remove or flag the empty community as needed
         communityIndexMap.erase(old_comm);
     }
@@ -164,9 +196,11 @@ void Partition::purgeEmptyCommunities(bool renumber) {
             // get the community
             auto comm = entry.second;
             // update the community index
-            comm.communityIndex = old_index_to_new_index[entry.first];
+            //comm.getCommunityIndex() = old_index_to_new_index[entry.first];
+            comm.setCommunityIndex(old_index_to_new_index[entry.first]);
+
             // add the community to the new map
-            new_community_index_map.insert({comm.communityIndex, comm});
+            new_community_index_map.insert({comm.getCommunityIndex(), comm});
         }
         // update the community index map
         communityIndexMap = new_community_index_map;
@@ -188,7 +222,7 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
     double quality = 0.0;
     // for each node in the graph
 
-    for (int node_idx : G.nodes) {
+    for (int node_idx : G.getNodes()) {
 
         // get the neighbors of the node
         //if (print) {
@@ -199,7 +233,7 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
             // get the weight of the edge between the node and its neighbor
 
             //Rcpp::Rcout << "----Get weight: " << std::endl;
-            double edge_weight = G.edgeWeights.at(node_idx).at(neigh_idx);  
+            double edge_weight = G.getEdgeWeights().at(node_idx).at(neigh_idx);  
             // if the neighbor is in the same community as the node
             //Rcpp::Rcout << "----Get communities: " << std::endl;
             if (print) {
@@ -234,7 +268,7 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
     // print total edge weight
     //Rcpp::Rcout << "Total edge weight: " << G.totalEdgeWeight << std::endl;
 
-    quality /= 2*G.totalEdgeWeight;
+    quality /= 2*G.getTotalEdgeWeight();
 
     // print the quality
     //Rcpp::Rcout << "Quality: " << quality << std::endl;
@@ -247,7 +281,7 @@ void Partition::makeSingleton(const Graph& G) {
     std::unordered_map<int, Community> single_community_index_map;
     std::unordered_map<int, int> single_node_community_map;
     // for each node in the graph
-    for (int node_idx : G.nodes) {
+    for (int node_idx : G.getNodes()) {
         // create a community for the node
         Community comm({node_idx}, node_idx);
         // add the community to the community index map
