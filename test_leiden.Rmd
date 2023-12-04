@@ -35,7 +35,7 @@ plot.graph(g_list, "karate_nodes.png", small_nodes=F)
 
 # after clustering\
 iterations <- 1
-gamma <- .01  # gamma > 0
+gamma <- .05  # gamma > 0
 theta <- 0.05 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
 plot.graph(result, "karate_leiden.png")
