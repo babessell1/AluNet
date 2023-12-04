@@ -24,7 +24,7 @@ double Community::aggregateWeights(const Graph& G) const {
             weight_sum += G.getWeight(node_index, neighbor_index);
         }
     }
-    if (G.isDirected) {
+    if (G.getIsDirected()) {
         return weight_sum;
     }
     else {
@@ -47,7 +47,7 @@ int Community::countPossibleEdges(const Graph& G) const {
             }
         }
     }
-    if (G.isDirected) {
+    if (G.getIsDirected()) {
         return n_possible_edges;
     }
     else {
@@ -63,11 +63,14 @@ size_t Community::size() const {
 double Community::getClusterWeight(const Graph& G) const {
     // get the sum of weights of all nodes in the community
     double weight_sum = 0.0;
-    for (const int& node_index : nodeIndices) {
-        if (G.nodeWeights.find(node_index) == G.nodeWeights.end()) {
+    std::unordered_map<int, double> node_weights = G.getNodeWeights();
+    std::unordered_map<std::string, int> node_index_map = G.getNodeIndexMap();
+    for (const auto& entry : node_index_map) {
+        int node_index = entry.second;
+        if (G.getNodeWeights().find(node_index) == G.getNodeWeights().end()) {
             Rcpp::stop("Node index not found in nodeWeights");
         }
-        double weight_add = G.nodeWeights.at(node_index);  // Using 'at' for bounds checking
+        double weight_add = G.getNodeWeights().at(node_index);  // Using 'at' for bounds checking
         weight_sum += weight_add;
     }
     

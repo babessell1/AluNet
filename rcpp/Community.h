@@ -6,10 +6,37 @@
 
 
 class Community {
-public:
+private:
     // properties
     int communityIndex; 
     std::vector<int> nodeIndices;  // node indices
+    
+public:
+    // getters
+    int getCommunityIndex() const {
+        return communityIndex;
+    }
+
+    std::vector<int> getNodeIndices() const {
+        return nodeIndices;
+    }
+
+    // setters
+    void setCommunityIndex(int communityIndex) {
+        communityIndex = communityIndex;
+    }
+
+    void setNodeIndices(std::vector<int> nodeIndices) {
+        nodeIndices = nodeIndices;
+    }
+
+    void addNodeIndex(int nodeIndex) {
+        nodeIndices.push_back(nodeIndex);
+    }
+
+    void removeNodeIndex(int nodeIndex) {
+        nodeIndices.erase(std::remove(nodeIndices.begin(), nodeIndices.end(), nodeIndex), nodeIndices.end());
+    }
     
     // methods
     Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
