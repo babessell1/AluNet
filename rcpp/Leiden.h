@@ -51,7 +51,7 @@ public:
     std::vector<int> getWellConnectedNodes(const Community& B) const;
     std::vector<Community> getWellConnectedCommunities(const Community& B) const;
     void mergeNodesSubset(Community& S);
-    Graph aggregateGraph() const;
+    Graph aggregateGraph(Partition& P_comm) const;
     void updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap);
     Rcpp::List graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
         return G.graphToRList(community_assignments, quality);

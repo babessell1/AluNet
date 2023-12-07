@@ -55,6 +55,30 @@ int Community::countPossibleEdges(const Graph& G) const {
     };
 }
 
+bool Community::hasNode(int node_index) const {
+    // check if the community has a node
+    return std::find(nodeIndices.begin(), nodeIndices.end(), node_index) != nodeIndices.end();
+}
+
+bool Community::hasEdge(int node_index, int neighbor_index, const Graph& G) const {
+    // check if the community has an edge
+    return hasNode(node_index) && hasNode(neighbor_index) && G.getWeight(node_index, neighbor_index) > 0.0;
+}
+
+void Community::addNode(int nodeIndex) {
+    Rcpp::Rcout << "C: Adding node index " << nodeIndex << " to community " << communityIndex << std::endl;
+    nodeIndices.push_back(nodeIndex);
+}
+
+void Community::removeNode(int nodeIndex) {
+    Rcpp::Rcout << "C: Removing node index " << nodeIndex << " from community " << communityIndex << std::endl;
+    nodeIndices.erase(std::remove(nodeIndices.begin(), nodeIndices.end(), nodeIndex), nodeIndices.end());
+}
+
+bool Community::isEmpty() const {
+    return nodeIndices.empty();
+}
+
 // get the number of nodes in the community
 size_t Community::size() const {
     return nodeIndices.size();

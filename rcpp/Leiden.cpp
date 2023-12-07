@@ -32,7 +32,7 @@ void Optimizer::updateCommunityAssignments(const Partition& P, const std::unorde
             // if the node index matches the last community assignment
             if (entry.second == node_idx) {
                 // set the community assignment to the new community index
-                communityAssignments[entry.first] = P.getNodeCommunityMap().at(node_idx);
+                communityAssignments[entry.first] = P.getNodeCommunityIdx(node_idx);
             }
         }
     }
@@ -41,7 +41,7 @@ void Optimizer::updateCommunityAssignments(const Partition& P, const std::unorde
 double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const {
   // calculate the difference between moving vertex to a new community
 
-    int old_c_idx = P.getNodeCommunityMap().at(n_idx);  // keep track of the old community
+    int old_c_idx = P.getNodeCommunityIdx(n_idx);  // keep track of the old community
 
     if (recalculate) {
       // get quality of the partition before the move
@@ -96,8 +96,9 @@ bool Optimizer::moveNodesFast() {
 
     // initialize the cluster weights and nodes per cluster
     for (int i = 0; i < n_; i++) {
-        cluster_weights[P.getNodeCommunityMap().at(i)] += G.getNodeWeights()[i];
-        nodes_per_cluster[P.getNodeCommunityMap().at(i)]++;
+        int comm_idx = P.getNodeCommunityIdx(i);
+        cluster_weights[comm_idx] += G.getNodeWeights()[i];
+        nodes_per_cluster[comm_idx]++;
     }
 
     // track unused clusters
@@ -110,26 +111,31 @@ bool Optimizer::moveNodesFast() {
     // start of the cyclical process
     do {
         int node_idx = node_queue[start++];  // get the next node in the queue
-        int cluster_idx = P.getNodeCommunityMap().at(node_idx);
+        int cluster_idx = P.getNodeCommunityIdx(node_idx);
+        Rcpp::Rcout << "-------((  " << G.getNodeName(node_idx) << "  ))-------" << std::endl;
+        Rcpp::Rcout << "Next in queue (idx): " << node_idx << " - Cluster: " << cluster_idx << " iteration: " << start << std::endl;
 
-        Rcpp::Rcout << "Next in queue: " << node_idx << " - Cluster: " << cluster_idx << std::endl;
-
-        cluster_weights[cluster_idx] -= G.getNodeWeights()[node_idx];
+        cluster_weights[cluster_idx] -= G.getNodeWeight(node_idx);
         nodes_per_cluster[cluster_idx]--;
         if (nodes_per_cluster[cluster_idx] == 0) {
             unused_clusters[n_unused_clusters] = cluster_idx;
             n_unused_clusters++;
         }
 
-        Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
+        //Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
 
         // track neighboring clusters
         std::vector<int> neighboring_clusters(n_);
         neighboring_clusters[0] = unused_clusters[n_unused_clusters - 1];
         int n_neighboring_clusters = 1;
 
-        for (const auto& neighbor_weight : G.getEdgeWeights().at(node_idx)) {
-            int neighbor_cluster = P.getNodeCommunityMap().at(neighbor_weight.first);
+        // print G.getEdgeWeights().at(node_idx).size()
+        //Rcpp::Rcout << "Edge weights size: " << G.getThisEdgeWeights(node_idx).size() << std::endl;
+        for (const auto& neighbor_weight : G.getThisEdgeWeights(node_idx)) {
+            int neighbor_cluster = P.getNodeCommunityIdx(neighbor_weight.first);
+            //Rcpp::Rcout << "Neighbor cluster: " << neighbor_cluster << std::endl;
+            //Rcpp::Rcout << "Edge weight, neighbor: " << neighbor_weight.second << std::endl;
+            //Rcpp::Rcout << "Edge weight per cluster: " << edge_weights_per_cluster[neighbor_cluster] << std::endl;
             if (edge_weights_per_cluster[neighbor_cluster]==0) {
                 neighboring_clusters[n_neighboring_clusters] = neighbor_cluster;
                 n_neighboring_clusters++;
@@ -137,20 +143,20 @@ bool Optimizer::moveNodesFast() {
             edge_weights_per_cluster[neighbor_cluster] += neighbor_weight.second;
         }
 
-        Rcpp::Rcout << "Neighboring clusters: " << n_neighboring_clusters << std::endl;
+        //Rcpp::Rcout << "Neighboring clusters: " << n_neighboring_clusters << std::endl;
 
         // calculate the best cluster for the node to move to
         int best_cluster = cluster_idx;
-        double max_delta_q = edge_weights_per_cluster[cluster_idx] - G.getNodeWeights()[node_idx] * cluster_weights[cluster_idx] * gamma;
+        double max_delta_q = edge_weights_per_cluster[cluster_idx] - G.getNodeWeight(node_idx) * cluster_weights[cluster_idx] * gamma;
         for (int i = 0; i < n_neighboring_clusters; i++) {
             int idx = neighboring_clusters[i];
-            Rcpp::Rcout << "edge weight: " << edge_weights_per_cluster[idx] << std::endl;
-            Rcpp::Rcout << "node weight: " << G.getNodeWeights()[node_idx] << std::endl;
-            Rcpp::Rcout << "cluster weight: " << cluster_weights[idx] << std::endl;
-            Rcpp::Rcout << "gamma: " << gamma << std::endl;
+            //Rcpp::Rcout << "edge weight: " << edge_weights_per_cluster[idx] << std::endl;
+            //Rcpp::Rcout << "node weight: " << G.getNodeWeight(node_idx) << std::endl;
+            //Rcpp::Rcout << "cluster weight: " << cluster_weights[idx] << std::endl;
+            //Rcpp::Rcout << "gamma: " << gamma << std::endl;
             // E(C’, C’) - uweight * C’weight * 𝛾
-            double delta_quality = edge_weights_per_cluster[idx] - G.getNodeWeights()[node_idx] * cluster_weights[idx] * gamma;
-            Rcpp::Rcout << "Delta quality: " << delta_quality << std::endl;
+            double delta_quality = edge_weights_per_cluster[idx] - G.getNodeWeight(node_idx) * cluster_weights[idx] * gamma;
+            //Rcpp::Rcout << "Delta quality: " << delta_quality << std::endl;
             if (delta_quality > max_delta_q) {
                 best_cluster = idx;
                 max_delta_q = delta_quality;
@@ -159,49 +165,56 @@ bool Optimizer::moveNodesFast() {
             edge_weights_per_cluster[idx] = 0;
         }
 
-        Rcpp::Rcout << "Best cluster: " << best_cluster << std::endl;
+        //Rcpp::Rcout << "Best cluster: " << best_cluster << std::endl;
 
         // move the node to the best cluster
-        cluster_weights[best_cluster] += G.getNodeWeights()[node_idx]; 
+        cluster_weights[best_cluster] += G.getNodeWeight(node_idx); 
         nodes_per_cluster[best_cluster]++; 
 
         if (best_cluster == unused_clusters[n_unused_clusters - 1]) {
             n_unused_clusters--;
         }
 
-        Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
+        //Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
 
         // mark the node as stable
         stable_nodes[node_idx] = true;
         n_unstable_nodes--;
 
-        Rcpp::Rcout << "Unstable nodes: " << n_unstable_nodes << std::endl;
+        //Rcpp::Rcout << "Unstable nodes: " << n_unstable_nodes << std::endl;
 
         // check if cluster is different
         if (best_cluster != cluster_idx) {
+            Rcpp::Rcout << "Moving node (" << G.getNodeName(node_idx) << ")  from cluster " << cluster_idx << " to cluster: " << best_cluster << std::endl;
+            Rcpp::Rcout << "with other nodes: " << std::endl;
+
+            for ( const auto& i : P.getNodeCommunity(best_cluster).getNodeIndices() ) {
+                Rcpp::Rcout << G.getNodeName(i) << std::endl;
+            }
             P.updateCommunityMembership(node_idx, cluster_idx, best_cluster);
+            //Rcpp::Rcout << "Node moved" << std::endl;
             P.setNodeCommunity(node_idx, best_cluster);
             update = true;
  
             // make the neighbors of the node unstable
-            for (const auto& neighbor_weight : G.getEdgeWeights().at(node_idx)) {
+            for (const auto& neighbor_weight : G.getThisEdgeWeights(node_idx)) {
                 int neighbor_node = neighbor_weight.first; // index of neighbor          
-                if (stable_nodes[neighbor_node] && P.getNodeCommunityMap().at(neighbor_node) != best_cluster) {
+                if (stable_nodes[neighbor_node] && P.getNodeCommunityIdx(neighbor_node) != best_cluster) {
                     stable_nodes[neighbor_node] = false;
                     n_unstable_nodes++;
-                    Rcpp::Rcout << "Adding neighbor to queue: " << neighbor_node << std::endl;
+                    //Rcpp::Rcout << "Adding neighbor to queue: " << neighbor_node << std::endl;
                     node_queue[(start + n_unstable_nodes < n_) ? (start + n_unstable_nodes) : (start + n_unstable_nodes - n_)] = neighbor_node;
                 }
             }
         }
         start = (start < n_ - 1) ? (start + 1) : 0;
 
-        Rcpp::Rcout << "Start: " << start << std::endl;
+        //Rcpp::Rcout << "Start: " << start << std::endl;
 
 
     } while (n_unstable_nodes > 0);
 
-    Rcpp::Rcout << "Quality: " << P.calcQuality(gamma, G, false) << std::endl;
+    //Rcpp::Rcout << "Quality: " << P.calcQuality(gamma, G, false) << std::endl;
 
     P.purgeEmptyCommunities(false);
 
@@ -318,7 +331,7 @@ void Optimizer::mergeNodesSubset(Community& S) {
     }
 }
 
-Graph Optimizer::aggregateGraph(P_comm) const {
+Graph Optimizer::aggregateGraph(Partition& P_comm) const {
     int num_communities = P_comm.getCommunityIndexMap().size();
     Graph aggregate_graph(num_communities);
 
@@ -337,31 +350,40 @@ Graph Optimizer::aggregateGraph(P_comm) const {
         int c_idx = new_community_indices.at(old_c_idx);  // get the new community index
 
         // print community index
-        Rcpp::Rcout << "Community index: " << c_idx << std::endl;
+        Rcpp::Rcout << "----Community index: " << c_idx << std::endl;
 
         std::string c_str = std::to_string(c_idx);
 
+        Rcpp::Rcout << "set node index" << std::endl;
         aggregate_graph.setNodeIndex(c_str, c_idx);
+        Rcpp::Rcout << "add node" << std::endl;
         aggregate_graph.addNode(c_idx);
+        Rcpp::Rcout << "set node weight" << std::endl;
         aggregate_graph.setNodeWeight(c_idx, 0);
+        Rcpp::Rcout << "init edge weight" << std::endl;
         aggregate_graph.initEdgeWeight(c_idx);
 
+        Rcpp::Rcout << "get nodes in community" << std::endl;
+
         // get the nodes in the community
-        std::vector<int> nodesInCommunity = P.getCommunityIndexMap().at(c_idx).getNodeIndices();
+        std::vector<int> nodesInCommunity = P.getNodeCommunity(c_idx).getNodeIndices();
         
         std::map<int, int> neighbors;  // initialize a map of neighbors
         std::map<int, double> edge_weights; // initialize a map of edge weights
 
         for (int node : nodesInCommunity) { // for each node in the community
-            int u_comm = c_idx; 
+            Rcpp::Rcout << "Node: " << node << std::endl;
+
+
+            int u_comm = c_idx;   // get the community index (just a rename)
 
             // add the node weight to the aggregate graph
             //aggregate_graph.nodeWeights.at(c_idx) += G.getNodeWeights().at(node);
-            aggregate_graph.incNodeWeight(c_idx, G.getNodeWeights().at(node));
+            aggregate_graph.incNodeWeight(u_comm, G.getNodeWeights().at(node));
 
             for (const auto& neighbour : G.getEdgeWeights()[node]) {  // for each neighbor of the node
                 int v_idx = neighbour.first;  // get the neighbor index
-                int v_comm = P.getNodeCommunityMap().at(v_idx);  // get the neighbor community
+                int v_comm = P.getNodeCommunityIdx(v_idx);  // get the neighbor community index
                 std::string v_str = std::to_string(v_comm);  // convert the neighbor community to a string
 
                 // ensure the neighbor community in the node index map
@@ -373,9 +395,9 @@ Graph Optimizer::aggregateGraph(P_comm) const {
 
                 double weight = neighbour.second; // get the edge weight shared between the node and the neighbor
 
-                if (c_idx != v_comm) {  // don't want self loops
+                if (u_comm != v_comm) {  // don't want self loops
                     // check if the neighbor is already in the map
-                    if (aggregate_graph.getEdgeWeights().at(c_idx) == std::unordered_map<int, double>()) {
+                    if (aggregate_graph.getEdgeWeights().at(u_comm) == std::unordered_map<int, double>()) {
                         // print new map
                         //Rcpp::Rcout << "------------New map" << std::endl;
                         // add ege
@@ -384,7 +406,7 @@ Graph Optimizer::aggregateGraph(P_comm) const {
                         // print existing map
                         //Rcpp::Rcout << "------------new weight" << std::endl;
                         //aggregate_graph.edgeWeights.at(c_idx)[v_comm] += weight;
-                        aggregate_graph.setEdgeWeight(c_idx, v_comm, weight);
+                        aggregate_graph.setEdgeWeight(u_comm, v_comm, weight);
                     }
                     aggregate_graph.incTotalEdgeWeight(weight); // update the total edge weight
                 } 
@@ -489,8 +511,8 @@ void Optimizer::optimize(int iterations) {
 
             Rcpp::Rcout << "Refining partition" << std::endl;
             // set this->P to refined partition
-            this->P = initializePartition(G);
-            refinePartition(P_save);
+            //this->P = initializePartition(G);
+            //refinePartition(P_save);
 
             // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;

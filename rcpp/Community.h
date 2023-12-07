@@ -29,14 +29,6 @@ public:
     void setNodeIndices(std::vector<int> nodeIndices) {
         nodeIndices = nodeIndices;
     }
-
-    void addNodeIndex(int nodeIndex) {
-        nodeIndices.push_back(nodeIndex);
-    }
-
-    void removeNodeIndex(int nodeIndex) {
-        nodeIndices.erase(std::remove(nodeIndices.begin(), nodeIndices.end(), nodeIndex), nodeIndices.end());
-    }
     
     // methods
     Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
@@ -44,7 +36,11 @@ public:
     size_t size() const; // number of nodes in the community
     int countPossibleEdges(const Graph& G) const; // count possible edges in the community
     double getClusterWeight(const Graph&G) const; // sum weights of all nodes in the community
-
+    bool hasNode(int node_index) const; // check if the community has a node
+    bool hasEdge(int node_index, int neighbor_index, const Graph& G) const; // check if the community has an edge
+    bool isEmpty() const; // check if the community is empty
+    void addNode(int node_index); // add a node to the community
+    void removeNode(int node_index); // remove a node from the community
 };
 
 #endif

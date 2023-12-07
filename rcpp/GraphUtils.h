@@ -33,8 +33,16 @@ public:
         return edgeWeights;
     }
 
+    std::unordered_map<int, double> getThisEdgeWeights(int u) const {
+        return edgeWeights.at(u);
+    }
+
     std::unordered_map<int, double> getNodeWeights() const {
         return nodeWeights;
+    }
+
+    double getNodeWeight(int node) const {
+        return nodeWeights.at(node);
     }
 
     std::vector<int> getNodes() const {

@@ -21,6 +21,14 @@ public:
         return nodeCommunityMap;
     }
 
+    int getNodeCommunityIdx(int node_index) const {
+        return nodeCommunityMap.at(node_index);
+    }
+
+    Community getNodeCommunity(int node_index) const {
+        return communityIndexMap.at(getNodeCommunityIdx(node_index));
+    }
+
     double getQuality() const {
         return quality;
     }
@@ -47,15 +55,16 @@ public:
     Partition();
     std::vector<int> getCommunityIndices() const;
     void flattenPartition();
-    void updateCommunityMembershipSearch(int node_index, int new_community_index);
     void updateCommunityMembership(int node_index, int old_community_index, int new_community_index);
-    int getNodeCommunity(int node_index) const;
+    //int getNodeCommunity(int node_index) const;
     void purgeEmptyCommunities(bool renumber);
     void addCommunity(const Community& newCommunity);
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
     double calcQuality(double gamma, const Graph& G, bool quality) const;
     void makeSingleton(const Graph& G);
     bool inSingleton(int node_index) const;
+    void addNodeToCommunity(int node_index, int community_index);
+    void removeNodeFromCommunity(int node_index, int community_index);
 };
 
 #endif

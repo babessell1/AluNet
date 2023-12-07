@@ -75,15 +75,15 @@ void Partition::addCommunity(const Community& newCommunity) {
 }
 
 // Function to get the community of a given vertex
-int Partition::getNodeCommunity(int n_idx) const {
+//int Partition::getNodeCommunity(int n_idx) const {
     // get the community of the node
-    auto node_it = nodeCommunityMap.find(n_idx);
-    if (node_it != nodeCommunityMap.end()) {
-        return node_it->second;
-    } else {
-        Rcpp::stop("Node not found in the node community map: " + std::to_string(n_idx));
-    }
-  }
+//    auto node_it = nodeCommunityMap.find(n_idx);
+//    if (node_it != nodeCommunityMap.end()) {
+//        return node_it->second;
+//    } else {
+//        Rcpp::stop("Node not found in the node community map: " + std::to_string(n_idx));
+//    }
+//  }
 
 std::unordered_map<int, double> Partition::getPartitionWeights(const Graph& G) const {
     // for each cluster, get the sum of weights of all nodes in the community
@@ -97,74 +97,38 @@ std::unordered_map<int, double> Partition::getPartitionWeights(const Graph& G) c
     return cluster_weights;
 }
 
-// move a node from one community to another
-void Partition::updateCommunityMembershipSearch(int node_index, int new_community_index) {
-    // Find the current community of the node and remove the node from the community
-    
-    int current_community_index = nodeCommunityMap.at(node_index);
-    auto current_community = communityIndexMap.at(current_community_index).getNodeIndices();
-    auto node_it = std::find(current_community.begin(), current_community.end(), node_index);
-    if (node_it != current_community.end()) {
-        current_community.erase(node_it);
-    } else {
-        // Optional: Handle the case where the node is not found in its expected community
-        Rcpp::Rcout << "Warning: Node not found in its expected community: " + std::to_string(node_index) << std::endl;
-    }
+void Partition::addNodeToCommunity(int node_index, int community_index) {
+    // add a node to a community
+    //Rcpp::Rcout << "P: Adding node index " << node_index << " to community " << community_index << std::endl;
+    communityIndexMap.at(community_index).addNode(node_index);
+    nodeCommunityMap.at(node_index) = community_index;
+}
 
-    // Update the node community map
-    nodeCommunityMap.at(node_index) = new_community_index;
-
-    //communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index); // bad practice?
-
-    // use getters and setters instead, it is safer
-    // get the old community
-    auto update_community = communityIndexMap.at(new_community_index).getNodeIndices();
-    // Add the node to the old community
-    update_community.push_back(node_index);
-    // set the new community
-    communityIndexMap.at(new_community_index).setNodeIndices(update_community);
+void Partition::removeNodeFromCommunity(int node_index, int community_index) {
+    // remove a node from a community
+    //Rcpp::Rcout << "P: Removing node index " << node_index << " from community " << community_index << std::endl;
+    communityIndexMap.at(community_index).removeNode(node_index);
+    nodeCommunityMap.erase(node_index);
 }
 
 void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
     // Find the current community of the node and remove the node from the community
 
-    Rcpp::Rcout << "move node " << node_index << " from " << old_community_index << " to " << new_community_index << std::endl;
     auto old_comm = communityIndexMap.find(old_community_index);
 
     // check if the old community is in the community index map,
     if (old_comm != communityIndexMap.end()) {
-        Rcpp::Rcout << "Old community found: " << old_community_index << std::endl;
-        // if the node is in the community, remove it
-        auto node_it = std::find(old_comm->second.getNodeIndices().begin(), old_comm->second.getNodeIndices().end(), node_index);
-        if (node_it != old_comm->second.getNodeIndices().end()) {
-            old_comm->second.getNodeIndices().erase(node_it);  // 
+        //Rcpp::Rcout << "Old community found: " << old_community_index << std::endl;
+        // if the node is in the community, remove it using the removeNodeFromCommunity method
+        if (old_comm->second.hasNode(node_index)) {
+            Rcpp::Rcout << "Node found in the old community: " << node_index << std::endl;
+            removeNodeFromCommunity(node_index, old_community_index);
+
         } else {
             Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));
         } // I do not think that it is necessary but we can add the erase the old community to delete the old community
     } else {
         Rcpp::stop("Old community not found: " + std::to_string(old_community_index));
-    }
-
-    // Add the node to the new community
-    //communityIndexMap.at(new_community_index).nodeIndices.push_back(node_index);
-    // use getters and setters instead, it is safer
-
-    Rcpp::Rcout << "New community index to map 1: " << new_community_index << std::endl;
-    communityIndexMap.at(new_community_index).addNodeIndex(node_index);
-
-    // update the node community map
-    Rcpp::Rcout << "New community index to map 2: " << new_community_index << std::endl;
-    nodeCommunityMap.at(node_index) = new_community_index;
-
-    // remove the node from the old community
-    Rcpp::Rcout << "Old community index to map: " << old_community_index << std::endl;
-    communityIndexMap.at(old_community_index).removeNodeIndex(node_index);
-
-    Rcpp::Rcout << "Old community size: " << communityIndexMap.at(old_community_index).size() << std::endl;
-     // check and handle empty old community
-    if (old_comm->second.getNodeIndices().empty()) {
-        // Remove or flag the empty community as needed
-        communityIndexMap.erase(old_comm);
     }
 }
 
