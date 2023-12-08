@@ -25,6 +25,10 @@ public:
         return nodeCommunityMap.at(node_index);
     }
 
+    Community getCommunity(int community_index) {
+        return communityIndexMap.at(community_index);
+    }
+
     Community getNodeCommunity(int node_index) const {
         return communityIndexMap.at(getNodeCommunityIdx(node_index));
     }

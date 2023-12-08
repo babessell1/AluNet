@@ -108,7 +108,9 @@ void Partition::removeNodeFromCommunity(int node_index, int community_index) {
     // remove a node from a community
     //Rcpp::Rcout << "P: Removing node index " << node_index << " from community " << community_index << std::endl;
     communityIndexMap.at(community_index).removeNode(node_index);
-    nodeCommunityMap.erase(node_index);
+    // 
+    // set the node community map to val that will throw an error if used in vector
+    nodeCommunityMap.at(node_index) = -1;
 }
 
 void Partition::updateCommunityMembership(int node_index, int old_community_index, int new_community_index) {
@@ -123,6 +125,18 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
         if (old_comm->second.hasNode(node_index)) {
             Rcpp::Rcout << "Node found in the old community: " << node_index << std::endl;
             removeNodeFromCommunity(node_index, old_community_index);
+            // add the node to the new community
+            addNodeToCommunity(node_index, new_community_index);
+
+            // check if any community other than the new community has the node
+            for (auto& entry : communityIndexMap) {
+                int c_idx = entry.first;
+                if (c_idx != new_community_index) {
+                    if (entry.second.hasNode(node_index)) {
+                        Rcpp::stop("Node not moved properly! " + std::to_string(c_idx));
+                    }
+                }
+            }
 
         } else {
             Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));

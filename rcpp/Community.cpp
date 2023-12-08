@@ -65,14 +65,14 @@ bool Community::hasEdge(int node_index, int neighbor_index, const Graph& G) cons
     return hasNode(node_index) && hasNode(neighbor_index) && G.getWeight(node_index, neighbor_index) > 0.0;
 }
 
-void Community::addNode(int nodeIndex) {
-    Rcpp::Rcout << "C: Adding node index " << nodeIndex << " to community " << communityIndex << std::endl;
-    nodeIndices.push_back(nodeIndex);
+void Community::addNode(int node_index) {
+    //Rcpp::Rcout << "C: Adding node index " << node_index << " to community " << communityIndex << std::endl;
+    nodeIndices.push_back(node_index);
 }
 
-void Community::removeNode(int nodeIndex) {
-    Rcpp::Rcout << "C: Removing node index " << nodeIndex << " from community " << communityIndex << std::endl;
-    nodeIndices.erase(std::remove(nodeIndices.begin(), nodeIndices.end(), nodeIndex), nodeIndices.end());
+void Community::removeNode(int node_index) {
+    //Rcpp::Rcout << "C: Removing node index " << node_index << " from community " << communityIndex << std::endl;
+    nodeIndices.erase(std::remove(nodeIndices.begin(), nodeIndices.end(), node_index), nodeIndices.end());
 }
 
 bool Community::isEmpty() const {

@@ -23,22 +23,23 @@ source("r/plot_graph.R")
 
 
 ```{r}
-g <- as_edgelist(make_graph('Zachary'))
+#g <- as_edgelist(make_graph('Zachary'))
+g <- as_edgelist(make_graph('noperfectmatching'))
 g_list <- list(
   to=g[,1],
   from=g[,2],
   weight=rep(1, length(g[,1]))
+  
 )
 
 # before clustering
-plot.graph(g_list, "karate_nodes.png", small_nodes=F)
-
+#plot.graph(g_list, "karate_nodes.png", small_nodes=F)
 # after clustering\
 iterations <- 1
-gamma <- .05  # gamma > 0
+gamma <- 0.01  # gamma > 0
 theta <- 0.05 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
-plot.graph(result, "karate_leiden.png")
+#plot.graph(result, "karate_leiden.png")
 
 ```
 
@@ -55,10 +56,15 @@ gdf <- graph.data.frame(graph_data)
 ```
 
 ```{r}
-gdf <- make_graph("Zachary")
+gdf <- make_graph("noperfectmatching")
 # By default CPM is used
 #r <- quantile(strength(gdf))[2] / (gorder(gdf) - 1)
 # Set seed for sake of reproducibility
+
+#g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+#gdf <- graph.data.frame(g_list)
+#gdf <- as.undirected(gdf, mode = "collapse")
+
 
 ldc <- cluster_leiden(
   gdf,
@@ -70,7 +76,7 @@ ldc <- cluster_leiden(
   vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
 )
 
-#ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
+ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
 
 
 
@@ -84,14 +90,22 @@ plot(
   #vertex.frame.color = community_colors,
   edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
   #vertex.label = V(gdf)$name,
+  vertex.label = V(gdf)$community,
   edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
   main = "Graph with Community Colors and Edge Weights"
 )
+
+print(ldc$membership)
+
+# Add a legend for community colors
+legend("topright", legend = unique(ldc$membership),
+       col = ldc$membership, pch = 19,
+       title = "Communities", cex = 0.8)
 ```
 
 ```{r}
 # get graph
-g <- as_edgelist(make_graph('Zachary'))
+g <- as_edgelist(make_graph('noperfectmatching'))
 g_list <- list(
   to=g[,1],
   from=g[,2],
@@ -112,13 +126,13 @@ my_ldc <- list(
   vcount=length(result$communities)
 )
 
-graph <- createGraphFromList(g_list)
-graph$communities <- NULL
-graph$node_names <- NULL
-graph$quality <- NULL
+#graph <- createGraphFromList(g_list)
+#graph$communities <- NULL
+#graph$node_names <- NULL
+#graph$quality <- NULL
 gdf <- graph.data.frame(graph)
 
-V(gdf)$name <- 1:length(result$communities)
+V(gdf)$name <- result$node_names
 V(gdf)$membership <- result$communities
 #plot(my_ldc, gdf)
 
@@ -149,7 +163,7 @@ plot(
 
 # Add a legend for community colors
 legend("topright", legend = unique(V(gdf)$membership),
-       col = 1:length(unique(V(gdf)$membership)), pch = 19,
+       col = V(gdf)$membership, pch = 19,
        title = "Communities", cex = 0.8)
 
 ```

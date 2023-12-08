@@ -113,7 +113,7 @@ bool Optimizer::moveNodesFast() {
         int node_idx = node_queue[start++];  // get the next node in the queue
         int cluster_idx = P.getNodeCommunityIdx(node_idx);
         Rcpp::Rcout << "-------((  " << G.getNodeName(node_idx) << "  ))-------" << std::endl;
-        Rcpp::Rcout << "Next in queue (idx): " << node_idx << " - Cluster: " << cluster_idx << " iteration: " << start << std::endl;
+        //Rcpp::Rcout << "Next in queue (idx): " << node_idx << " - Cluster: " << cluster_idx << " iteration: " << start << std::endl;
 
         cluster_weights[cluster_idx] -= G.getNodeWeight(node_idx);
         nodes_per_cluster[cluster_idx]--;
@@ -162,6 +162,8 @@ bool Optimizer::moveNodesFast() {
                 max_delta_q = delta_quality;
             }
 
+            Rcpp::Rcout << "delta quality: " << delta_quality << std::endl;
+
             edge_weights_per_cluster[idx] = 0;
         }
 
@@ -193,7 +195,6 @@ bool Optimizer::moveNodesFast() {
             }
             P.updateCommunityMembership(node_idx, cluster_idx, best_cluster);
             //Rcpp::Rcout << "Node moved" << std::endl;
-            P.setNodeCommunity(node_idx, best_cluster);
             update = true;
  
             // make the neighbors of the node unstable
@@ -350,30 +351,29 @@ Graph Optimizer::aggregateGraph(Partition& P_comm) const {
         int c_idx = new_community_indices.at(old_c_idx);  // get the new community index
 
         // print community index
-        Rcpp::Rcout << "----Community index: " << c_idx << std::endl;
+        //Rcpp::Rcout << "----Community index: " << c_idx << std::endl;
 
         std::string c_str = std::to_string(c_idx);
 
-        Rcpp::Rcout << "set node index" << std::endl;
+        //Rcpp::Rcout << "set node index" << std::endl;
         aggregate_graph.setNodeIndex(c_str, c_idx);
-        Rcpp::Rcout << "add node" << std::endl;
+        //Rcpp::Rcout << "add node" << std::endl;
         aggregate_graph.addNode(c_idx);
-        Rcpp::Rcout << "set node weight" << std::endl;
+        //Rcpp::Rcout << "set node weight" << std::endl;
         aggregate_graph.setNodeWeight(c_idx, 0);
-        Rcpp::Rcout << "init edge weight" << std::endl;
+        //Rcpp::Rcout << "init edge weight" << std::endl;
         aggregate_graph.initEdgeWeight(c_idx);
 
-        Rcpp::Rcout << "get nodes in community" << std::endl;
+        //Rcpp::Rcout << "get nodes in community" << std::endl;
 
         // get the nodes in the community
-        std::vector<int> nodesInCommunity = P.getNodeCommunity(c_idx).getNodeIndices();
+        std::vector<int> nodesInCommunity = P.getNodeCommunity(old_c_idx).getNodeIndices();
         
         std::map<int, int> neighbors;  // initialize a map of neighbors
         std::map<int, double> edge_weights; // initialize a map of edge weights
 
         for (int node : nodesInCommunity) { // for each node in the community
-            Rcpp::Rcout << "Node: " << node << std::endl;
-
+            //Rcpp::Rcout << "Node: " << G.getNodeName(node) << std::endl;
 
             int u_comm = c_idx;   // get the community index (just a rename)
 
@@ -500,6 +500,7 @@ void Optimizer::optimize(int iterations) {
         std::vector<int> community_indices = P.getCommunityIndices();
         // print the number of communities in the partition
         Rcpp::Rcout << "Number of communities after moving: " << community_indices.size() << std::endl;
+
         // if community size is equal to number of nodes, set done to true
         counter++;
         if (static_cast<int>(community_indices.size()) == G.getN() || !improved) {
@@ -636,6 +637,8 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
     std::unordered_map<std::string, int> community_assignment = optim.getCommunityAssignments();
     //final_graph = optim.getG().graphToRList(community_assignment, optim.getP().calcQuality(gamma, G, false));
     
+    G = listToGraph(graphList); // reset the graph nodes to get exact ones from before (not aggregated graph)
+    optim.setG(G);
     return optim.graphToRList(community_assignment, 0.0);
 
 

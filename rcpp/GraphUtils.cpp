@@ -175,10 +175,16 @@ Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_a
 
     Rcpp::Rcout << "Writing to R List" << std::endl;
 
-    for (int i : nodes) {
+    for (int i : getNodes()) {
+        // print the node
+        //Rcpp::Rcout << "Node: " << getNodeName(i) << std::endl;
         std::string fromNode = getNodeName(i);
-        for (const auto& entry : edgeWeights.at(i)) {
+        std::unordered_map<int, double> edges = getThisEdgeWeights(i);
+        // print length edges
+        //Rcpp::Rcout << "Edges: " << edges.size() << std::endl;
+        for (const auto& entry : edges) {
             std::string toNode = getNodeName(entry.first);
+            //Rcpp::Rcout << "Edge: " << fromNode << " -> " << toNode << " : " << entry.second << std::endl;
             from.push_back(fromNode);
             to.push_back(toNode);
             weight.push_back(entry.second);
@@ -191,12 +197,14 @@ Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_a
         communities.push_back(entry.second);
     }
     Rcpp::List result = Rcpp::List::create(
-        Rcpp::Named("from") = from,
-        Rcpp::Named("to") = to,
-        Rcpp::Named("weight") = weight,
         Rcpp::Named("communities") = communities,
         Rcpp::Named("node_names") = node_names,
-        Rcpp::Named("quality") = quality
+        Rcpp::Named("quality") = quality,
+        Rcpp::Named("graph") = Rcpp::List::create(
+            Rcpp::Named("from") = from,
+            Rcpp::Named("to") = to,
+            Rcpp::Named("weight") = weight
+        )
     );
 
     return result;
