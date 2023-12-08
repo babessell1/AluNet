@@ -11,7 +11,15 @@
 ################################################################################
 ############################ OPTIMIZER CLASS ###################################
 */
-// Construct an optimizer based on a graph and a partition
+
+/**
+ * @brief Construct a new Optimizer:: Optimizer object
+ * @param G graph object
+ * @param P partition object
+ * @param gamma resolution parameter
+ * @param theta temperature parameter
+ * @note the community assignments are initialized to the node indices
+**/
 Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G), P(P), gamma(gamma), theta(theta) {
     this->communityAssignments = std::unordered_map<std::string, int>();
     // initialize the community assignments
@@ -20,6 +28,15 @@ Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G),
     }
 }
 
+/**
+ * @brief Update the community assignments based on the new partition
+ * @param P partition object
+ * @param original_nodeIndexMap original node index map
+ * @note currently stored value in communityAssignments is the previous community assignment which is the latest node index
+ * @note we update by matching new nodes to the previous community assignment and changing the community assignment to the new community index
+ * @note this is critical for tracking the community assignments after the graph is aggregated
+ *       which allows us to return the assigments of the original nodes after the optimization
+**/
 void Optimizer::updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap) {
     // currently stored value in communityAssignments is the previous community assignment which is the latest node index
     // we update by matching new nodes to the previous community assignment and changing the community assignment to the new community index
@@ -38,9 +55,17 @@ void Optimizer::updateCommunityAssignments(const Partition& P, const std::unorde
     }
 }
 
+/**
+ * @brief Calculate the difference in quality of the partition after moving a node to a new community
+ * @param n_idx node index
+ * @param new_c_idx new community index
+ * @param gamma resolution parameter
+ * @param recalculate whether to recalculate the quality of the partition
+ * @return double : difference in quality
+ * @note calculate the difference between moving vertex to a new community
+ * @note recalculating is slower, but necessary if the partition quality has changed since setting the quality last
+**/
 double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const {
-  // calculate the difference between moving vertex to a new community
-
     int old_c_idx = P.getNodeCommunityIdx(n_idx);  // keep track of the old community
 
     if (recalculate) {
@@ -55,20 +80,23 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool reca
     // move the node to the new community
     P_new.updateCommunityMembership(n_idx, old_c_idx, new_c_idx);
     P_new.setNodeCommunity(n_idx, new_c_idx);
-    // purge empty communities
 
     // get quality of the partition after the move
     double new_quality = P_new.calcQuality(gamma, G, false);
 
-    // return the difference in quality
-
-    // print delta quality
-    //Rcpp::Rcout << "Delta quality: " << new_quality - P.quality << std::endl;
     return new_quality - P.getQuality();
-
 }
 
-// Leiden fast local move iteration
+/**
+ * @brief Move nodes around the partition to improve the quality to be as high as possible
+ * @return bool : true if the partition has changed, false otherwise
+ * @note quality based on Constant Potts Model
+ * @note first step of the Leiden algorithm in the paper
+ * @note the algorithm is based on the paper "From Louvain to Leiden: guaranteeing well-connected communities" by Traag et al.
+ * @note we initialize our own data structures with map properties into vectors for faster access and iteration
+ * @note the only time we change our actual data structures is when we move a node to a new community
+ * @note this also allows us to use a faster calculation of delta quality instead of our method in Parition
+*/
 bool Optimizer::moveNodesFast() {
     bool update = false;  // track if the partition has changed
 
@@ -77,7 +105,7 @@ bool Optimizer::moveNodesFast() {
 
     int n_ = G.getN();
     std::vector<bool> stable_nodes(n_, false); // track which nodes have not moved
-    std::vector<double> cluster_weights(n_, 0.0);
+    std::vector<double> cluster_weights(n_, 0.0);  // track the sum of node weights per cluster
     std::vector<double> edge_weights_per_cluster(n_, 0.0);  // track the sum of edge weights per cluster
     std::vector<int> nodes_per_cluster(n_, 0);  // track the number of nodes in each cluster
     std::vector<int> unused_clusters(n_ - 1, 0);  // track which clusters are empty
@@ -88,10 +116,10 @@ bool Optimizer::moveNodesFast() {
 
     std::vector<int> random_nodes = RandomGenerator::generateRandomPermutation(n_);
 
-    std::deque<int> node_queue(n_);
+    std::queue<int> node_queue;
     size_t start = 0, end = n_;
     for (int i = 0; i < n_; i++) {
-        node_queue[i] = random_nodes[i];
+        node_queue.push(random_nodes[i]);
     }
 
     // initialize the cluster weights and nodes per cluster
@@ -110,132 +138,142 @@ bool Optimizer::moveNodesFast() {
 
     // start of the cyclical process
     do {
-        int node_idx = node_queue[start++];  // get the next node in the queue
+        // get the next node in the queue and its community
+        int node_idx = node_queue.front();
+        node_queue.pop(); 
         int cluster_idx = P.getNodeCommunityIdx(node_idx);
-        Rcpp::Rcout << "-------((  " << G.getNodeName(node_idx) << "  ))-------" << std::endl;
-        //Rcpp::Rcout << "Next in queue (idx): " << node_idx << " - Cluster: " << cluster_idx << " iteration: " << start << std::endl;
 
+        // decrement the cluster weight of the node's community 
+        // (we assume we will move the node to a new community)
         cluster_weights[cluster_idx] -= G.getNodeWeight(node_idx);
         nodes_per_cluster[cluster_idx]--;
+
+        // if the cluster is empty, add it to the unused clusters
         if (nodes_per_cluster[cluster_idx] == 0) {
             unused_clusters[n_unused_clusters] = cluster_idx;
             n_unused_clusters++;
         }
 
-        //Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
-
-        // track neighboring clusters
+        // initialize the vector of neighboring clusters
         std::vector<int> neighboring_clusters(n_);
-        neighboring_clusters[0] = unused_clusters[n_unused_clusters - 1];
-        int n_neighboring_clusters = 1;
 
-        // print G.getEdgeWeights().at(node_idx).size()
-        //Rcpp::Rcout << "Edge weights size: " << G.getThisEdgeWeights(node_idx).size() << std::endl;
+        // add an empty cluster to the neighboring clusters
+        neighboring_clusters[0] = unused_clusters[n_unused_clusters - 1]; 
+
+        // add the neighboring clusters and the edge/node weights per cluster
+        int n_neighboring_clusters = 1;  // since we added an empty cluster already
         for (const auto& neighbor_weight : G.getThisEdgeWeights(node_idx)) {
+
+            // get the neighbor's community index
             int neighbor_cluster = P.getNodeCommunityIdx(neighbor_weight.first);
-            //Rcpp::Rcout << "Neighbor cluster: " << neighbor_cluster << std::endl;
-            //Rcpp::Rcout << "Edge weight, neighbor: " << neighbor_weight.second << std::endl;
-            //Rcpp::Rcout << "Edge weight per cluster: " << edge_weights_per_cluster[neighbor_cluster] << std::endl;
+
+            // if the neighbor's cluster is not empty, 
             if (edge_weights_per_cluster[neighbor_cluster]==0) {
+
+                // add the neighbor's cluster to the neighboring clusters
                 neighboring_clusters[n_neighboring_clusters] = neighbor_cluster;
-                n_neighboring_clusters++;
+                n_neighboring_clusters++;  // increment the number of neighboring clusters
             }
+            // add the edge weight to the neighbor's community weight
             edge_weights_per_cluster[neighbor_cluster] += neighbor_weight.second;
         }
 
-        //Rcpp::Rcout << "Neighboring clusters: " << n_neighboring_clusters << std::endl;
-
-        // calculate the best cluster for the node to move to
+        // initialize the best cluster as the current cluster
         int best_cluster = cluster_idx;
+
+        // initialize the max delta quality as the current delta quality
         double max_delta_q = edge_weights_per_cluster[cluster_idx] - G.getNodeWeight(node_idx) * cluster_weights[cluster_idx] * gamma;
+
+        if (max_delta_q != 0) {
+            Rcpp::Rcout << "Delta quality of own cluster not equal to zero! > " << max_delta_q << std::endl;
+        }
+
+        // for each neighboring cluster
         for (int i = 0; i < n_neighboring_clusters; i++) {
-            int idx = neighboring_clusters[i];
-            //Rcpp::Rcout << "edge weight: " << edge_weights_per_cluster[idx] << std::endl;
-            //Rcpp::Rcout << "node weight: " << G.getNodeWeight(node_idx) << std::endl;
-            //Rcpp::Rcout << "cluster weight: " << cluster_weights[idx] << std::endl;
-            //Rcpp::Rcout << "gamma: " << gamma << std::endl;
-            // E(C’, C’) - uweight * C’weight * 𝛾
+            int idx = neighboring_clusters[i]; // get the neighboring cluster index
+
+            // E(C', C') - uweight * C'weight * 𝛾 
             double delta_quality = edge_weights_per_cluster[idx] - G.getNodeWeight(node_idx) * cluster_weights[idx] * gamma;
-            //Rcpp::Rcout << "Delta quality: " << delta_quality << std::endl;
+
+            // set best quality and cluster if better than current best
             if (delta_quality > max_delta_q) {
                 best_cluster = idx;
                 max_delta_q = delta_quality;
             }
 
-            Rcpp::Rcout << "delta quality: " << delta_quality << std::endl;
-
+            // reset the edge weight
             edge_weights_per_cluster[idx] = 0;
         }
 
-        //Rcpp::Rcout << "Best cluster: " << best_cluster << std::endl;
-
         // move the node to the best cluster
         cluster_weights[best_cluster] += G.getNodeWeight(node_idx); 
-        nodes_per_cluster[best_cluster]++; 
+        nodes_per_cluster[best_cluster]++; // increment the number of nodes in the best cluster
 
+        // If the best cluster is the empty cluster, decrement the number of unused clusters
         if (best_cluster == unused_clusters[n_unused_clusters - 1]) {
             n_unused_clusters--;
         }
-
-        //Rcpp::Rcout << "Unused clusters: " << n_unused_clusters << std::endl;
 
         // mark the node as stable
         stable_nodes[node_idx] = true;
         n_unstable_nodes--;
 
-        //Rcpp::Rcout << "Unstable nodes: " << n_unstable_nodes << std::endl;
-
-        // check if cluster is different
+        // check if cluster is different from the current cluster
         if (best_cluster != cluster_idx) {
-            Rcpp::Rcout << "Moving node (" << G.getNodeName(node_idx) << ")  from cluster " << cluster_idx << " to cluster: " << best_cluster << std::endl;
-            Rcpp::Rcout << "with other nodes: " << std::endl;
+            //Rcpp::Rcout << "Moving node (" << G.getNodeName(node_idx) << ")  from cluster " << cluster_idx << " to cluster: " << best_cluster << std::endl;
 
-            for ( const auto& i : P.getNodeCommunity(best_cluster).getNodeIndices() ) {
-                Rcpp::Rcout << G.getNodeName(i) << std::endl;
-            }
+            // update the partition, flag the partition as updated
             P.updateCommunityMembership(node_idx, cluster_idx, best_cluster);
-            //Rcpp::Rcout << "Node moved" << std::endl;
             update = true;
  
-            // make the neighbors of the node unstable
+            // check each neighbor of the moved node
             for (const auto& neighbor_weight : G.getThisEdgeWeights(node_idx)) {
-                int neighbor_node = neighbor_weight.first; // index of neighbor          
+                int neighbor_node = neighbor_weight.first; // index of neighbor    
+
+                // add neighbors to the queue if they are not in the new best cluster    
                 if (stable_nodes[neighbor_node] && P.getNodeCommunityIdx(neighbor_node) != best_cluster) {
                     stable_nodes[neighbor_node] = false;
-                    n_unstable_nodes++;
-                    //Rcpp::Rcout << "Adding neighbor to queue: " << neighbor_node << std::endl;
-                    node_queue[(start + n_unstable_nodes < n_) ? (start + n_unstable_nodes) : (start + n_unstable_nodes - n_)] = neighbor_node;
+                    n_unstable_nodes++; // increment the number of unstable nodes
+
+                    // add the neighbor to the queue
+                    node_queue.push(neighbor_node);
                 }
             }
         }
-        start = (start < n_ - 1) ? (start + 1) : 0;
 
-        //Rcpp::Rcout << "Start: " << start << std::endl;
-
-
+    // keep iterating until there are no unstable nodes
     } while (n_unstable_nodes > 0);
 
-    //Rcpp::Rcout << "Quality: " << P.calcQuality(gamma, G, false) << std::endl;
-
+    // remove all empty clusters
     P.purgeEmptyCommunities(false);
 
     return update;
 }
+
+/**
+ * @brief Get well connected communities in the subset
+ * @param B subset of the partition
+ * @return std::vector<Community> : well connected communities
+ * @note Identify communities in the subset that are well connected, that is:
+ *       the edge weights of C, and the difference of the subset and C is greater than gamma * size of flat(C) * size of flat(S - C)
+ *       get the sizes
+**/
 std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B) const {
-    // Identify communities in the subset that are well connected, that is:
-    // the edge weights of C, and the difference of the subset and C is greater than gamma * size of flat(C) * size of flat(S - C)
-    // get the sizes
     int size_B = B.getNodeIndices().size();
     std::vector<Community> well_connected_communities; // well connected communities
+
     // for each community in the refined partition
     for (const auto& entry : P.getCommunityIndexMap()) {
+
+        // for each C in P
         int size_C = entry.second.getNodeIndices().size();
-        // get the community
-        Community C = entry.second;  // for each C in P
+        Community C = entry.second;
         size_t count_c_in_b = 0; // count the number of nodes in C that are in B
         double edge_weight_B_A = 0.0;
-        for (const int& b : B.getNodeIndices()) {  // for each node in B (subset)
-            for (const int& c : C.getNodeIndices()) {  // for each node in C
+        // for each node in B (subset)
+        for (const int& b : B.getNodeIndices()) {
+            // for each node in C (community of interest)
+            for (const int& c : C.getNodeIndices()) { 
                 if (b == c) {  // if node is in both B and C
                     count_c_in_b++; // increment count of nodes in C that are also in B
                 } else if(G.hasEdge(b, c)) {  // if node is in B but not C
@@ -243,8 +281,11 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
                 }
             }
         }
-        bool is_contained = count_c_in_b == C.getNodeIndices().size(); // check if C is contained by B
-        if (is_contained) {
+        // check if C is contained by B
+        bool is_contained = count_c_in_b == C.getNodeIndices().size();
+
+        //
+        if (!is_contained) { //? was this wrong before or was my comment wrong?
             continue;  // continue if C is not contained by B
         }
         // if well connected, add to R
@@ -255,23 +296,31 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
     return well_connected_communities;
 }
 
+/**
+ * @brief Get well connected nodes in the subset
+ * @param B subset of the partition
+ * @return std::vector<int> : well connected nodes
+ * @note Identify nodes in the subset that are well connected, that is:
+ *       the edge weights of v, and the difference of the subset and v is greater than gamma * size of flat(v) * size of flat(subset - v)
+ *       note that v is a node so flat(v) is just 1
+**/
 std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
-    // Identify nodes in the subset that are well connected, that is:
-    // the edge weights of v, and the difference of the subset and v is greater than gamma * size of flat(v) * size of flat(subset - v)
-    // note that v is a node so flat(v) is just 1
-    std::vector<int> well_connected_nodes; // well connected nodes
+    std::vector<int> well_connected_nodes; // R
+
     // for each node in V
     for (const int& v : B.getNodeIndices()) {
+
         // E(v, B-v)
         double edge_weight_B_v = 0.0;
+
         // calc the edge weights between B and B - v
         for (const int& b : B.getNodeIndices()) {
             if (b != v && G.hasEdge(b, v)) { // if node is not v
                 edge_weight_B_v += G.getWeight(b, v);
             }
         }
-        // get the size of B
         int size_B = B.getNodeIndices().size();
+
         // if well connected, add to R
         if (edge_weight_B_v >= gamma * (size_B - 1)) {
             well_connected_nodes.push_back(v); // add the node to R
@@ -280,6 +329,12 @@ std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
     return well_connected_nodes;
 }
 
+/**
+ * @brief Merge nodes in the subset to well connected communities
+ * @param S subset of the partition
+ * @return void
+ * @note see the paper "From Louvain to Leiden: guaranteeing well-connected communities" by Traag et al.
+**/
 void Optimizer::mergeNodesSubset(Community& S) {
     std::vector<int> R = getWellConnectedNodes(S); // get well connected nodes
     std::vector<Community> T = getWellConnectedCommunities(S); // get well connected communities
@@ -287,26 +342,36 @@ void Optimizer::mergeNodesSubset(Community& S) {
     // Visit nodes in random order
     std::shuffle(R.begin(), R.end(), std::default_random_engine(std::random_device{}()));
     for (const int& v : R) {
-        // Consider only nodes that have not yet been merged
+
         double quality = P.calcQuality(gamma, G, false);
         P.setQuality(quality);
-        if (P.inSingleton(v)) { // Assuming isSingleton checks if v is in a singleton community
-            std::unordered_map<int, double> probabilities; // map community index to delta quality based probability
-            for (const auto& C : T) { // for each well connected community contained in S
-                // calculate the delta quality of moving v to C
+        // Consider only nodes that have not yet been merged
+        if (P.inSingleton(v)) { // isSingleton checks if v is in its own community
+
+            // map community index to delta quality based probability
+            std::unordered_map<int, double> probabilities;
+
+            // for each well connected community contained in S
+            for (const auto& C : T) {
                 int c_idx = C.getCommunityIndex();
+
+                //calculate the delta quality of moving v to C
                 double delta_quality = deltaQuality(v, c_idx, gamma, false);
-                if (delta_quality > 0) {  // if the quality improves
-                    probabilities[c_idx] = exp(delta_quality / theta); // add the probability to the map
+
+                 // if the quality improves, add the probability to the map
+                if (delta_quality > 0) {
+                    probabilities[c_idx] = exp(delta_quality / theta);
                 }
             }
+
             // If there are possible communities to merge
             if (!probabilities.empty()) {
-                // simmulated annealing
+
+                // based on Traag et. al's simmulated annealing paper
                 std::random_device rd;
                 std::mt19937 gen(rd());
                 std::uniform_real_distribution<> dis(0, 1);
-                int C_prime_index = -1;
+                int C_prime_index = -1; // initialize the new community index to nonsense value (will throw error if used)
                 //double max_delta_quality = std::numeric_limits<double>::lowest(); ??
       
                 // get sum of probabilities
@@ -314,7 +379,8 @@ void Optimizer::mergeNodesSubset(Community& S) {
                 [](double sum, const std::pair<int, double>& p) {
                         return sum + p.second;
                 });
-                // Choose a random community C' with probability proportional to probabilities  //? not good
+
+                // Choose a random community C' with probability proportional to probabilities //? seems not good 
                 for (const auto& entry : probabilities) {
                     double prob = entry.second / sum_prob;
                     if (dis(gen) < prob) {
@@ -322,6 +388,7 @@ void Optimizer::mergeNodesSubset(Community& S) {
                         break;
                     }
                 }
+
                 // If a community was chosen, move node v to community C'
                 if (C_prime_index != -1) {
                     P.updateCommunityMembership(v, P.getNodeCommunityMap().at(v), C_prime_index);
@@ -332,11 +399,27 @@ void Optimizer::mergeNodesSubset(Community& S) {
     }
 }
 
+/**
+ * @brief Aggregate the graph based on the partition by collapsing the nodes in each 
+ *        communities into a single node in a new graph. The collapsed communities
+ *        are based on the refined partition, and the community assignments are based
+ *        on the original partition
+ * @param P_comm partition object (communities based on this partition)
+ * @return Graph : aggregated graph
+ * @note See the paper "From Louvain to Leiden: guaranteeing well-connected communities" by Traag et al.
+ * @note P defines the aggregate graph
+ * @note P_comm defines the communities in the aggregate graph
+*/
 Graph Optimizer::aggregateGraph(Partition& P_comm) const {
+
+    // initialize the aggregate graph
     int num_communities = P_comm.getCommunityIndexMap().size();
     Graph aggregate_graph(num_communities);
 
     // create a map of community indices to ordered new community indices
+    // want to ensure the nodes are consecutively indexed for the 
+    // next iteration of moveNodesFast so that we can
+    // use the vector data structure
     std::unordered_map<int, int> new_community_indices;
     int new_index = 0;
     for (const auto& entry : P.getCommunityIndexMap()) {
@@ -347,66 +430,56 @@ Graph Optimizer::aggregateGraph(Partition& P_comm) const {
 
     // for each community in the partition
     for ( auto iter : P.getCommunityIndexMap() ) {
-        int old_c_idx = iter.first;
-        int c_idx = new_community_indices.at(old_c_idx);  // get the new community index
+        int old_c_idx = iter.first; // get the old community index
+        int c_idx = new_community_indices.at(old_c_idx);  // get the new (consecutive) community index
 
-        // print community index
-        //Rcpp::Rcout << "----Community index: " << c_idx << std::endl;
-
+        // convert the community index to a string (new node name in agg graph)
         std::string c_str = std::to_string(c_idx);
 
-        //Rcpp::Rcout << "set node index" << std::endl;
+        // initialize new node in the aggregate graph
         aggregate_graph.setNodeIndex(c_str, c_idx);
-        //Rcpp::Rcout << "add node" << std::endl;
         aggregate_graph.addNode(c_idx);
-        //Rcpp::Rcout << "set node weight" << std::endl;
         aggregate_graph.setNodeWeight(c_idx, 0);
-        //Rcpp::Rcout << "init edge weight" << std::endl;
         aggregate_graph.initEdgeWeight(c_idx);
 
-        //Rcpp::Rcout << "get nodes in community" << std::endl;
-
-        // get the nodes in the community
+        // get the nodes in the old community
         std::vector<int> nodesInCommunity = P.getNodeCommunity(old_c_idx).getNodeIndices();
         
         std::map<int, int> neighbors;  // initialize a map of neighbors
         std::map<int, double> edge_weights; // initialize a map of edge weights
 
-        for (int node : nodesInCommunity) { // for each node in the community
-            //Rcpp::Rcout << "Node: " << G.getNodeName(node) << std::endl;
+        // for each node in the community
+        for (int node : nodesInCommunity) {
 
-            int u_comm = c_idx;   // get the community index (just a rename)
+            // get the community index (just a rename for clarity)
+            int u_comm = c_idx;
 
             // add the node weight to the aggregate graph
-            //aggregate_graph.nodeWeights.at(c_idx) += G.getNodeWeights().at(node);
             aggregate_graph.incNodeWeight(u_comm, G.getNodeWeights().at(node));
 
-            for (const auto& neighbour : G.getEdgeWeights()[node]) {  // for each neighbor of the node
+            // for each neighbor of the node
+            for (const auto& neighbour : G.getEdgeWeights()[node]) {
                 int v_idx = neighbour.first;  // get the neighbor index
                 int v_comm = P.getNodeCommunityIdx(v_idx);  // get the neighbor community index
                 std::string v_str = std::to_string(v_comm);  // convert the neighbor community to a string
 
-                // ensure the neighbor community in the node index map
-                //aggregate_graph.getNodeIndexMap()[v_str] = v_comm;   
+                // ensure the neighbor community is in the node index map
                 aggregate_graph.setNodeIndex(v_str, v_comm);
 
-                // print neighbor index and community
-                //Rcpp::Rcout << "------Neighbor index: " << v_idx << " - Neighbor community: " << v_comm << std::endl;
+                // get the edge weight shared between the node and the neighbor
+                double weight = neighbour.second;
 
-                double weight = neighbour.second; // get the edge weight shared between the node and the neighbor
+                 // don't want self loops
+                if (u_comm != v_comm) {
 
-                if (u_comm != v_comm) {  // don't want self loops
                     // check if the neighbor is already in the map
                     if (aggregate_graph.getEdgeWeights().at(u_comm) == std::unordered_map<int, double>()) {
-                        // print new map
-                        //Rcpp::Rcout << "------------New map" << std::endl;
-                        // add ege
+                        // add the neighbor to the map
                         aggregate_graph.addEdge(c_str, v_str, weight);
                     } else {
-                        // print existing map
-                        //Rcpp::Rcout << "------------new weight" << std::endl;
-                        //aggregate_graph.edgeWeights.at(c_idx)[v_comm] += weight;
-                        aggregate_graph.setEdgeWeight(u_comm, v_comm, weight);
+                        // update the edge weight
+                        Rcpp::Rcout << "??????????Updating edge weight????????" << std::endl;
+                        aggregate_graph.setEdgeWeight(u_comm, v_comm, weight); // might not ever get called
                     }
                     aggregate_graph.incTotalEdgeWeight(weight); // update the total edge weight
                 } 
@@ -414,95 +487,47 @@ Graph Optimizer::aggregateGraph(Partition& P_comm) const {
         }
     }
 
-    //Rcpp::stop("Done aggregating graph");
-
     return aggregate_graph;
 }
 
-/*
-Graph Optimizer::aggregateGraph() {
-    size_t num_communities = P.communityIndexMap.size();
-
-    Graph aggregated_graph(num_communities);   // V <- P
-    
-    // Iterate through each edge in the original graph
-    for (const auto& u : G.edgeWeights) {
-        for (const auto& v : u.second) {
-
-            int u_idx = u.first;
-            int v_idx = v.first;
-
-            double w = v.second;
-
-            int u_comm = P.nodeCommunityMap.at(u_idx);
-            int v_comm = P.nodeCommunityMap.at(v_idx);
-
-            // TODO: HOW TO ACTUALLY HANDLE THE AGGREGATE WEIGHTS???
-            // do we add them, take the max, and for self looped edges, do we add the weight to the node weight? who knows!
-
-            // do NOT want self loops
-            if (u_comm == v_comm) {
-                continue;
-            }
-
-            // Add an edge between the communities if not already present, or update the weight if it is
-            aggregated_graph.edgeWeights[u_comm][v_comm] += w; // Assumes edgeWeights is a suitable data structure
-
-            // Add the node weights to the aggregated graph
-            aggregated_graph.nodeWeights[u_comm] += G.nodeWeights[u_idx];
-            aggregated_graph.nodeWeights[v_comm] += G.nodeWeights[v_idx];
-
-            // Update the total edge weight
-            aggregated_graph.totalEdgeWeight += w;
-
-            // Update the number of possible edges
-            if (aggregated_graph.edgeWeights[u_comm][v_comm] == 0) {
-                aggregated_graph.possibleEdges++;
-            }
-
-            // Add the nodes to the aggregated graph
-            aggregated_graph.nodes.push_back(u_comm);
-            aggregated_graph.nodes.push_back(v_comm);
-
-            // Update the node index map
-            aggregated_graph.nodeIndexMap.insert({std::to_string(u_comm), u_comm});
-            aggregated_graph.nodeIndexMap.insert({std::to_string(v_comm), v_comm});
-        }
-    }
-
-    aggregated_graph.updateNodeProperties(true); // update node properties
-
-    return aggregated_graph;
-}
+/**
+ * @brief Refine the partition by merging nodes in each community to well connected communities
+ * @param P_original original partition
+ * @return void
+ * @note see the paper "From Louvain to Leiden: guaranteeing well-connected communities" by Traag et al.
 */
-
 void Optimizer::refinePartition(const Partition& P_original) {
+
     // for each community in the original partition
     for (const auto& entry : P_original.getCommunityIndexMap()) {
-        // get the community
-        Community C = entry.second;
-        mergeNodesSubset(C);
+        Community C = entry.second; // get the community
+        mergeNodesSubset(C); // merge nodes in the community to well connected communities
     }
-    // print done merging nodes
     Rcpp::Rcout << "Done merging nodes" << std::endl;
-    P.purgeEmptyCommunities(true);
+    P.purgeEmptyCommunities(true); // remove empty communities
 }
 
 void Optimizer::optimize(int iterations) {
-    // Implement the Leiden algorithm iteration here
-    // This involve multiple steps, such as moveNodesFast, refinePartition, mergeNodesSubset, etc.
-    bool done = false;
-    int counter = 0;
-    std::unordered_map<std::string, int>  og_nodeIndexMap = G.getNodeIndexMap();  // store original node index map to track community assignments
+    bool done = false; // track if the optimization is done
+    int counter = 0; // track the number of iterations
+
+    // store original node index map to track community assignments
+    std::unordered_map<std::string, int>  og_nodeIndexMap = G.getNodeIndexMap();
+
+    // if not converged and not at max iterations, run a Leiden iteration
     while (!done && iterations > counter) {
+
         Rcpp::Rcout << "Number of communities before moving: " << P.getCommunityIndexMap().size() << std::endl;
+       
+        // fast local node moving step to improve the partition
         bool improved = moveNodesFast();
+
         std::vector<int> community_indices = P.getCommunityIndices();
-        // print the number of communities in the partition
         Rcpp::Rcout << "Number of communities after moving: " << community_indices.size() << std::endl;
 
+        counter++; // increment the iteration counter
+
         // if community size is equal to number of nodes, set done to true
-        counter++;
         if (static_cast<int>(community_indices.size()) == G.getN() || !improved) {
             done = true;
 
@@ -517,17 +542,20 @@ void Optimizer::optimize(int iterations) {
 
             // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;
-            this->G = aggregateGraph(P_save);  // aggregatoin based on the refined partition
-            //G.updateNodeProperties(false);  // update node properties
+            this->G = aggregateGraph(P_save);
 
-            // update the community assignmens
+            // shouldnt need to do this now that reindexing is done in aggregateGraph
+            // G.updateNodeProperties(false);
+
+            // update community assignments for the output
             Rcpp::Rcout << "Updating community assignments" << std::endl;
-            //Rcpp::stop("Need to update community assignments");
             updateCommunityAssignments(P, og_nodeIndexMap);
+
             // print the number of nodes in the aggregated graph
             Rcpp::Rcout << "Aggregated number of nodes: " << G.getN() << std::endl;
 
-            P.makeSingleton(G);  // make the partition a singleton
+            // this is wrong we need to set next intial communities base on unrefined partition
+            //P.makeSingleton(G);  // make the partition a singleton
         }
 
         if (!improved) {
@@ -535,11 +563,18 @@ void Optimizer::optimize(int iterations) {
             Rcpp::Rcout << "Partition could not be improved!" << std::endl;
         }
     }
-    //P.flattenPartition();
-    // print flattenedd
-    //Rcpp::Rcout << "Flattened partition" << std::endl;
+
+    // this actually doesn't really matter but is in the paper
+    //P.flattenPartition(); 
 }
 
+
+/**
+ * @brief Initialize a partition with each node in its own community
+ * @param G graph object
+ * @return Partition : partition object
+ * @note not in the optimizer class because we want to be able to track multiple partitions 
+*/
 Partition initializePartition(Graph& G) {
     std::vector<Community> communities;
     communities.reserve(G.getNodes().size());
@@ -562,23 +597,24 @@ Partition initializePartition(Graph& G) {
     return P;
 }
 
-
-
-
 /*
 ###################################################################################
 ####################### R INTERFACE FUNCTIONS #####################################
 */
 
+/**
+ * @brief Takes an R List, converts it to a Graph object, and runs the Leiden algorithm
+ * @param graphList R List containing the graph
+ * @param iterations number of iterations to run the Leiden algorithm
+ * @param gamma resolution parameter
+ * @param theta temperature parameter
+ * @return Rcpp::List : R List containing the graph, community assignments, and quality
+**/
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double theta) {
     Rcpp::Rcout << "Running Leiden algorithm" << std::endl;
 
-    //double gamma = .1;
-    //double theta = 0.01;
-
     // Create a graph from the R List
-    // use listToGraph from GraphUtils.cpp
     Graph G = listToGraph(graphList);
     // print the number of nodes 
     Rcpp::Rcout << "Number of nodes: " << G.getN() << std::endl;
@@ -593,9 +629,6 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
     // Run the Leiden algorithm
     optim.optimize(iterations);
     Rcpp::Rcout << "Final number of communities: " << optim.getP().getCommunityIndexMap().size() << std::endl;
-    //Rcpp::Rcout << "Final quality: " << optim.P.calcQuality(gamma, G, false) << std::endl;
-
-    // FIX CALC QUALITY NOT WORKING AFTER AGGREGATE?
 
     /* OLD TESTING CODE
     //move node 168 to community 126
@@ -617,29 +650,11 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
 
     */
 
-    // Convert the vector of communities to an R List
-    //Rcpp::List result = Rcpp::List::create(
-    //    Rcpp::Named("communities") = communities,
-    //    Rcpp::Named("nodes") = nodes,
-    //    Rcpp::Named("node_names") = node_names
-    //);
-
-    //return result;
-
-    //Rcpp::List output = Rcpp::List::create(
-    //    Rcpp::Named("graph") = optim.G.graphToRList(),
-    //    Rcpp::Named("assignments") = optim.P.communityAssignments,
-    //    Rcpp::Named("quality") = optim.P.calcQuality(gamma, G)
-    //);
-
-    //return output;
-    //return optim.G.graphToRList(optim.communityAssignments, optim.P.calcQuality(gamma, G, false));
     std::unordered_map<std::string, int> community_assignment = optim.getCommunityAssignments();
-    //final_graph = optim.getG().graphToRList(community_assignment, optim.getP().calcQuality(gamma, G, false));
-    
-    G = listToGraph(graphList); // reset the graph nodes to get exact ones from before (not aggregated graph)
+
+    // reset the graph nodes to get exact ones from before (not aggregated graph)
+    G = listToGraph(graphList);
     optim.setG(G);
+
     return optim.graphToRList(community_assignment, 0.0);
-
-
 }

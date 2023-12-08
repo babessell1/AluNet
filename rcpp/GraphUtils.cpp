@@ -5,6 +5,12 @@
 ##############################################
 ####### GRAPH CLASS FUNCTIONS ################
 */
+
+/**
+* @brief Construct a new Graph object
+* @param n Number of nodes in the graph
+* @return Graph : Graph object
+**/
 Graph::Graph(int n) : n(n) {
     isDirected = false; 
     // initialize edge weights map
@@ -33,7 +39,13 @@ Graph::Graph(int n) : n(n) {
     this->totalEdgeWeight = 0.0;
 };
 
-// add new edge to the graph, give it the two node names to connect and the weight
+/**
+ * @brief add edge to the graph
+ * @param u Node u
+ * @param v Node v
+ * @param w Weight of the edge
+ * @return void
+**/
 void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     int u_idx = getNodeIndex(u);
     int v_idx = getNodeIndex(v);
@@ -48,7 +60,12 @@ void Graph::addEdge(const std::string& u, const std::string& v, double w) {
     totalEdgeWeight += w;
 }
 
-// get node index from node name
+/**
+ * @brief get node index from node name and throw an error if not found
+ * @param node Node name
+ * @return int : Node index
+ * @throw Rcpp::stop if node not found
+**/
 int Graph::getNodeIndex(const std::string& node) const {
     if (nodeIndexMap.find(node) != nodeIndexMap.end()) {
         return nodeIndexMap.at(node);
@@ -56,7 +73,12 @@ int Graph::getNodeIndex(const std::string& node) const {
     Rcpp::stop("Node not found: " + node);
 }
 
-// get node name from node index
+/**
+ * @brief get node name from node index and throw an error if not found
+ * @param index Node index
+ * @return std::string : node name
+ * @throw Rcpp::stop if index not found
+**/
 std::string Graph::getNodeName(int index) const {
     for (const auto& entry : nodeIndexMap) {
         if (entry.second == index) {
@@ -66,7 +88,10 @@ std::string Graph::getNodeName(int index) const {
     Rcpp::stop("Index not found: " + std::to_string(index));
 }
 
-// get all node indices in the graph
+/**
+ * @brief reset the node property by checking nodes in the index map
+ * @return void
+**/
 void Graph::resetNodes() {
     Rcpp::Rcout << "Resetting nodes..." << std::endl;
     // print node index map
@@ -77,6 +102,12 @@ void Graph::resetNodes() {
     setNodes(nodes_);
 }
 
+/**
+ * @brief reset the node indices to force them to be consecutive and
+ *        optionally remove empty nodes from the graph
+ * @param remove_empty_nodes Whether to remove empty nodes from the graph
+ * @return void
+**/
 void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
     // before updating, make sure there are no empty nodes
     if (remove_empty_nodes) {
@@ -98,13 +129,15 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
     std::unordered_map<int, std::unordered_map<int, double>> new_edge_weights;
     std::unordered_map<int, double> new_node_weights; 
     std::unordered_map<std::string, int> new_node_index_map;
-    std::unordered_map<int, int> old_node_to_new_node; // map old node index to new node index
+    std::unordered_map<int, int> old_node_to_new_node; // map old node index to new node inde
+
     // create map of new node indices from old node indices
     for (auto& entry : nodeIndexMap) {
         // map the old index to the new index (old : new)
         old_node_to_new_node[entry.second] = new_index;
         new_index++;
     }
+
     // use the map to update node indices in the nodeIndexMap
     for (auto& entry : old_node_to_new_node) {
         new_node_weights[entry.second] = nodeWeights.at(entry.first); // update node weights
@@ -119,7 +152,6 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
 
     // calculate total edge weight
     double total_edge_weight = 0.0;
-    //for (const auto& entry : new_edge_weights) {
     for (const auto& entry : edgeWeights) {
         for (const auto& edge : entry.second) {
             total_edge_weight += edge.second;
@@ -129,10 +161,7 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
         total_edge_weight /= 2; // In an undirected graph, each edge is counted twice 
     }
 
-    // update Graph properties
-    //edgeWeights = new_edge_weights;
-    //nodeWeights = new_node_weights;
-    //nodeIndexMap = new_node_index_map;
+    // update the graph properties
     totalEdgeWeight = total_edge_weight;
     edgeWeights = new_edge_weights;
     nodeWeights = new_node_weights;
@@ -141,20 +170,26 @@ void Graph::updateNodeProperties(bool remove_empty_nodes = false) {
     setN();
 }
 
-// get neighbors of a node based on keys of the edgeWeights map
+/**
+ * @brief get the neighbors of a node
+ * @param n_idx Node index
+ * @return std::vector<int> : neighbors of the node
+**/
 std::vector<int> Graph::getNeighbors(int n_idx) const {
     std::vector<int> neighbors;
-
-    // When the graph is directed or not, your getNeighbors can be the same.
-    // You only need to check the edges for the current node
     for (const auto& to : edgeWeights.at(n_idx)) {
         neighbors.push_back(to.first);
     }
-         
     return neighbors;
 }
 
-// get weight of an edge based on node indices
+/**
+ * @brief get the weight of an edge
+ * @param u Node u
+ * @param v Node v
+ * @return double : weight of the edge
+ * @throw Rcpp::stop if edge not found
+**/
 double Graph::getWeight(int u, int v) const {  // find is slow, consider not checking if the edge exists
     auto u_it = edgeWeights.find(u);
     if (u_it != edgeWeights.end()) {
@@ -167,7 +202,14 @@ double Graph::getWeight(int u, int v) const {  // find is slow, consider not che
     Rcpp::stop("Edge not found: (" + std::to_string(u) + ", " + std::to_string(v) + ")");
 }
 
-// convert custom graph object to R list
+/**
+ * @brief convert the graph object to an R list
+ * @param community_assignments Map of original node names to community indices
+ * @param quality Quality of the partition
+ * @return Rcpp::List : R list representation of the graph
+ * @note This should be the last function called in the R interface
+ * @note should add some sanity checks here
+**/
 Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
     Rcpp::CharacterVector from;
     Rcpp::CharacterVector to;
@@ -210,8 +252,11 @@ Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_a
     return result;
 }
 
-// trim the graph by removing nodes with only one connection
-// might consider defining a minimum number of connections to keep
+/**
+ * @brief remove nodes with less than 'min_connections' connections
+ * @param min_connections Minimum number of connections a node must have to be kept
+ * @return void
+**/
 void Graph::removeLowConnections(int min_connections) {
     std::vector<int> nodes_to_remove;
     double removed_edge_weight = 0.0;
@@ -258,6 +303,12 @@ void Graph::removeLowConnections(int min_connections) {
 
 }
 
+/**
+ * @brief check if the graph has an edge between two nodes
+ * @param u Node u
+ * @param v Node v
+ * @return bool : whether the graph has an edge between the two nodes
+**/
 bool Graph::hasEdge(int u, int v) const {
     auto it = edgeWeights.find(u);
     if (it != edgeWeights.end()) {
@@ -267,11 +318,12 @@ bool Graph::hasEdge(int u, int v) const {
     
 }
 
-/*
-###################################################################################
-####################### R INTERFACE FUNCTIONS #####################################
+/**
+ * @brief create custom graph object from R list
+ * @param graphList R list representation of the graph
+ * @return Graph : custom graph object
+ * @note should add some sanity checks here
 */
-// convert R list to custom graph object
 Graph listToGraph(const Rcpp::List& graphList) {
     Rcpp::CharacterVector from = graphList["from"];
     Rcpp::CharacterVector to = graphList["to"];
@@ -319,7 +371,16 @@ Graph listToGraph(const Rcpp::List& graphList) {
     return G;
 }
 
-// create custom graph object from R list
+/*
+###################################################################################
+####################### R INTERFACE FUNCTIONS #####################################
+*/
+
+/**
+ * @brief Call the listToGraph function from R
+ * @param graphList R list representation of the graph
+ * @return Rcpp::List : R list representation of the graph and information about the graph
+**/
 // [[Rcpp::export]]
 Rcpp::List createGraphFromList(const Rcpp::List& graphList) {
     Graph G = listToGraph(graphList); // Convert R list

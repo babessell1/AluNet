@@ -14,6 +14,8 @@ library(Rcpp)
 library(igraph)
 library(Matrix)
 source("r/graphFromFitHIC.R")  
+source("r/plotLeiden.R")
+source("r/plot_graph.R")
 update.packages("Rcpp")
 setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
@@ -22,13 +24,13 @@ Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
 #sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRU'E)
 sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
-source("r/plot_graph.R")
 #set.seed(1)
 ```
 
 ```{r}
 #g <- as_edgelist(make_graph('Zachary'))
 g <- as_edgelist(make_graph('noperfectmatching'))
+g <- as_edgelist(make_graph('Zachary'))
 g_list <- list(
   to=g[,1],
   from=g[,2],
@@ -40,7 +42,7 @@ g_list <- list(
 #plot.graph(g_list, "karate_nodes.png", small_nodes=F)
 # after clustering\
 iterations <- 1
-gamma <- 0.01  # gamma > 0
+gamma <- 0.001  # gamma > 0
 theta <- 0.05 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
 #plot.graph(result, "karate_leiden.png")
@@ -48,36 +50,7 @@ result <- runLeiden(g_list, iterations, gamma, theta)
 ```
 
 ```{r}
-# get graph
-gdf <- graph.data.frame(result$graph)
-node_indices = V(gdf)$name
-node_community_map <- setNames(result$communities, result$node_names)
-V(gdf)$membership <- node_community_map[node_indices]
-
-color_palette <- heat.colors(100)
-get_community_colors <- function(num_communities) {
-  rainbow(num_communities)
-}
-num_communities <- length(unique(result$communities))
-community_colors <- get_community_colors(num_communities)
-
-# Plot the graph
-plot(
-  gdf,
-  layout = layout_with_fr(gdf),
-  vertex.color = V(gdf)$membership,  # Color nodes based on community
-  vertex.frame.color = community_colors,
-  edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
-  vertex.label = V(gdf)$name,
-  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-  main = "Graph with Community Colors and Edge Weights"
-)
-
-# Add a legend for community colors
-legend("topright", legend = unique(V(gdf)$membership),
-       col = V(gdf)$membership, pch = 19,
-       title = "Communities", cex = 0.8)
-
+plotLeiden(result)
 ```
 
 
