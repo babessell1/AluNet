@@ -165,7 +165,7 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 
         // if the node is in the community, remove it using the removeNodeFromCommunity method
         if (old_comm->second.hasNode(node_index)) {
-            Rcpp::Rcout << "Node found in the old community: " << node_index << std::endl;
+            //Rcpp::Rcout << "Node found in the old community: " << node_index << std::endl;
             removeNodeFromCommunity(node_index, old_community_index);
 
             // add the node to the new community
@@ -289,6 +289,12 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
     quality /= 2*G.getTotalEdgeWeight();
 
     return quality;   
+}
+
+std::unordered_map<int, Community> Partition::createEmptyCommunityIndexMap() {
+    std::unordered_map<int, Community> empty_community_index_map;
+
+    return empty_community_index_map;
 }
 
 /**

@@ -32,6 +32,7 @@ public:
     
     // methods
     Community(const std::vector<int>& nodes, int index); // remember to convert input to vector in a vector when constructing!!
+    Community(); // default constructor
     double aggregateWeights(const Graph& G) const; // sum weights of all edges in the community and count number of nodes
     size_t size() const; // number of nodes in the community
     int countPossibleEdges(const Graph& G) const; // count possible edges in the community

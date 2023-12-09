@@ -17,6 +17,15 @@ Community::Community(const std::vector<int>& nodes, int index)
     : communityIndex(index), nodeIndices(std::move(nodes)) {
 }
 
+
+/**
+ * @brief Construct a new Community:: Community object
+ * @note default constructor
+ * @note does not initialize any properties
+**/
+Community::Community() {
+}
+
 /**
  * @brief Calculate the sum of weights of all edges in the community
  * @param G graph object

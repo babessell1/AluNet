@@ -69,6 +69,7 @@ public:
     bool inSingleton(int node_index) const;
     void addNodeToCommunity(int node_index, int community_index);
     void removeNodeFromCommunity(int node_index, int community_index);
+    std::unordered_map<int, Community> createEmptyCommunityIndexMap();
 };
 
 #endif
