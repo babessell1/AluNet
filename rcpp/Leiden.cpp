@@ -302,7 +302,7 @@ std::vector<Community> Optimizer::getWellConnectedCommunities(const Community& B
  *       the edge weights of v, and the difference of the subset and v is greater than gamma * size of flat(v) * size of flat(subset - v)
  *       note that v is a node so flat(v) is just 1
 **/
-std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
+/*std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
     std::vector<int> well_connected_nodes; // R
 
     // for each node in V
@@ -326,14 +326,31 @@ std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
     }
     return well_connected_nodes;
 }
+*/
+std::vector<int> Optimizer::getWellConnectedNodes(const Community& B) const {
+    std::vector<int> well_connected_nodes; // R
+    int size_B = B.getNodeIndices().size();
 
+    // Determine well-connected nodes
+    for (const int& v : B.getNodeIndices()) {
+        // Retrieve precomputed node weight from the graph's nodeWeights map
+        double edge_weight_B_v = G.getNodeWeight(v);
+
+        // if well connected, add to R
+        if (edge_weight_B_v >= gamma * (size_B - 1)) {
+            well_connected_nodes.push_back(v); // add the node to R
+        }
+    }
+
+    return well_connected_nodes;
+}
 /**
  * @brief Merge nodes in the subset to well connected communities
  * @param S subset of the partition
  * @return void
  * @note see the paper "From Louvain to Leiden: guaranteeing well-connected communities" by Traag et al.
 **/
-void Optimizer::mergeNodesSubset(Community& S) {
+/*void Optimizer::mergeNodesSubset(Community& S) {
     std::vector<int> R = getWellConnectedNodes(S); // get well connected nodes
     std::vector<Community> T = getWellConnectedCommunities(S); // get well connected communities
 
@@ -395,6 +412,52 @@ void Optimizer::mergeNodesSubset(Community& S) {
                 if (C_prime_index != -1) {
                     P.updateCommunityMembership(v, P.getNodeCommunityMap().at(v), C_prime_index);
                     P.setNodeCommunity(v, C_prime_index);
+                }
+            }
+        }
+    }
+}*/
+// this is the revised one, I just comment out the original one.
+void Optimizer::mergeNodesSubset(Community& S) {
+    std::vector<int> R = getWellConnectedNodes(S); // get well connected nodes
+    std::vector<Community> T = getWellConnectedCommunities(S); // get well connected communities
+
+    // Visit nodes in random order
+    std::shuffle(R.begin(), R.end(), std::default_random_engine(12345));
+    for (const int& v : R) {
+        // Consider only nodes that have not yet been merged
+        if (P.inSingleton(v)) { // Check if v is in its own community (a singleton)
+
+            double best_delta_quality = 0.0;
+            int best_community_index = -1;
+
+            // for each well connected community contained in S
+            for (const auto& C : T) {
+                int c_idx = C.getCommunityIndex();
+
+                // Calculate the delta quality of moving v to C
+                double delta_quality = deltaQuality(v, c_idx, gamma, false);
+
+                // Select the move that provides the largest increase in quality
+                if (delta_quality > best_delta_quality) {
+                    best_delta_quality = delta_quality;
+                    best_community_index = c_idx;
+                }
+            }
+
+            // If a better community was found, move node v to community C'
+            if (best_community_index != -1) {
+                // This should be optimized to only recalculate the quality of affected communities
+                double quality_before_move = P.calcQuality(gamma, G, false);
+                P.updateCommunityMembership(v, P.getNodeCommunityMap().at(v), best_community_index);
+                double quality_after_move = P.calcQuality(gamma, G, false);
+                
+                // Check if quality actually improved
+                if (quality_after_move > quality_before_move) {
+                    P.setNodeCommunity(v, best_community_index);
+                } else {
+                    // Move was not beneficial, revert the community update
+                    P.updateCommunityMembership(v, best_community_index, P.getNodeCommunityMap().at(v));
                 }
             }
         }
