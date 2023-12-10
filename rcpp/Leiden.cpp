@@ -428,7 +428,7 @@ void Optimizer::mergeNodesSubset(Community& S) {
         // Consider only nodes that have not yet been merged
         if (P.inSingleton(v)) { // Check if v is in its own community (a singleton)
 
-            double best_delta_quality = 0.0;
+            double best_delta_quality = -INFINITY;
             int best_community_index = -1;
 
             // for each well connected community contained in S
