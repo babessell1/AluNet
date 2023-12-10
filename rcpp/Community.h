@@ -37,6 +37,7 @@ public:
     size_t size() const; // number of nodes in the community
     int countPossibleEdges(const Graph& G) const; // count possible edges in the community
     double getClusterWeight(const Graph&G) const; // sum weights of all nodes in the community
+    double getClusterEdgeWeights(const Graph&G) const; // sum weights of all edges in the community
     bool hasNode(int node_index) const; // check if the community has a node
     bool hasEdge(int node_index, int neighbor_index, const Graph& G) const; // check if the community has an edge
     bool isEmpty() const; // check if the community is empty

@@ -256,6 +256,9 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
 
         // get the neighbors of the node
         for (int neigh_idx : G.getNeighbors(node_idx)) {
+            if (print) {
+                Rcpp::Rcout << "-0-0-0-0-0-0-0-0-Neighbor index: " << neigh_idx << std::endl;
+            }
             double edge_weight = G.getEdgeWeights().at(node_idx).at(neigh_idx);  
             if (print) {
                 Rcpp::Rcout << "Node community: " << nodeCommunityMap.at(node_idx) << " Neighbor community: " << nodeCommunityMap.at(neigh_idx) << " has edge weight: " << edge_weight << std::endl;

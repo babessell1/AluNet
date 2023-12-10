@@ -168,3 +168,25 @@ double Community::getClusterWeight(const Graph& G) const {
     
     return weight_sum;
 }
+
+double Community::getClusterEdgeWeights(const Graph& G) const {
+    // get the sum of weights of all nodes in the community
+    double weight_sum = 0.0;
+
+    std::unordered_map<std::string, int> node_index_map = G.getNodeIndexMap();
+    for (const auto& entry : node_index_map) {
+        int node_index = entry.second;
+        if (G.getNodeWeights().find(node_index) == G.getNodeWeights().end()) {
+            Rcpp::stop("Node index not found in nodeWeights");
+        }
+        double weight_add = G.getNodeWeights().at(node_index);  // Using 'at' for bounds checking
+        weight_sum += weight_add;
+    }
+
+    if (G.getIsDirected()) {
+        return weight_sum;
+    }
+    else {
+        return weight_sum / 2.0;
+    };
+}

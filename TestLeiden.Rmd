@@ -22,15 +22,14 @@ Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
 Sys.which("make") 
 Sys.which("g++")
 #sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
-#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRU'E)
+#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRUE)
 sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
 #set.seed(1)
 ```
 
 ```{r}
-#g <- as_edgelist(make_graph('Zachary'))
 g <- as_edgelist(make_graph('noperfectmatching'))
-g <- as_edgelist(make_graph('Zachary'))
+#g <- as_edgelist(make_graph('Zachary'))
 g_list <- list(
   to=g[,1],
   from=g[,2],
@@ -40,10 +39,10 @@ g_list <- list(
 
 # before clustering
 #plot.graph(g_list, "karate_nodes.png", small_nodes=F)
-# after clustering\
-iterations <- 1
-gamma <- 0.001  # gamma > 0
-theta <- 0.05 # good theta is 0.005 < 0.05
+# after clustering
+iterations <- 2
+gamma <- .1  # gamma > 0
+theta <- 0.01 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
 #plot.graph(result, "karate_leiden.png")
 
@@ -55,7 +54,11 @@ plotLeiden(result)
 
 
 ```{r}
-gdf <- make_graph("noperfectmatching")
+#gdf <- make_graph("noperfectmatching")
+gdf <- make_graph("Zachary")
+
+gamma <- .1
+iterations <- 1
 
 ldc <- cluster_leiden(
   gdf,
@@ -67,7 +70,7 @@ ldc <- cluster_leiden(
   vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
 )
 
-ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
+#ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
 
 color_palette <- heat.colors(100)
 

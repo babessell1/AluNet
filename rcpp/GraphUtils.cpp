@@ -100,6 +100,7 @@ void Graph::resetNodes() {
         nodes_.push_back(entry.second);
     }
     setNodes(nodes_);
+    setN();
 }
 
 /**
