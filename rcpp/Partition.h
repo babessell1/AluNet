@@ -39,19 +39,19 @@ public:
 
     // setters
     void setCommunityIndexMap(std::unordered_map<int, Community> communityIndexMap) {
-        communityIndexMap = communityIndexMap;
+        this->communityIndexMap = communityIndexMap;
     }
     
     void setNodeCommunityMap(std::unordered_map<int, int> nodeCommunityMap) {
-        nodeCommunityMap = nodeCommunityMap;
+        this->nodeCommunityMap = nodeCommunityMap;
     }
 
     void setNodeCommunity(int node_index, int community_index) {
-        nodeCommunityMap[node_index] = community_index;
+        this->nodeCommunityMap[node_index] = community_index;
     }
 
     void setQuality(double quality) {
-        quality = quality;
+        this->quality = quality;
     }
 
     // methods
