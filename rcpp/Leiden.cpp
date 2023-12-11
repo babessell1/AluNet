@@ -26,6 +26,7 @@ Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G),
     for (const auto& entry : G.getNodeIndexMap()) {
         communityAssignments.insert({entry.first, entry.second});
     }
+    this->iteration = 0;
 }
 
 /**
@@ -104,8 +105,36 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool reca
 bool Optimizer::moveNodesFast() {
     bool update = false;  // track if the partition has changed
 
-    // print intial quality
-    Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, false) << std::endl;
+    Rcpp::Rcout << "CORNBREAD" << std::endl;
+    Rcpp::Rcout << getIteration() << std::endl;
+
+    bool print = false;
+    if (getIteration() > 1) {
+        Rcpp::Rcout << "PRINT IS " << print << std::endl;
+        print = true;
+        Rcpp::Rcout << "PRINT IS " << print << std::endl;
+    }
+
+    if (print) {
+        Rcpp::Rcout << "WOWOWOWOWOW" << std::endl;
+        Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, false) << std::endl;
+    }
+
+    if (print) {
+        // print each community and its nodes
+        for (const auto& entry : P.getCommunityIndexMap()) {
+            Rcpp::Rcout << "Community " << entry.first << " has " << entry.second.getNodeIndices().size() << " nodes" << std::endl;
+            for (const auto& node : entry.second.getNodeIndices()) {
+                Rcpp::Rcout << node << " ";
+            }
+            Rcpp::Rcout << std::endl;
+            Rcpp::Rcout << "With names: " << std::endl;
+            for (const auto& node : entry.second.getNodeIndices()) {
+                Rcpp::Rcout << G.getNodeName(node) << " ";
+            }
+            Rcpp::Rcout << std::endl;
+        }
+    }
 
     int n_ = G.getN();
     std::vector<bool> stable_nodes(n_, false); // track which nodes have not moved
@@ -594,6 +623,7 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
 
     // initialize counter for the new community indices
     int new_community_assignment = -1;
+    std::vector<int> used_communities;
 
     // for each community in the partition
     for ( auto iter : P.getCommunityIndexMap() ) {
@@ -617,7 +647,6 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
 
         // initialize the community the old nodes belong to
         int old_community = -1;
-        std::vector<int> used_communities;
 
         // for each node in the community
         for (int node : nodesInCommunity) {
@@ -680,10 +709,12 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
             // create a new community in the aggregate graph
             Community new_community({c_idx}, comm_assign_idx);
             agg_community_index_map[comm_assign_idx] = new_community;
+            Rcpp::Rcout << "~~~Created community " << comm_assign_idx << " with node " << c_idx << std::endl;
 
         } else { // if the old community is already in the used communities
             // add the node to the existing community
-            agg_community_index_map[comm_assign_idx].addNode(c_idx);
+            agg_community_index_map.at(comm_assign_idx).addNode(c_idx);
+            Rcpp::Rcout << "~~~Added node " << c_idx << " to community " << comm_assign_idx << std::endl;
         }
         // update the communitynew_community_assignment
         agg_node_community_map[c_idx] = comm_assign_idx;
@@ -734,8 +765,10 @@ void Optimizer::optimize(int iterations) {
 
     // if not converged and not at max iterations, run a Leiden iteration
     while (!done && iterations > counter) {
+        counter++; // increment the iteration counter
+        setIteration(counter); // set the iteration number
 
-        Rcpp::Rcout << "========================= ITERATION " << counter << " =========================" << std::endl;
+        Rcpp::Rcout << "========================= ITERATION " << getIteration() << " =========================" << std::endl;
 
         Rcpp::Rcout << "Number of communities before moving: " << P.getCommunityIndexMap().size() << std::endl;
        
@@ -748,8 +781,6 @@ void Optimizer::optimize(int iterations) {
 
         std::vector<int> community_indices = P.getCommunityIndices();
         Rcpp::Rcout << "Number of communities after moving: " << community_indices.size() << std::endl;
-
-        counter++; // increment the iteration counter
 
         // if community size is equal to number of nodes, set done to true
         if (static_cast<int>(community_indices.size()) == G.getN() || !improved) {

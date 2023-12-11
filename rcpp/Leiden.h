@@ -11,6 +11,7 @@ private:
     double gamma;
     double theta;
     std::unordered_map<std::string, int> communityAssignments;
+    double iteration;
 
 public:
     // getters
@@ -29,16 +30,25 @@ public:
     std::unordered_map<std::string, int> getCommunityAssignments() const {
         return communityAssignments;
     }
+    double getIteration() const {
+        return iteration;
+    }
 
     // setters
     void setG(Graph G) {
-        G = G;
+        this->G = G;
     }
     void setP(Partition P) {
-        P = P;
+        this->P = P;
     }
     void setGamma(double gamma) {
-        gamma = gamma;
+        this->gamma = gamma;
+    }
+    void setTheta(double theta) {
+        theta = theta;
+    }
+    void setIteration(double iteration) {
+        this->iteration = iteration;
     }
 
     // methods
