@@ -291,10 +291,12 @@ void Graph::removeLowConnections(int min_connections) {
 
     // Remove nodes from the graph
     for (auto& node : nodes_to_remove) {
-        for (auto& entry : edgeWeights.at(node)) {
+        auto& node_edge_weights = edgeWeights.at(node);
+        for (auto& entry : node_edge_weights) {
             // Remove the edge from the other node if it exists
-            if (edgeWeights.find(entry.first) != edgeWeights.end()) {
-                edgeWeights.at(entry.first).erase(node);
+            auto it = edgeWeights.find(entry.first);
+            if (it != edgeWeights.end()) {
+                it->second.erase(node);
             }
         }
         edgeWeights.erase(node);

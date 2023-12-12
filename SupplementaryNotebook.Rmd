@@ -180,8 +180,28 @@ seed <- 1
 result <- runLeiden(g_list, iterations, gamma, theta, seed)
 plotLeiden(result)
 ```
+```{r}
+gdf <- make_graph(toy)
+set.seed(2)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
 
+```{r}
+rm(.Random.seed)
+# Use microbenchmark to time the function
+mb_ours <- microbenchmark(
+  runLeiden(g_list, 3, gamma, theta),
+  times=10
+)
 
+mb_igraph <- microbenchmark(
+  runIgraph(gdf, 3, gamma, theta),
+  times=10
+)
+# Print the result
+print(rbind(mb_ours, mb_igraph))
+```
 
 ```{r}
 

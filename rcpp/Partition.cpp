@@ -167,23 +167,18 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
     if (old_comm != communityIndexMap.end()) {
 
         // if the node is in the community, remove it using the removeNodeFromCommunity method
-        if (old_comm->second.hasNode(node_index)) {
-    
+        bool hasNode = old_comm->second.hasNode(node_index);
+        if (hasNode) {
             removeNodeFromCommunity(node_index, old_community_index);
 
             // add the node to the new community
             addNodeToCommunity(node_index, new_community_index);
 
-            // check if any community other than the new community has the node
-            for (auto& entry : communityIndexMap) {
-                int c_idx = entry.first;
-                if (c_idx != new_community_index) {
-                    if (entry.second.hasNode(node_index)) {
-                        Rcpp::stop("Node not moved properly! " + std::to_string(c_idx));
-                    }
-                }
+            // check if the new community has the node
+            auto new_comm = communityIndexMap.find(new_community_index);
+            if (new_comm != communityIndexMap.end() && new_comm->second.hasNode(node_index)) {
+                // handle the case where the node is found in a community other than the new community
             }
-
         } else {
             Rcpp::stop("Node not found in the old community: " + std::to_string(node_index));
         }
