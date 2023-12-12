@@ -42,6 +42,39 @@ Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G),
  *       which allows us to return the assigments of the original nodes after the optimization
 **/
 void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_call) {
+    // Use hash maps for direct mapping from old to new assignments
+    std::unordered_map<std::string, std::string> new_community_assignments;
+    std::unordered_map<std::string, std::string> mapping;
+
+    if (!final_call) {
+        for (const auto& entry : getCommunityAssignments()) {
+            mapping[entry.first] = entry.second;
+        }
+    }
+    else {
+        for (const auto& entry : P_comm.getNodeCommunityMap()) {
+            mapping[std::to_string(entry.first)] = std::to_string(entry.second);
+        }
+    }
+
+    for (const auto& iter : getOGCommunityAssignments()) {
+        std::string node_name = iter.first;
+        std::string prev_assignment = iter.second;
+
+        auto it = mapping.find(prev_assignment);
+        if (it != mapping.end()) {
+            new_community_assignments[node_name] = it->second;
+        }
+        else {
+            Rcpp::stop("Node assignment not found in new mapping!");
+        }
+    }
+
+    // Replace old community assignments with the new ones
+    
+    setCommunityAssignments(new_community_assignments);
+}
+/*void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_call) {
     // currently stored value in communityAssignments is the previous community assignment which is the latest node index
     // we update by matching new nodes to the previous community assignment and changing the community assignment to the new community index
 
@@ -89,7 +122,7 @@ void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_c
     if (count_replaced != count_nodes) {
         Rcpp::stop("Not all nodes were replaced in the community assignments, something went wrong!");
     }
-}
+}*/
 
     
 
