@@ -929,7 +929,7 @@ void Optimizer::optimize(int iterations) {
 
         Rcpp::Rcout << "Number of communities before moving: " << P.getCommunityIndexMap().size() << std::endl;
 
-        Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+        Rcpp::Rcout << "$$$nodes name before move: " << std::endl;
             for (const auto& entry : P.getNodeCommunityMap()) {
                 Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
             }
@@ -937,7 +937,7 @@ void Optimizer::optimize(int iterations) {
         // fast local node moving step to improve the partition
         bool improved = moveNodesFast();
 
-        Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+        Rcpp::Rcout << "$$$nodes name after move: " << std::endl;
             for (const auto& entry : P.getNodeCommunityMap()) {
                 Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
             }
@@ -964,7 +964,7 @@ void Optimizer::optimize(int iterations) {
 
             refinePartition(P_save); // refine the partition
 
-            Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+            Rcpp::Rcout << "$$$nodes name after refine: " << std::endl;
             for (const auto& entry : P.getNodeCommunityMap()) {
                 Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
             }
@@ -972,6 +972,11 @@ void Optimizer::optimize(int iterations) {
             // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;
             aggregateGraph(P_save);
+
+            Rcpp::Rcout << "$$$nodes name after agg: " << std::endl;
+            for (const auto& entry : P.getNodeCommunityMap()) {
+                Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
+            }
 
             Rcpp::Rcout << "Updating community assignments" << std::endl;
             updateCommunityAssignments(P, false);
