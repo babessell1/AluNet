@@ -88,6 +88,9 @@ public:
     Rcpp::List graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
         return G.graphToRList(community_assignments, quality);
     }
+    void setCommunityAssignments(const std::unordered_map<std::string, std::string>& new_assignments) {
+        communityAssignments = new_assignments;
+    }
 };
 
 // listToGraph
