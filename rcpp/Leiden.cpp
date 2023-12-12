@@ -70,23 +70,21 @@ void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_c
             for (const auto& entry : getCommunityAssignments()) {
                 std::string agg_node = entry.first;
                 std::string new_assignment = entry.second;
-                //Rcpp::Rcout << "Aggregated node: " << agg_node << " New assignment: " << new_assignment << std::endl;
+
                 // if the aggregated node index matches the previous assignment
                 if (agg_node == prev_assignment) {
                     // replace the previous assignment with the new assignment
                     new_community_assignments[node_name] = new_assignment;
-                    //Rcpp::Rcout << "Replaced " << prev_assignment << " with " << new_assignment << std::endl;
                     count_replaced++;
+                    break;
                 }             
             }
         } else {
             std::string new_assignment = std::to_string(P_comm.getNodeCommunityIdx(std::stoi(prev_assignment)));
-            //Rcpp::Rcout << "Node " << node_name << " Previous assignment: " << prev_assignment << " New assignment: " << new_assignment << std::endl;
             new_community_assignments[node_name] = new_assignment;
             count_replaced++;
         }
     }
-    //Rcpp::Rcout << "Replaced " << count_replaced << " out of " << count_nodes << " nodes" << std::endl;
     // if not all nodes were replaced, throw an error
     if (count_replaced != count_nodes) {
         Rcpp::stop("Not all nodes were replaced in the community assignments, something went wrong!");
