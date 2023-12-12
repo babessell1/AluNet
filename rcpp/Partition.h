@@ -64,12 +64,13 @@ public:
     void purgeEmptyCommunities(bool renumber);
     void addCommunity(const Community& newCommunity);
     std::unordered_map<int, double> getPartitionWeights(const Graph& G) const;
-    double calcQuality(double gamma, const Graph& G, bool quality) const;
+    double calcQuality(double gamma, const Graph& G) const;
     void makeSingleton(const Graph& G);
     bool inSingleton(int node_index) const;
     void addNodeToCommunity(int node_index, int community_index);
     void removeNodeFromCommunity(int node_index, int community_index);
     std::unordered_map<int, Community> createEmptyCommunityIndexMap();
+    bool hasCommunity(int community_index) const;
 };
 
 #endif

@@ -93,7 +93,10 @@ void Partition::flattenPartition() {
  * @note add the community to the community index map
 **/ 
 void Partition::addCommunity(const Community& newCommunity) {
-
+    // if the community is already in the partition, throw an error
+    if (communityIndexMap.find(newCommunity.getCommunityIndex()) != communityIndexMap.end()) {
+        Rcpp::stop("Community already in partition: " + std::to_string(newCommunity.getCommunityIndex()));
+    }
     // Add the new community to the communities vector
     communityIndexMap.insert({newCommunity.getCommunityIndex(), newCommunity});
 }
@@ -165,7 +168,7 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
 
         // if the node is in the community, remove it using the removeNodeFromCommunity method
         if (old_comm->second.hasNode(node_index)) {
-            //Rcpp::Rcout << "Node found in the old community: " << node_index << std::endl;
+    
             removeNodeFromCommunity(node_index, old_community_index);
 
             // add the node to the new community
@@ -187,6 +190,15 @@ void Partition::updateCommunityMembership(int node_index, int old_community_inde
     } else {
         Rcpp::stop("Old community not found: " + std::to_string(old_community_index));
     }
+}
+
+/**
+ * @brief Check if a community is in the partition
+ * @param community_index community index
+ * @return bool : true if the community is in the partition, false otherwise
+**/
+bool Partition::hasCommunity(int community_index) const {
+    return communityIndexMap.find(community_index) != communityIndexMap.end();
 }
 
 /**
@@ -250,27 +262,14 @@ void Partition::purgeEmptyCommunities(bool renumber) {
  *          m is the total edge weight
  *          sum is over all pairs of nodes i and j in the graph
 **/
-double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
+double Partition::calcQuality(double gamma, const Graph& G) const {
     double quality = 0.0;
-    //if print print nodes
-    if (print) {
-        Rcpp::Rcout << "Get " << nodeCommunityMap.size() << " nodes: " << std::endl;
-    }
-    for (int node_idx : G.getNodes()) {
-        if (print) {
-            Rcpp::Rcout << "Node idx: " << node_idx << " Node Name: " << G.getNodeName(node_idx) << " Node community: " << nodeCommunityMap.at(node_idx) << std::endl;
-            Rcpp::Rcout << "Has " << G.getNeighbors(node_idx).size() << " neighbors: " << std::endl;
-        }
 
+    for (int node_idx : G.getNodes()) {
         // get the neighbors of the node
         for (int neigh_idx : G.getNeighbors(node_idx)) {
-            if (print) {
-                Rcpp::Rcout << "-0-0-0-0-0-0-0-0-Neighbor index: " << neigh_idx << std::endl;
-            }
             double edge_weight = G.getEdgeWeights().at(node_idx).at(neigh_idx);  
-            if (print) {
-                Rcpp::Rcout << "Node community: " << nodeCommunityMap.at(node_idx) << " Neighbor community: " << nodeCommunityMap.at(neigh_idx) << " has edge weight: " << edge_weight << std::endl;
-            }
+
             // if the neighbor is in the same community as the node
             if (nodeCommunityMap.at(node_idx) == nodeCommunityMap.at(neigh_idx)) {
                 // add the edge weight to the quality
@@ -278,15 +277,9 @@ double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
             }
         }
     }
-    if (print) {
-        Rcpp::Rcout << "Get partition weights: " << std::endl;
-    }
     // our graph has no self links, so we do not need to handle them for now
     std::unordered_map<int, double> p_weights = getPartitionWeights(G);
 
-    if (print) {
-        Rcpp::Rcout << "Get community indices: " << std::endl;
-    }
     // for each community in the partition, get the weight of the community and remove it from the quality
     for (int c_idx : getCommunityIndices()) {
 
@@ -314,13 +307,11 @@ std::unordered_map<int, Community> Partition::createEmptyCommunityIndexMap() {
  * @return void
 **/
 void Partition::makeSingleton(const Graph& G) {
-    Rcpp::Rcout << "MAKING THAT SINGLETON" << std::endl;
     // for each node in the partition, set the community to a string of the node index
     std::unordered_map<int, int> new_node_community_map;
     std::unordered_map<int, Community> new_community_index_map;
     for (const auto& entry : G.getNodeIndexMap()) {
         int node_idx = entry.second;
-        Rcpp::Rcout << "Node index: " << node_idx << " Node name: " << entry.first << std::endl;
         // add the node to the community index map
         new_node_community_map.insert({node_idx, node_idx});
         // add the community to the community index map

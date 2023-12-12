@@ -109,7 +109,6 @@ std::string Graph::getNodeName(int index) const {
  * @return void
 **/
 void Graph::resetNodes() {
-    Rcpp::Rcout << "Resetting nodes..." << std::endl;
     // print node index map
     std::vector<int> nodes_;
     for (const auto& entry : nodeIndexMap) {
@@ -232,18 +231,13 @@ Rcpp::List Graph::graphToRList(std::unordered_map<std::string, int>& community_a
     Rcpp::CharacterVector to;
     Rcpp::NumericVector weight;
 
-    Rcpp::Rcout << "Writing to R List" << std::endl;
-
     for (int i : getNodes()) {
-        // print the node
-        //Rcpp::Rcout << "Node: " << getNodeName(i) << std::endl;
+
         std::string fromNode = getNodeName(i);
         std::unordered_map<int, double> edges = getThisEdgeWeights(i);
-        // print length edges
-        //Rcpp::Rcout << "Edges: " << edges.size() << std::endl;
+
         for (const auto& entry : edges) {
             std::string toNode = getNodeName(entry.first);
-            //Rcpp::Rcout << "Edge: " << fromNode << " -> " << toNode << " : " << entry.second << std::endl;
             from.push_back(fromNode);
             to.push_back(toNode);
             weight.push_back(entry.second);
@@ -349,7 +343,6 @@ Graph listToGraph(const Rcpp::List& graphList) {
     std::set<std::string> uniqueNodes;
 
     // Collect unique nodes
-    Rcpp::Rcout << "Initializing graph..." << std::endl;
     for (int i = 0; i < from.size(); i++) {
         std::string fromNode = Rcpp::as<std::string>(from[i]);
         std::string toNode = Rcpp::as<std::string>(to[i]);
@@ -368,8 +361,6 @@ Graph listToGraph(const Rcpp::List& graphList) {
         index++;
     }
 
-    Rcpp::Rcout << "Adding edges to graph..." << std::endl;
-
     // Add edges to the graph & populate the edgeWeights
     for (int i = 0; i < from.size(); i++) {
         std::string fromNode = Rcpp::as<std::string>(from[i]);
@@ -379,11 +370,7 @@ Graph listToGraph(const Rcpp::List& graphList) {
         G.addEdge(fromNode, toNode, w);
     }
 
-    Rcpp::Rcout << "Updating node properties..." << std::endl;
-
     G.updateNodeProperties(false); // Updating nodes after adding all edges 
-    Rcpp::Rcout << "Removing Low Connections..." << std::endl;
-    //G.removeLowConnections(2); // Remove single connections
 
     return G;
 }

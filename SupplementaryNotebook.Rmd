@@ -1,0 +1,169 @@
+---
+title: "Leiden Example"
+author: "Brandt Bessell"
+date: "2023-12-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+To run our package, first install it and some other dependencies we will use to
+benchmark
+
+```{r}
+if (!require("AluNet")) {
+  install.packages("AluNet")
+}
+if (!require("microbenchmark")) {
+  install.packages("microbenchmark")
+}
+```
+
+Then we will load it, igraph, and microbenchmark to benchmark against the 
+current gold standard of clustering algorithm implementations.
+
+```{r}
+library(Rcpp)
+library(igraph)
+library(microbenchmark)
+#library("AluNet")
+```
+
+We provide some enviromental context for our tests in case you have trouble 
+compiling the cpp files.
+```{r}
+setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
+Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
+Sys.which("make")
+Sys.which("g++")
+sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+```
+
+First, we check against several toy models. Note that the RNG is different for
+each implementation of Leiden so we will run several different seeds for each
+one to show that they are functioning similarly.
+
+To do this we define a function to to run igraph's Leiden algorithm and plot 
+the output, we define it here since it is not part of our package. 
+
+```{r}
+#gdf <- make_graph("noperfectmatching")
+
+runIgraph <- function(gdf, iterations, gamma, theta) {
+
+  ldc <- cluster_leiden(
+    gdf,
+    resolution_parameter=gamma,
+    objective_function="CPM",
+    weights=g_list[["weight"]],
+    beta=theta,
+    n_iterations=iterations,
+    vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
+  )
+  
+  return(ldc)
+}
+
+plotIgraph <- function(gdf, ldc) {
+  color_palette <- heat.colors(100)
+  
+    # create colormap for the communities
+    get_community_colors <- function(num_communities) {
+    rainbow(num_communities)
+    }
+  
+    # map communities to the colormap
+    num_communities <- length(unique(ldc$membership))
+    community_colors <- get_community_colors(num_communities)
+    colors <- community_colors[as.factor(ldc$membership)]
+  
+  plot(
+    gdf,
+    layout = layout_with_fr(gdf),
+    vertex.color = colors,  # Color nodes based on community
+    #edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
+    vertex.label = V(gdf)$community,
+    edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+    main = "iGraph's C-based clustering"
+  )
+  
+  # Add a legend for community colors
+  legend("topright", legend=unique(ldc$membership),
+         col = community_colors, pch = 19,
+         title = "Communities", cex = 0.8)
+}
+```
+
+Our first toy model is "noperfectmatching" which has very well defined
+communities except for the central node which can belong to any of them
+depending on the starting conditions. This is a simple model and thus should 
+converge in only a single iteration, despite us setting a maximum of 10.
+
+We define our resolution parameter, gamma as .1 which should be small enough
+to identify more granular communities that will make it easier to compare its
+accuracy to igraph, we set theta to 0.01 because it is the middle of the 
+recommended ranges of theta by the authors of the Leiden algorithm which should
+result in a moderate degree of randomness in the refine step. Since the toy
+models come from the igraph package, we also have to convert them into a format
+interpretable by our function, which is a list of connections "to" "from" and
+"weight."
+
+```{r}
+toy = "noperfectmatching"
+iterations <- 10
+gamma <- .1  # gamma > 0
+theta <- 0.01 # good theta is 0.005 < 0.05
+
+g <- as_edgelist(make_graph(toy))
+g_list <- list(
+  to=g[,1],from=g[,2],
+  weight=rep(1, length(g[,1]))  # all 1
+  
+)
+```
+
+```{r}
+seed <- 1
+result <- runLeiden(g_list, iterations, gamma, theta, seed)
+plotLeiden(result)
+```
+
+
+```{r}
+gdf <- make_graph(toy)
+set.seed(1)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
+
+Next we benchmark the model to show that igraph, as expected, outperforms our
+implementation due to its lower level control over memory, and use of vectors
+instead of hash maps. 
+
+```{r}
+
+```
+
+To show its utility on biological data, we first download some Fit-Hi-C data (cite)
+
+```{r, eval=FALSE}
+library(R.utils)
+file_path <- "path/to/your/working/directory"
+setwd(file_path)
+file_name <- "hic_data.txt.gz"
+url <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE148434&format=file&file=GSE148434%5FNS%5Fall%2E5kb%2E1e%2D2%2EFitHiC%2Eall%2Etxt%2Egz"
+
+download.file(url, paste(file_path, file_name, sep = ""), mode = "wb")
+gunzip(file_name, remove=FALSE)
+```
+
+Then we download Dfam mobile elements (cite) (be careful, it is very large)
+
+```{r, eval=FALSE}
+
+```
+
+Then we download some example ATAC-seq data (cite)
+

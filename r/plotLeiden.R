@@ -1,3 +1,10 @@
+#' Plot the output of the Leiden algorithm, coloring nodes based on community
+#' 
+#' @param result The result of the runLeiden function.
+#' @return A plot of the graph with nodes colored based on community.
+#' @examples
+#' result <- runLeiden(g_list, ...)
+#' plotLeiden(result)
 plotLeiden <- function(result) {
     gdf <- graph.data.frame(result$graph)
 
@@ -29,7 +36,7 @@ plotLeiden <- function(result) {
     #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
     vertex.label = V(gdf)$name,
     edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-    main = "Graph with Community Colors and Edge Weights"
+    main = "Our Rcpp-based Clustering"
     )
 
     # Add a legend for community colors

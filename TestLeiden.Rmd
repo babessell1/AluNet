@@ -9,13 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+To run our package, first install it:
+
+```{r}
+if (!require("AluNet")) {
+  install.packages("AluNet")
+}
+library("AluNet")
+```
+
 ```{r}
 library(Rcpp)
 library(igraph)
-library(Matrix)
-source("r/graphFromFitHIC.R")  
 source("r/plotLeiden.R")
-source("r/plot_graph.R")
+
 update.packages("Rcpp")
 setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
@@ -28,23 +35,68 @@ sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
 ```
 
 ```{r}
-g <- as_edgelist(make_graph('noperfectmatching'))
-#g <- as_edgelist(make_graph('Zachary'))
+#gdf <- make_graph("noperfectmatching")
+
+runIgraph <- function(gdf, iterations, gamma, theta) {
+
+  ldc <- cluster_leiden(
+    gdf,
+    resolution_parameter=gamma,
+    objective_function="CPM",
+    weights=g_list[["weight"]],
+    beta=theta,
+    n_iterations=iterations,
+    vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
+  )
+  
+  return(ldc)
+}
+
+plotIgraph <- function(gdf, ldc) {
+  color_palette <- heat.colors(100)
+  
+    # create colormap for the communities
+    get_community_colors <- function(num_communities) {
+    rainbow(num_communities)
+    }
+  
+    # map communities to the colormap
+    num_communities <- length(unique(ldc$membership))
+    community_colors <- get_community_colors(num_communities)
+    colors <- community_colors[as.factor(ldc$membership)]
+  
+  plot(
+    gdf,
+    layout = layout_with_fr(gdf),
+    vertex.color = colors,  # Color nodes based on community
+    #edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
+    vertex.label = V(gdf)$community,
+    edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+    main = "iGraph's C-based clustering"
+  )
+  
+  # Add a legend for community colors
+  legend("topright", legend=unique(ldc$membership),
+         col = community_colors, pch = 19,
+         title = "Communities", cex = 0.8)
+}
+```
+
+```{r}
+toy = "Zachary"
+iterations <- 50
+gamma <- .1  # gamma > 0
+theta <- 0.01 # good theta is 0.005 < 0.05
+```
+
+```{r}
+g <- as_edgelist(make_graph(toy))
 g_list <- list(
-  to=g[,1],
-  from=g[,2],
+  to=g[,1],from=g[,2],
   weight=rep(1, length(g[,1]))
   
 )
-
-# before clustering
-#plot.graph(g_list, "karate_nodes.png", small_nodes=F)
-# after clustering
-iterations <- 2
-gamma <- .1  # gamma > 0
-theta <- 0.01 # good theta is 0.005 < 0.05
 result <- runLeiden(g_list, iterations, gamma, theta)
-#plot.graph(result, "karate_leiden.png")
 
 ```
 
@@ -52,40 +104,15 @@ result <- runLeiden(g_list, iterations, gamma, theta)
 plotLeiden(result)
 ```
 
+```{r}
+gdf <- make_graph(toy)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+```
 
 ```{r}
-#gdf <- make_graph("noperfectmatching")
-gdf <- make_graph("Zachary")
+plotIgraph(gdf, igraph_result)
+```
 
-gamma <- .1
-iterations <- 1
+```{r}
 
-ldc <- cluster_leiden(
-  gdf,
-  resolution_parameter=gamma,
-  objective_function="CPM",
-  weights=g_list[["weight"]],
-  beta=theta,
-  n_iterations=iterations,
-  vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
-)
-
-#ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
-
-color_palette <- heat.colors(100)
-
-plot(
-  gdf,
-  layout = layout_with_fr(gdf),
-  vertex.color = ldc$membership,  # Color nodes based on community
-  edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
-  vertex.label = V(gdf)$community,
-  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-  main = "Graph with Community Colors and Edge Weights"
-)
-
-# Add a legend for community colors
-legend("topright", legend = unique(ldc$membership),
-       col = ldc$membership, pch = 19,
-       title = "Communities", cex = 0.8)
 ```

@@ -13,6 +13,7 @@ private:
     std::unordered_map<std::string, std::string> communityAssignments;
     std::unordered_map<std::string, std::string> og_communityAssignments;
     double iteration;
+    int seed;
 
 public:
     // getters
@@ -36,9 +37,9 @@ public:
         return og_communityAssignments;
     }
 
-    std::unordered_map<std::string, int> getCommunityAssignmentsInt() const {
+    std::unordered_map<std::string, int> getFinalCommunityAssignmentsInt() const {
         std::unordered_map<std::string, int> community_assignments_int;
-        for (const auto& entry : communityAssignments) {
+        for (const auto& entry : og_communityAssignments) {
             community_assignments_int[entry.first] = std::stoi(entry.second);
         }
         return community_assignments_int;
@@ -72,9 +73,16 @@ public:
     void setIteration(double iteration) {
         this->iteration = iteration;
     }
+    void setCommunityAssignments(const std::unordered_map<std::string, std::string>& new_assignments) {
+        this->communityAssignments = new_assignments;
+    }
+    void setOGCommunityAssignments(const std::unordered_map<std::string, std::string>& new_assignments) {
+        this->og_communityAssignments = new_assignments;
+    }
+
 
     // methods
-    Optimizer(Graph& G, Partition& P, double gamma, double theta);
+    Optimizer(Graph& G, Partition& P, double gamma, double theta, int seed);
     void optimize(int iterations);
     bool moveNodesFast();
     double calcQuality(double gamma);
@@ -87,9 +95,6 @@ public:
     void updateCommunityAssignments(const Partition& P, bool last_call);
     Rcpp::List graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
         return G.graphToRList(community_assignments, quality);
-    }
-    void setCommunityAssignments(const std::unordered_map<std::string, std::string>& new_assignments) {
-        communityAssignments = new_assignments;
     }
 };
 

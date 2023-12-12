@@ -168,17 +168,23 @@ public:
 
 class RandomGenerator { 
 public:
-    static std::vector<int> generateRandomPermutation(int n) {
+    static std::vector<int> generateRandomPermutation(int n, int seed = 0) {
         std::vector<int> permutation(n);
         for (int i = 0; i < n; ++i) {
             permutation[i] = i;
         }
-        // Create a random number generator
-        std::random_device rd;
-        std::mt19937 g(rd());
 
-        // Use std::shuffle instead of std::random_shuffle
-        std::shuffle(permutation.begin(), permutation.end(), g);
+
+        // Create a random number generator
+        if (seed == 0) {
+            std::random_device rd;
+            std::mt19937 g(rd()); // mercenne twister engine
+            std::shuffle(permutation.begin(), permutation.end(), g);
+        } else {
+            std::mt19937 g(seed);
+            std::shuffle(permutation.begin(), permutation.end(), g);
+        }
+
         return permutation;
     }
 };
