@@ -117,7 +117,7 @@ bool Optimizer::moveNodesFast() {
 
     if (print) {
         Rcpp::Rcout << "WOWOWOWOWOW" << std::endl;
-        Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, false) << std::endl;
+        Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, true) << std::endl;
     }
 
     if (print) {
