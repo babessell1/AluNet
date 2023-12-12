@@ -25,8 +25,20 @@ public:
         return n;
     }
 
+    void addNodeName(std::string node, int index) {
+        nodeIndexMap[node] = index;
+    }
+
     std::unordered_map<std::string, int> getNodeIndexMap() const {
         return nodeIndexMap;
+    }
+
+    std::unordered_map<int, std::string> getNodeNameMap() const {
+        std::unordered_map<int, std::string> node_name_map;
+        for (const auto& entry : nodeIndexMap) {
+            node_name_map[entry.second] = entry.first;
+        }
+        return node_name_map;
     }
 
     std::unordered_map<int, std::unordered_map<int, double>> getEdgeWeights() const {
@@ -43,6 +55,11 @@ public:
 
     double getNodeWeight(int node) const {
         return nodeWeights.at(node);
+    }
+
+    std::unordered_map<int, double> getEdgeWeightsFromStr(std::string u) {
+        int u_idx = getNodeIndex(u);
+        return edgeWeights.at(u_idx);
     }
 
     std::vector<int> getNodes() const {
@@ -79,15 +96,27 @@ public:
     }
 
     void setEdgeWeights(std::unordered_map<int, std::unordered_map<int, double>> edgeWeights) {
-        edgeWeights = edgeWeights;
+        this->edgeWeights = edgeWeights;
     }
 
     void initEdgeWeight(int u) {
-        edgeWeights[u] = std::unordered_map<int, double>();
+        this->edgeWeights[u] = std::unordered_map<int, double>();
     }
 
-    void setEdgeWeight(int u, int v, double w) {
-        edgeWeights[u][v] = w;
+    void setEdgeWeight(std::string u, std::string v, double w) {
+        int u_idx = getNodeIndex(u);
+        int v_idx = getNodeIndex(v);
+        edgeWeights[u_idx][v_idx] = w;
+    }
+
+    void updateAggEdgeWeight(std::string u, std::string v, double w) {
+        int u_idx = getNodeIndex(u);
+        int v_idx = getNodeIndex(v);
+        if (edgeWeights.at(u_idx).find(v_idx) != edgeWeights.at(u_idx).end()) {
+            this->edgeWeights.at(u_idx).at(v_idx) = edgeWeights.at(u_idx).at(v_idx) + w;
+        } else {
+            this->edgeWeights.at(u_idx)[v_idx] = w;
+        }
     }
 
     void setNodeWeights(std::unordered_map<int, double> nodeWeights) {
@@ -100,9 +129,9 @@ public:
 
     void incNodeWeight(int node, double weight) {
         if (nodeWeights.find(node) == nodeWeights.end()) {
-            nodeWeights[node] = 0.0;
+            this->nodeWeights[node] = 0.0;
         } else {
-            nodeWeights[node] += weight;
+            this->nodeWeights[node] += weight;
         }
     }
 
@@ -110,20 +139,21 @@ public:
         nodes = nodes;
     }
 
+    void setIsDirected(bool is_directed) {
+        isDirected = is_directed;
+    }
+
     void addNode(int node) {
         nodes.push_back(node);
     }
 
-    void setIsDirected(bool isDirected) {
-        isDirected = isDirected;
-    }
-
     void incTotalEdgeWeight(double weight) {
-        totalEdgeWeight += weight;
+        this->totalEdgeWeight += weight;
     }
 
     // methods
     Graph(int n);
+    Graph();
     void addEdge(const std::string& u, const std::string& v, double w);
     int getNodeIndex(const std::string& node) const;
     std::string getNodeName(int index) const;

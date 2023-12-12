@@ -39,6 +39,22 @@ Graph::Graph(int n) : n(n) {
     this->totalEdgeWeight = 0.0;
 };
 
+Graph::Graph() {  // default constructor
+    isDirected = false; 
+    // initialize edge weights map
+    std::unordered_map<int, std::unordered_map<int, double>> edge_weights;
+    this->edgeWeights = edge_weights;
+    // initialize node weights map
+    std::unordered_map<int, double> node_weights;
+    this->nodeWeights = node_weights;
+    // initialize nodes
+    std::vector<int> nodes_;
+    this->nodes = nodes_;
+    // initialize node index map
+    std::unordered_map<std::string, int> nodeIndexMap;
+    this->nodeIndexMap = nodeIndexMap;
+}
+
 /**
  * @brief add edge to the graph
  * @param u Node u

@@ -10,7 +10,8 @@ private:
     Partition& P;
     double gamma;
     double theta;
-    std::unordered_map<std::string, int> communityAssignments;
+    std::unordered_map<std::string, std::string> communityAssignments;
+    std::unordered_map<std::string, std::string> og_communityAssignments;
     double iteration;
 
 public:
@@ -27,11 +28,32 @@ public:
     double getTheta() const {
         return theta;
     }
-    std::unordered_map<std::string, int> getCommunityAssignments() const {
+    std::unordered_map<std::string, std::string> getCommunityAssignments() const {
         return communityAssignments;
     }
+
+    std::unordered_map<std::string, std::string> getOGCommunityAssignments() const {
+        return og_communityAssignments;
+    }
+
+    std::unordered_map<std::string, int> getCommunityAssignmentsInt() const {
+        std::unordered_map<std::string, int> community_assignments_int;
+        for (const auto& entry : communityAssignments) {
+            community_assignments_int[entry.first] = std::stoi(entry.second);
+        }
+        return community_assignments_int;
+    }
+
     double getIteration() const {
         return iteration;
+    }
+
+    void resetCommunityAssignments() {
+        communityAssignments.clear();
+    }
+
+    void updateCommunityAssignment(std::string node_name, std::string community_name) {
+        communityAssignments[node_name] = community_name;
     }
 
     // setters
@@ -62,7 +84,7 @@ public:
     std::vector<Community> getWellConnectedCommunities(const Community& B) const;
     void mergeNodesSubset(Community& S);
     void aggregateGraph(Partition& P_comm);
-    void updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap);
+    void updateCommunityAssignments(const Partition& P, bool last_call);
     Rcpp::List graphToRList(std::unordered_map<std::string, int>& community_assignments, double quality) const {
         return G.graphToRList(community_assignments, quality);
     }

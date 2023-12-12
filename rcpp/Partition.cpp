@@ -252,7 +252,15 @@ void Partition::purgeEmptyCommunities(bool renumber) {
 **/
 double Partition::calcQuality(double gamma, const Graph& G, bool print) const {
     double quality = 0.0;
+    //if print print nodes
+    if (print) {
+        Rcpp::Rcout << "Get " << nodeCommunityMap.size() << " nodes: " << std::endl;
+    }
     for (int node_idx : G.getNodes()) {
+        if (print) {
+            Rcpp::Rcout << "Node idx: " << node_idx << " Node Name: " << G.getNodeName(node_idx) << " Node community: " << nodeCommunityMap.at(node_idx) << std::endl;
+            Rcpp::Rcout << "Has " << G.getNeighbors(node_idx).size() << " neighbors: " << std::endl;
+        }
 
         // get the neighbors of the node
         for (int neigh_idx : G.getNeighbors(node_idx)) {
@@ -306,22 +314,23 @@ std::unordered_map<int, Community> Partition::createEmptyCommunityIndexMap() {
  * @return void
 **/
 void Partition::makeSingleton(const Graph& G) {
-    // initialize the community index map
-    std::unordered_map<int, Community> single_community_index_map;
-    std::unordered_map<int, int> single_node_community_map;
-    // for each node in the graph
-    for (int node_idx : G.getNodes()) {
-        // create a community for the node
-        Community comm({node_idx}, node_idx);
+    Rcpp::Rcout << "MAKING THAT SINGLETON" << std::endl;
+    // for each node in the partition, set the community to a string of the node index
+    std::unordered_map<int, int> new_node_community_map;
+    std::unordered_map<int, Community> new_community_index_map;
+    for (const auto& entry : G.getNodeIndexMap()) {
+        int node_idx = entry.second;
+        Rcpp::Rcout << "Node index: " << node_idx << " Node name: " << entry.first << std::endl;
+        // add the node to the community index map
+        new_node_community_map.insert({node_idx, node_idx});
         // add the community to the community index map
-        single_community_index_map.insert({node_idx, comm});
-        // add the node to the node community map
-        single_node_community_map.insert({node_idx, node_idx});
+        new_community_index_map.insert({node_idx, Community({node_idx}, node_idx)});
     }
-    // update the community index map
-    communityIndexMap = single_community_index_map;
-    // update the node community map
-    nodeCommunityMap = single_node_community_map;
+    // set the node community map
+    setNodeCommunityMap(new_node_community_map);
+    // set the community index map
+    setCommunityIndexMap(new_community_index_map);
+
 }
 
 /**

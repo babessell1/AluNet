@@ -21,10 +21,13 @@
  * @note the community assignments are initialized to the node indices
 **/
 Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G), P(P), gamma(gamma), theta(theta) {
-    this->communityAssignments = std::unordered_map<std::string, int>();
+    this->communityAssignments = std::unordered_map<std::string, std::string>();
+    this->og_communityAssignments = std::unordered_map<std::string, std::string>();
     // initialize the community assignments
     for (const auto& entry : G.getNodeIndexMap()) {
-        communityAssignments.insert({entry.first, entry.second});
+        std::string string_index = std::to_string(entry.second);
+        communityAssignments.insert({entry.first, string_index});
+        og_communityAssignments.insert({entry.first, string_index});
     }
     this->iteration = 0;
 }
@@ -38,15 +41,71 @@ Optimizer::Optimizer(Graph& G, Partition& P, double gamma, double theta) : G(G),
  * @note this is critical for tracking the community assignments after the graph is aggregated
  *       which allows us to return the assigments of the original nodes after the optimization
 **/
-void Optimizer::updateCommunityAssignments(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap) {
+void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_call) {
     // currently stored value in communityAssignments is the previous community assignment which is the latest node index
     // we update by matching new nodes to the previous community assignment and changing the community assignment to the new community index
-    // for each node in the graph
+
+    int count_replaced = 0;
+    int count_nodes = 0;
+    // for each node in the original community assignments
+    std::unordered_map<std::string, std::string> new_community_assignments;
+    for (const auto& iter : getOGCommunityAssignments()) {
+        count_nodes++;
+        std::string node_name = iter.first;
+        // get the previous assignment
+        std::string prev_assignment = iter.second;
+
+        Rcpp::Rcout << "Previous assignment: " << prev_assignment << std::endl;
+
+        // if previous assignment is the same as the new node index and using refined partition
+        if (!final_call) {
+            // get the new community assignment
+            for (const auto& entry : getCommunityAssignments()) {
+                std::string agg_node = entry.first;
+                std::string new_assignment = entry.second;
+                Rcpp::Rcout << "Aggregated node: " << agg_node << " New assignment: " << new_assignment << std::endl;
+                // if the aggregated node index matches the previous assignment
+                if (agg_node == prev_assignment) {
+                    // replace the previous assignment with the new assignment
+                    new_community_assignments[node_name] = new_assignment;
+                    Rcpp::Rcout << "Replaced " << prev_assignment << " with " << new_assignment << std::endl;
+                    count_replaced++;
+                }             
+            }
+        } else {
+            // if final call, use the move nodes partition (will use same node index)
+            for (const auto& entry : P_comm.getNodeCommunityMap()) {
+                std::string node = std::to_string(entry.first);
+                std::string final_community = std::to_string(entry.second);
+                if (node == prev_assignment) {
+                    new_community_assignments[node_name] = final_community;
+                    count_replaced++;
+                }
+            }
+        }
+    }
+    Rcpp::Rcout << "Replaced " << count_replaced << " out of " << count_nodes << " nodes" << std::endl;
+    // if not all nodes were replaced, throw an error
+    if (count_replaced != count_nodes) {
+        Rcpp::stop("Not all nodes were replaced in the community assignments, something went wrong!");
+    }
+}
+
+    
+
+/*
+void Optimizer::updateCommunityAssignments_bad(const Partition& P, const std::unordered_map<std::string, int>& original_nodeIndexMap) {
+    // currently stored value in communityAssignments is the previous community assignment which is the latest node index
+    // we update by matching new nodes to the previous community assignment and changing the community assignment to the new community index
+
+    // for each node in the original graph
     for (const auto& iter : original_nodeIndexMap) {
         // get the node index
         int node_idx = iter.second;
-        // for each item in the community assignments
+
+        // for each item in the current community assignments
         for (auto& entry : communityAssignments) {
+
             // if the node index matches the last community assignment
             if (entry.second == node_idx) {
                 // set the community assignment to the new community index
@@ -55,6 +114,7 @@ void Optimizer::updateCommunityAssignments(const Partition& P, const std::unorde
         }
     }
 }
+*/
 
 /**
  * @brief Calculate the difference in quality of the partition after moving a node to a new community
@@ -117,8 +177,8 @@ bool Optimizer::moveNodesFast() {
 
     if (print) {
         Rcpp::Rcout << "WOWOWOWOWOW" << std::endl;
-        Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, true) << std::endl;
     }
+    Rcpp::Rcout << "Initial quality: " << P.calcQuality(gamma, G, false) << std::endl;
 
     if (print) {
         // print each community and its nodes
@@ -168,6 +228,11 @@ bool Optimizer::moveNodesFast() {
             unused_clusters[n_unused_clusters] = i;
             n_unused_clusters++;
         }
+
+    if (print) {
+        Rcpp::Rcout << "Length of unused clusters: " << n_unused_clusters << std::endl;
+        Rcpp::Rcout << "Length of nodes per cluster: " << nodes_per_cluster.size() << std::endl;
+    }
 
     // start of the cyclical process
     do {
@@ -591,23 +656,27 @@ void Optimizer::mergeNodesSubset(Community& S) {
 */
 void Optimizer::aggregateGraph(Partition& P_comm) {
 
-    // initialize the aggregate graph
-    int num_communities = P_comm.getCommunityIndexMap().size();
-    Graph aggregate_graph(num_communities);
+    //reset the community assignments
+    resetCommunityAssignments();
+
+    Graph aggregate_graph;
+
+    aggregate_graph.setIsDirected(false);
 
     // create a map of community indices to ordered new community indices
     // want to ensure the nodes are consecutively indexed for the 
     // next iteration of moveNodesFast so that we can
     // use the vector data structure
-    std::unordered_map<int, int> new_community_indices;
+    std::unordered_map<int, int> new_community_indices; 
     int new_index = 0;
     for (const auto& entry : P.getCommunityIndexMap()) {
         int old_index = entry.first;
         new_community_indices[old_index] = new_index;
+        aggregate_graph.addNodeName(std::to_string(new_index), new_index);
         new_index++;
     }
 
-    // create a map of community indices to ordered new community indices
+    // create a map of community indices to ordered new community indices (based on P_comm)
     std::unordered_map<int, int> old_community_indices; 
     int new_comm_assign_idx = 0;
     for (const auto& entry : P_comm.getCommunityIndexMap()) {
@@ -616,8 +685,53 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
         new_comm_assign_idx++;
     }
 
+    /*
+    // get new moveComm2refinedComm map
+    std::unordered_map<int, int> new_comm_map_2_refined_comm;
+    for (const auto& entry : P_comm.getNodeCommunityMap()) {
+        int node_idx = entry.first; // get the node index
+        // get the community index of the node in P_comm
+        int move_community_idx = entry.second;
+        // get the community index of the same node in P
+        int refined_community_idx = P.getNodeCommunityIdx(node_idx);
+        // map the community index of the node in P to the community index of the node in P_comm
+        new_comm_map_2_refined_comm[move_community_idx] = refined_community_idx;
+    }
+    this->moveComm2refinedComm = new_comm_map_2_refined_comm;
+    */
+
+    /*
+    Rcpp::Rcout << "There are " << old_community_indices.size() << " moveNodes communities mapped to new community indices" << std::endl;
+
+    Rcpp::Rcout << "==============================---------------------------------+++++++++++----------------------------------------============================================" << std::endl;
+    // print new_community_index map
+    // print old
+    Rcpp::Rcout << "Printing od_community_indices" << std::endl;
+    for (const auto& entry : old_community_indices) {
+        Rcpp::Rcout << "Old community index: " << entry.first << " New community index: " << entry.second << std::endl;
+    }
+    Rcpp::Rcout << "Printing new_community_indices" << std::endl;
+    for (const auto& entry : new_community_indices) {
+        Rcpp::Rcout << "Old community index: " << entry.first << " New community index: " << entry.second << std::endl;
+    }
+    Rcpp::Rcout << "Printing node index map" << std::endl;
+    // print aggregate graph node names
+    for (const auto& entry : aggregate_graph.getNodeIndexMap()) {
+        Rcpp::Rcout << "Node index: " << entry.second << " Node name: " << entry.first << std::endl;
+    }
+    Rcpp::Rcout << "Printing node community map" << std::endl;
+    for (auto entry : P.getNodeCommunityMap()) {
+        Rcpp::Rcout << "Node index: " << entry.first << " Community idx: " << entry.second << std::endl;
+    }
+    Rcpp::Rcout << "Printing node community index map" << std::endl;
+    for (auto entry : P.getCommunityIndexMap()) {
+        Rcpp::Rcout << "Node index: " << entry.first << " Community size: " << entry.second.size() << std::endl;
+    }
+    Rcpp::Rcout << "==============================---------------------------------+++++++++++----------------------------------------============================================" << std::endl;
+    */
+
     // initalize community assignment maps
-    std::unordered_map<int, Community> agg_community_index_map = P.createEmptyCommunityIndexMap();
+    std::unordered_map<int, Community> agg_community_index_map = P_comm.createEmptyCommunityIndexMap(); // communities based on moveNodes
     std::unordered_map<int, int> agg_node_community_map;
     std::unordered_map<std::string, int> agg_node_index_map;
 
@@ -630,8 +744,12 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
         int old_c_idx = iter.first; // get the old community index
         int c_idx = new_community_indices.at(old_c_idx);  // get the new (consecutive) community index
 
+        //Rcpp::Rcout << "Old community index: " << old_c_idx << " New community index: " << c_idx << std::endl;
+
         // convert the community index to a string (new node name in agg graph)
-        std::string c_str = std::to_string(c_idx);
+        std::string c_str = aggregate_graph.getNodeName(c_idx);
+
+        //Rcpp::Rcout << "NAMED: " << c_str << std::endl;
 
         // initialize new node in the aggregate graph
         aggregate_graph.setNodeIndex(c_str, c_idx);
@@ -640,7 +758,9 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
         aggregate_graph.initEdgeWeight(c_idx);
 
         // get the nodes in the old community
-        std::vector<int> nodesInCommunity = P.getNodeCommunity(old_c_idx).getNodeIndices();
+        std::vector<int> nodesInCommunity = P.getCommunity(old_c_idx).getNodeIndices();
+
+        //Rcpp::Rcout << "There are " << nodesInCommunity.size() << " nodes in the community" << std::endl;
         
         std::map<int, int> neighbors;  // initialize a map of neighbors
         std::map<int, double> edge_weights; // initialize a map of edge weights
@@ -651,17 +771,31 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
         // for each node in the community
         for (int node : nodesInCommunity) {
 
+            //Rcpp::Rcout << "Node " << node << " named " << G.getNodeName(node) << " has original community index: " << P.getNodeCommunityIdx(node) << " now mapped to: " << new_community_indices.at(P.getNodeCommunityIdx(node)) << std::endl;
+
             // get the community index (just a rename for clarity)
             int u_comm = c_idx;
 
+            // update community assignment
+            updateCommunityAssignment(G.getNodeName(node), c_str);
+
             // add the node weight to the aggregate graph
-            aggregate_graph.incNodeWeight(u_comm, G.getNodeWeights().at(node));
+            aggregate_graph.incNodeWeight(u_comm, G.getNodeWeight(node));
+
+            //Rcpp::Rcout << "oh we incremented the node weight" << std::endl;
 
             // for each neighbor of the node
-            for (const auto& neighbour : G.getEdgeWeights()[node]) {
-                int v_idx = neighbour.first;  // get the neighbor index
-                int v_comm = P.getNodeCommunityIdx(v_idx);  // get the neighbor community index
-                std::string v_str = std::to_string(v_comm);  // convert the neighbor community to a string
+            for (const auto& neighbour : G.getThisEdgeWeights(node)) {
+                int old_v_idx = neighbour.first;  // get the neighbor index
+                //Rcpp::Rcout << "old v node idx: " << old_v_idx << std::endl;
+                int v_old_comm = P.getNodeCommunityIdx(old_v_idx);  // get the neighbor community index
+                //Rcpp::Rcout << "old v comm: " << v_old_comm << std::endl;
+                int v_comm = new_community_indices.at(v_old_comm);  // get the new (consecutive) neighbor community index
+                //Rcpp::Rcout << "new comm: " << v_comm << std::endl;
+                std::string v_str = aggregate_graph.getNodeName(v_comm);  // get the new (consecutive) neighbor index as a string
+                //Rcpp::Rcout << "new str: " << v_str << std::endl;
+
+                //Rcpp::Rcout << "Neighbor " << old_v_idx << " in community " << aggregate_graph.getNodeName(v_comm) << " has community index: " << v_comm << std::endl;
 
                 // ensure the neighbor community is in the node index map
                 aggregate_graph.setNodeIndex(v_str, v_comm);
@@ -669,19 +803,23 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
                 // get the edge weight shared between the node and the neighbor
                 double weight = neighbour.second;
 
+                //Rcpp::Rcout << "V_COMM: " << v_comm << " U_COMM: " << u_comm << " WEIGHT: " << weight << std::endl;
+
                  // don't want self loops
                 if (u_comm != v_comm) {
 
-                    // check if the neighbor is already in the map
-                    if (aggregate_graph.getEdgeWeights().at(u_comm) == std::unordered_map<int, double>()) {
+
+                    //Rcpp::Rcout << "DEBUG: EdgeWeights for u_comm " << u_comm << ": " << aggregate_graph.getEdgeWeights().at(u_comm).size() << std::endl;
+                    // check if aggregate_graph.getEdgeWeights().at(u_comm) is empty
+                    if (aggregate_graph.getEdgeWeightsFromStr(c_str).empty()) {
+                        //Rcpp::Rcout << "!!!!!!!!!!!!!Adding new edge weight!!!!!!!!!!!!!!!!" << std::endl;
                         // add the neighbor to the map
                         aggregate_graph.addEdge(c_str, v_str, weight);
                     } else {
                         // update the edge weight
-                        Rcpp::Rcout << "??????????Updating edge weight????????" << std::endl;
-                        aggregate_graph.setEdgeWeight(u_comm, v_comm, weight); // might not ever get called
+                        //Rcpp::Rcout << "??????????Updating edge weight????????" << std::endl;
+                        aggregate_graph.updateAggEdgeWeight(c_str, v_str, weight); // might not ever get called
                     }
-                    aggregate_graph.incTotalEdgeWeight(weight); // update the total edge weight
                 } 
             }
             // identify the community the collapsed node belong to
@@ -709,12 +847,12 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
             // create a new community in the aggregate graph
             Community new_community({c_idx}, comm_assign_idx);
             agg_community_index_map[comm_assign_idx] = new_community;
-            Rcpp::Rcout << "~~~Created community " << comm_assign_idx << " with node " << c_idx << std::endl;
+            //Rcpp::Rcout << "~~~Created community " << comm_assign_idx << " with node " << c_idx << std::endl;
 
         } else { // if the old community is already in the used communities
             // add the node to the existing community
             agg_community_index_map.at(comm_assign_idx).addNode(c_idx);
-            Rcpp::Rcout << "~~~Added node " << c_idx << " to community " << comm_assign_idx << std::endl;
+            //Rcpp::Rcout << "~~~Added node " << c_idx << " to community " << comm_assign_idx << std::endl;
         }
         // update the communitynew_community_assignment
         agg_node_community_map[c_idx] = comm_assign_idx;
@@ -726,11 +864,33 @@ void Optimizer::aggregateGraph(Partition& P_comm) {
     Rcpp::Rcout << "Length of agg_community_index_map: " << agg_community_index_map.size() << std::endl;
     Rcpp::Rcout << "Length of agg_node_community_map: " << agg_node_community_map.size() << std::endl;
     Rcpp::Rcout << "Length of agg_node_index_map: " << agg_node_index_map.size() << std::endl;
+    Rcpp::Rcout << "Length of agg_edge_weights: " << aggregate_graph.getEdgeWeights().size() << std::endl;
+    // print the actual edge weights
+    //for (const auto& entry : aggregate_graph.getEdgeWeights()) {
+    //    Rcpp::Rcout << "Edge weights for node " << entry.first << " are: " << std::endl;
+    //    for (const auto& edge : entry.second) {
+    //        Rcpp::Rcout << edge.first << " " << edge.second << std::endl;
+    //    }
+    //}
+
+    // check that the aggregate graph is undirected
+    if (aggregate_graph.getIsDirected()) {
+        for (const auto& entry : aggregate_graph.getEdgeWeights()) {  // for each node in the aggregate graph
+            for (const auto& edge : entry.second) {  // for each edge in the node
+                // if there is no edge weight for the edge
+                if (aggregate_graph.getEdgeWeights().at(edge.first).find(entry.first) == aggregate_graph.getEdgeWeights().at(edge.first).end()) {
+                    Rcpp::Rcout << "Edge weight for edge " << edge.first << " " << entry.first << " is missing!" << std::endl;
+                    Rcpp::stop("Aggregate graph is directed!");
+                }
+            }
+        }
+    }
 
     // set the aggregate graph properties
     P.setCommunityIndexMap(agg_community_index_map);
     P.setNodeCommunityMap(agg_node_community_map);
     aggregate_graph.setNodeIndexMap(agg_node_index_map);
+    aggregate_graph.setN(); // set the number of nodes in the graph
     this->G = aggregate_graph; // set the graph to the aggregate graph
 }
 
@@ -752,16 +912,13 @@ void Optimizer::refinePartition(const Partition& P_original) {
     Rcpp::Rcout << "Done merging nodes" << std::endl;
     // print the number of communities in the refined partition
     P.purgeEmptyCommunities(true); // remove empty communities
-    //Rcpp::Rcout << "+++++++++Number of communities in refined partition: " << P.getCommunityIndexMap().size() << std::endl;
+    Rcpp::Rcout << "+++++++++Number of communities in refined partition: " << P.getCommunityIndexMap().size() << std::endl;
 
 }
 
 void Optimizer::optimize(int iterations) {
     bool done = false; // track if the optimization is done
     int counter = 0; // track the number of iterations
-
-    // store original node index map to track community assignments
-    std::unordered_map<std::string, int>  og_nodeIndexMap = G.getNodeIndexMap();
 
     // if not converged and not at max iterations, run a Leiden iteration
     while (!done && iterations > counter) {
@@ -771,13 +928,19 @@ void Optimizer::optimize(int iterations) {
         Rcpp::Rcout << "========================= ITERATION " << getIteration() << " =========================" << std::endl;
 
         Rcpp::Rcout << "Number of communities before moving: " << P.getCommunityIndexMap().size() << std::endl;
+
+        Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+            for (const auto& entry : P.getNodeCommunityMap()) {
+                Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
+            }
        
         // fast local node moving step to improve the partition
         bool improved = moveNodesFast();
 
-        // update community assignments for the output
-        Rcpp::Rcout << "Updating community assignments" << std::endl;
-        updateCommunityAssignments(P, og_nodeIndexMap);
+        Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+            for (const auto& entry : P.getNodeCommunityMap()) {
+                Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
+            }
 
         std::vector<int> community_indices = P.getCommunityIndices();
         Rcpp::Rcout << "Number of communities after moving: " << community_indices.size() << std::endl;
@@ -792,18 +955,33 @@ void Optimizer::optimize(int iterations) {
 
             Rcpp::Rcout << "Refining partition" << std::endl;
             // set this->P to refined partition
-            this->P = initializePartition(G); // set partition to singleton
+            this->P.makeSingleton(G); // make the partition a singleton
+
+            Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+            for (const auto& entry : P.getNodeCommunityMap()) {
+                Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
+            }
+
             refinePartition(P_save); // refine the partition
+
+            Rcpp::Rcout << "$$$nodes name before refine: " << std::endl;
+            for (const auto& entry : P.getNodeCommunityMap()) {
+                Rcpp::Rcout << entry.first << " " << G.getNodeName(entry.first) << std::endl;
+            }
 
             // collapse the communities into a single node in a new graph
             Rcpp::Rcout << "Aggregating graph" << std::endl;
             aggregateGraph(P_save);
+
+            Rcpp::Rcout << "Updating community assignments" << std::endl;
+            updateCommunityAssignments(P, false);
 
             Rcpp::Rcout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
             // print length of agg_community_index_map
             Rcpp::Rcout << "Length of agg_community_index_map: " << P.getCommunityIndexMap().size() << std::endl;
             Rcpp::Rcout << "Length of agg_node_community_map: " << P.getNodeCommunityMap().size() << std::endl;
             Rcpp::Rcout << "Length of agg_node_index_map: " << G.getNodeIndexMap().size() << std::endl;
+            Rcpp::Rcout << "Length of agg_edge_weights: " << G.getEdgeWeights().size() << std::endl;
      
             // shouldnt need to do this now that reindexing is done in aggregateGraph
             //G.updateNodeProperties(false);
@@ -821,6 +999,10 @@ void Optimizer::optimize(int iterations) {
             // this is wrong we need to set next intial communities base on unrefined partition
             //P.makeSingleton(G);  // make the partition a singleton
         }
+
+        // update community assignments for the output
+        Rcpp::Rcout << "Updating final community assignments" << std::endl;
+        updateCommunityAssignments(P, true);
 
         if (!improved) {
             // print partition could not be improved
@@ -949,7 +1131,7 @@ Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double 
 
     */
 
-    std::unordered_map<std::string, int> community_assignment = optim.getCommunityAssignments();
+    std::unordered_map<std::string, int> community_assignment = optim.getCommunityAssignmentsInt();
 
     // reset the graph nodes to get exact ones from before (not aggregated graph)
     G = listToGraph(graphList);
