@@ -16,7 +16,13 @@ benchmark
 if (!require("devtools")) {
   install.packages("devtools")
 }
+
+
 devtools::install_github("babessell1/AluNet/AluNet")
+
+# the above doesn't work
+
+
 if (!require("igraph")) {
   install.packages("igraph")
 }
@@ -125,7 +131,7 @@ g_list <- list(
 
 ```{r}
 seed <- 1
-result <- runLeiden(g_list, iterations, gamma, theta, seed)
+result <- AluNet::runLeiden(g_list, iterations, gamma, theta, seed)
 plotLeiden(result)
 ```
 
