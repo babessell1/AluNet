@@ -13,6 +13,9 @@ To run our package, first install it and some other dependencies we will use to
 benchmark
 
 ```{r}
+if (!require("devtools")) {
+  install.packages("devtools")
+}
 devtools::install_github("babessell1/AluNet/AluNet")
 if (!require("igraph")) {
   install.packages("igraph")
@@ -320,12 +323,16 @@ implementation
 
 
 ```{r}
+dataframe <- read.csv("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package/edges_data_frame.csv")
+list <- as.list(dataframe)
+```
 
+```{r}
+result <- runLeiden(list, 1, 1, 0.1, 1)
 ```
 
 Finally, we time and plot our results
 
 ```{r}
-
-
+plotLeiden(result, no_labels=TRUE)
 ```
