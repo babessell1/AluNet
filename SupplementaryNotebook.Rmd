@@ -1,5 +1,5 @@
 ---
-title: "Leiden Example"
+title: "AluNet Supplementary"
 author: "Brandt Bessell"
 date: "2023-12-08"
 output: html_document
@@ -13,8 +13,9 @@ To run our package, first install it and some other dependencies we will use to
 benchmark
 
 ```{r}
-if (!require("AluNet")) {
-  install.packages("AluNet")
+devtools::install_github("babessell1/AluNet/AluNet")
+if (!require("igraph")) {
+  install.packages("igraph")
 }
 if (!require("microbenchmark")) {
   install.packages("microbenchmark")
@@ -25,20 +26,15 @@ Then we will load it, igraph, and microbenchmark to benchmark against the
 current gold standard of clustering algorithm implementations.
 
 ```{r}
-library(Rcpp)
 library(igraph)
 library(microbenchmark)
-#library("AluNet")
+library(AluNet)
 ```
 
 We provide some enviromental context for our tests in case you have trouble 
 compiling the cpp files.
 ```{r}
-setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
-Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
-Sys.which("make")
-Sys.which("g++")
-sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package")
 ```
 
 First, we check against several toy models. Note that the RNG is different for
@@ -138,9 +134,8 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Next we benchmark the model to show that igraph, as expected, outperforms our
-implementation due to its lower level control over memory, and use of vectors
-instead of hash maps. 
+Next we benchmark the model to show that igraph, which is developed by a team
+of advanced computer scientists, is much more optimized than our implementation.
 
 ```{r}
 rm(.Random.seed)
@@ -158,7 +153,29 @@ mb_igraph <- microbenchmark(
 print(rbind(mb_ours, mb_igraph))
 ```
 
-Next we try with some harder toy models, 
+Next we try with some larger more complex toy models to also show that iGraph's
+implementation scales better than ours (4:1) compared to (5:1) for a graph that
+is twice as big. 
+
+```{r}
+rm(.Random.seed)
+# Use microbenchmark to time the function
+mb_ours <- microbenchmark(
+  runLeiden(g_list, 3, gamma, theta),
+  times=10
+)
+
+mb_igraph <- microbenchmark(
+  runIgraph(gdf, 3, gamma, theta),
+  times=10
+)
+# Print the result
+print(rbind(mb_ours, mb_igraph))
+```
+
+Now, let's increase the iteration number to 10 so that the partition can
+converge, and try several random seeds to see if the sets of partitions 
+produced by each method overlap.
 
 ```{r}
 toy = "Zachary"
@@ -182,48 +199,92 @@ plotLeiden(result)
 ```
 ```{r}
 gdf <- make_graph(toy)
+set.seed(1)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
+
+Notice these models are slightly different, Since this graph is a bit more 
+complicated, and prone to RNG-based variation, which cannot be equalized by
+setting the same seed due to differences in implementation, we can rerun the
+igraph implementation with 2 as our seed instead of 1, to get the same partition.
+
+
+```{r}
+gdf <- make_graph(toy)
 set.seed(2)
 igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-```{r}
-rm(.Random.seed)
-# Use microbenchmark to time the function
-mb_ours <- microbenchmark(
-  runLeiden(g_list, 3, gamma, theta),
-  times=10
-)
+Let's see if we consistently produce similar community configurations.
 
-mb_igraph <- microbenchmark(
-  runIgraph(gdf, 3, gamma, theta),
-  times=10
-)
-# Print the result
-print(rbind(mb_ours, mb_igraph))
+
+```{r}
+seed <- 3
+result <- runLeiden(g_list, iterations, gamma, theta, seed)
+plotLeiden(result)
 ```
 
 ```{r}
-
-
-rm(.Random.seed)
-# Use microbenchmark to time the function
-mb_ours <- microbenchmark(
-  runLeiden(g_list, 1, gamma, theta),
-  times=10
-)
-
-mb_igraph <- microbenchmark(
-  runIgraph(gdf, 1, gamma, theta),
-  times=10
-)
-# Print the result
-print(rbind(mb_ours, mb_igraph))
+gdf <- make_graph(toy)
+set.seed(3)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
 ```
+
+```{r}
+seed <- 4
+result <- runLeiden(g_list, iterations, gamma, theta, seed)
+plotLeiden(result)
+```
+
+```{r}
+gdf <- make_graph(toy)
+set.seed(4)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
+
+
+```{r}
+seed <- 5
+result <- runLeiden(g_list, iterations, gamma, theta, seed)
+plotLeiden(result)
+```
+
+```{r}
+gdf <- make_graph(toy)
+set.seed(5)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
+
+Increasing the resolution parameter, gamma, should decrease the size of the 
+communities, let's see if that happens.
+
+```{r}
+gamma <- 0.5
+```
+
+```{r}
+seed <- 1
+result <- runLeiden(g_list, iterations, gamma, theta, seed)
+plotLeiden(result)
+```
+
+```{r}
+gdf <- make_graph(toy)
+set.seed(1)
+igraph_result <- runIgraph(gdf, iterations, gamma, theta)
+plotIgraph(gdf, igraph_result)
+```
+
+
 
 To show its utility on biological data, we first download some Fit-Hi-C data (cite)
 
-```{r, eval=FALSE}
+```{r}
 library(R.utils)
 file_path <- "path/to/your/working/directory"
 setwd(file_path)
@@ -236,13 +297,35 @@ gunzip(file_name, remove=FALSE)
 
 Then we download Dfam mobile elements (cite) (be careful, it is very large)
 
-```{r, eval=FALSE}
+```{r}
 
 
 ```
 
 Then we download some example ATAC-seq data (cite)
 
-```{r, eval=FALSE}
+```{r}
+
+```
+
+Then we run several helper functions to convert each of the data into matrices
+
+```{r}
+
+```
+
+
+Then we run createAluGraph to create our weighted input graph for the Leiden
+implementation
+
+
+```{r}
+
+```
+
+Finally, we time and plot our results
+
+```{r}
+
 
 ```

@@ -1,0 +1,198 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+ 
+
+```{r}
+library(Rcpp)
+library(igraph)
+library(Matrix)
+source("r/graphFromFitHIC.R")  
+update.packages("Rcpp")
+setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
+Sys.setenv(PKG_CXXFLAGS = "-std=c++17")
+Sys.which("make") 
+Sys.which("g++")
+#sourceCpp("rcpp/compile_test.cpp", verbose = TRUE, rebuild = TRUE)
+#sourceCpp("rcpp/GraphUtils.cpp", verbose = F, rebuild = TRU'E)
+sourceCpp("rcpp/Leiden.cpp", verbose = F, rebuild = TRUE)
+source("r/plot_graph.R")
+#set.seed(1)
+```
+
+
+```{r}
+#g <- as_edgelist(make_graph('Zachary'))
+g <- as_edgelist(make_graph('noperfectmatching'))
+g_list <- list(
+  to=g[,1],
+  from=g[,2],
+  weight=rep(1, length(g[,1]))
+  
+)
+
+# before clustering
+#plot.graph(g_list, "karate_nodes.png", small_nodes=F)
+# after clustering\
+iterations <- 1 
+gamma <- 0.01  # gamma > 0
+theta <- 0.05 # good theta is 0.005 < 0.05
+result <- runLeiden(g_list, iterations, gamma, theta)
+#plot.graph(result, "karate_leiden.png")
+
+```
+
+```{r}
+graph_data <- createGraphFromList(g_list)
+edges <- g_list$edges
+weights <- g_list$weights
+# remove items of list that are not to from or weight
+graph_data$communities <-NULL
+graph_data$node_names <- NULL
+graph_data$quality <- NULL
+
+gdf <- graph.data.frame(graph_data)
+```
+
+```{r}
+gdf <- make_graph("noperfectmatching")
+# By default CPM is used
+#r <- quantile(strength(gdf))[2] / (gorder(gdf) - 1)
+# Set seed for sake of reproducibility
+
+#g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+#gdf <- graph.data.frame(g_list)
+#gdf <- as.undirected(gdf, mode = "collapse")
+
+
+ldc <- cluster_leiden(
+  gdf,
+  resolution_parameter=gamma,
+  objective_function="CPM",
+  weights=g_list[["weight"]],
+  beta=theta,
+  n_iterations=iterations,
+  vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
+)
+
+ldc <- cluster_louvain(gdf, weights = NULL, resolution = 1)
+
+
+
+print(ldc) 
+color_palette <- heat.colors(100)
+
+plot(
+  gdf,
+  layout = layout_with_fr(gdf),
+  vertex.color = ldc$membership,  # Color nodes based on community
+  #vertex.frame.color = community_colors,
+  edge.color = color_palette[g_list$weight],  # Map edge color from cold to hot
+  #vertex.label = V(gdf)$name,
+  vertex.label = V(gdf)$community,
+  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+  main = "Graph with Community Colors and Edge Weights"
+)
+
+print(ldc$membership)
+
+# Add a legend for community colors
+legend("topright", legend = unique(ldc$membership),
+       col = ldc$membership, pch = 19,
+       title = "Communities", cex = 0.8)
+```
+
+```{r}
+# get graph
+g <- as_edgelist(make_graph('noperfectmatching'))
+g_list <- list(
+  to=g[,1],
+  from=g[,2],
+  weight=rep(1, length(g[,1]))
+)
+
+#g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+
+# run leiden community deteciton
+#result <- runLeiden(g_list, iterations, gamma, theta)
+
+# graph info
+my_ldc <- list(
+  membership=result$communities,
+  nb_clusters=length(unique(result$communities)),
+  quality=result$quality,
+  algorithm="homemade_leiden",
+  vcount=length(result$communities)
+)
+
+#graph <- createGraphFromList(g_list)
+#graph$communities <- NULL
+#graph$node_names <- NULL
+#graph$quality <- NULL
+gdf <- graph.data.frame(graph)
+
+V(gdf)$name <- result$node_names
+V(gdf)$membership <- result$communities
+#plot(my_ldc, gdf)
+
+# Use a predefined color palette for edges (e.g., 'heat.colors')
+color_palette <- heat.colors(100)
+
+get_community_colors <- function(num_communities) {
+  rainbow(num_communities)
+}
+
+#par(mfrow=c(1,2), mar=rep(1,4))
+
+# Change colors of nodes, polygons, and polygon borders
+num_communities <- length(unique(result$communities))
+community_colors <- get_community_colors(num_communities)
+
+# Plot the graph
+plot(
+  gdf,
+  layout = layout_with_fr(gdf),
+  vertex.color = V(gdf)$membership,  # Color nodes based on community
+  vertex.frame.color = community_colors,
+  edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
+  vertex.label = V(gdf)$name,
+  edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+  main = "Graph with Community Colors and Edge Weights"
+)
+
+# Add a legend for community colors
+legend("topright", legend = unique(V(gdf)$membership),
+       col = V(gdf)$membership, pch = 19,
+       title = "Communities", cex = 0.8)
+
+```
+
+
+```{r}
+#g_list <- graphFromFitHIC("data/hic_test.txt", "chr1")
+g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
+#g_list <- graphFromFitHIC("data/GSE148434_NS_all.5kb.1e-2.FitHiC.all.txt", "chr1")
+g_list <- list(
+  to =   c("1", "3", "5", "7", "7", "11", "11"),
+  from = c("0", "2", "4", "12", "8", "8", "12"),
+  weight = c(1, 1, 1, 1, 1, 1, 1)
+)
+graph_data <- createGraphFromList(g_list)
+edges <- g_list$edges
+weights <- g_list$weights
+#print(graph_data)
+
+plot.graph(g_list, "hi-c_nodes.png", small_nodes=T)
+```
+
+```{r}
+g_list <- graphFromFitHIC("data/hic_test_10k.txt", "chr1")
+print(length(unique(c(g_list[["to"]], g_list[["from"]]))))
+g_list[["weight"]] <- g_list[["weight"]] / mean(g_list[["weight"]])
+output <- runLeiden(g_list, 2, .1, .05)
+print(output[["communities"]])
+print(output[["nodes"]])
+print(output[["node_names"]])
+# 4258
+```

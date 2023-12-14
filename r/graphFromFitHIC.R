@@ -3,9 +3,6 @@
 #' @param tsv_file A character string specifying the path to the TSV file containing Hi-C data.
 #' @param chromosome A character string specifying the chromosome to filter the data for.
 #' @return A list containing the edge information for the graph.
-#' @examples
-#' tsv_file <- system.file("extdata", "hic_data.tsv", package = "graphFromFitHIC")
-#''
 graphFromFitHIC <- function(tsv_file, chromosome) {
   # Read the TSV file into a data frame
   data <- read.table(tsv_file, header = TRUE, sep = "\t")

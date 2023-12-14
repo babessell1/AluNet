@@ -1,0 +1,17 @@
+---
+title: "Untitled"
+author: "Brandt Bessell"
+date: "2023-12-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
+#install.packages("AluNet_1.0.tar.gz")
+Sys.setenv("TAR" = "internal")
+devtools::install_github("babessell1/AluNet/AluNet")
+```

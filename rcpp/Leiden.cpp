@@ -103,6 +103,7 @@ void Optimizer::updateCommunityAssignments(const Partition& P_comm, bool final_c
  * @note calculate the difference between moving vertex to a new community
  * @note recalculating is slower, but necessary if the partition quality has changed since setting the quality last
 **/
+/*
 double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool recalculate) const {
     int old_c_idx = P.getNodeCommunityIdx(n_idx);  // keep track of the old community
 
@@ -124,6 +125,7 @@ double Optimizer::deltaQuality(int n_idx, int new_c_idx, double gamma, bool reca
 
     return new_quality - P.getQuality();
 }
+*/
 
 /**
  * @brief Move nodes around the partition to improve the quality to be as high as possible
@@ -787,7 +789,6 @@ Partition initializePartition(Graph& G) {
 //' @param gamma resolution parameter
 //' @param theta temperature parameter
 //' @return Rcpp::List : R List containing the graph, community assignments, and quality
-//' @example runLeiden(graphList, 10, 0.1, 0.01)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List runLeiden(Rcpp::List graphList, int iterations, double gamma, double theta, int seed = 0) {

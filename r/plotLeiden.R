@@ -2,9 +2,6 @@
 #' 
 #' @param result The result of the runLeiden function.
 #' @return A plot of the graph with nodes colored based on community.
-#' @examples
-#' result <- runLeiden(g_list, ...)
-#' plotLeiden(result)
 plotLeiden <- function(result) {
     gdf <- graph.data.frame(result$graph)
 
