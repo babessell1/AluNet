@@ -682,12 +682,14 @@ implementation
 
 
 ```{r}
+url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
+download.file(url, "edges_data_frame.csv")
 dataframe <- read.csv("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package/edges_data_frame.csv")
 list <- as.list(dataframe)
 ```
 
 ```{r}
-result <- runLeiden(list, 1, 1, 0.1, 1)
+result <- runLeiden(list, 1, .5, 0.01, 1)
 ```
 
 Finally, we time and plot our results

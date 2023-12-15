@@ -33,7 +33,23 @@ Our package includes two main user-callable functions. The first, createAluGraph
 
 ## Leiden Algorithm
 
+Modularity 
+
+$$
+H = \sum_{c} \left[ e_c - \gamma \left( \frac{n_c}{2} \right) \right]
+$$
+
+Where:
+
 ## Weight Calculation 
+
+Need other equation from the slide to explain the hadamard product better with the sums and stuff
+
+$$
+M = A \odot B \odot C
+$$
+
+Where:
 
 # Evaluation
 
@@ -404,11 +420,25 @@ Then we use these weights as inputs for our implementatoin of the Leiden Algorit
 ```{r}
 
 ```
-
-And finally, we plot the results
+If you don't want to download large data, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
+url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
+download.file(url, "edges_data_frame.csv")
+dataframe <- read.csv("edges_data_frame.csv")
+list <- as.list(dataframe)
+```
+Then we run the Leiden algorithm.
 
+```{r}
+result <- runLeiden(list, 1, 1, 0.01, 1)
+```
+Plot the results and save as a high-dpi png.
+
+```{r}
+png("alu_plot.png", width = 1000, height = 1000, res = 300)
+plotLeiden(result)
+dev.off()
 ```
 
 # References
