@@ -1,3 +1,3 @@
 useDynLib(AluNet, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
-export(runLeiden, plotLeiden)
+export(runLeiden, plotLeiden, clean_alu, merge_hic_with_alu)
