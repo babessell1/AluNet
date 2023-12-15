@@ -3,7 +3,7 @@
 #' @param result The result of the runLeiden function.
 #' @return A plot of the graph with nodes colored based on community.
 #' @export
-plotLeiden <- function(result, list, Alus = FALSE) {
+plotLeiden <- function(result, Alus=FALSE, alu_vec=NULL) {
   gdf <- graph.data.frame(result$graph)
   
   # Get node indices from the graph
@@ -34,7 +34,7 @@ plotLeiden <- function(result, list, Alus = FALSE) {
   # E(gdf)$color <- edge_colors
   
   # Plot logic
-  plot_logic <- function() {
+  plot_ <- function() {
     plot(
       gdf,
       layout = layout_with_fr(gdf),
@@ -43,7 +43,7 @@ plotLeiden <- function(result, list, Alus = FALSE) {
       vertex.frame.color = colors,
       edge.color = E(gdf)$color,  # Edge colors
       edge.width = E(gdf)$weight * 8,  # Edge width
-      vertex.label = ifelse(Alus, NA, V(gdf)$name),
+      vertex.label = alu_vec,
       edge.arrow.size = 0,
       main = ifelse(Alus, "Candidate Chromatin Modulating Alu Communities (Chr22)", "Our Rcpp-based Clustering")
     )
@@ -54,6 +54,6 @@ plotLeiden <- function(result, list, Alus = FALSE) {
     }
   }
   
-  # Execute the plot logic
-  plot_logic()
+  # Execute the plot
+  plot_()
 }
