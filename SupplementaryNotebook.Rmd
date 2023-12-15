@@ -307,7 +307,7 @@ To show its utility on biological data, we first download some Fit-Hi-C data (ci
 
 ```{r}
 # define the global setting
-file_path <- "your current directory"
+file_path <- "/home/xuyuan/Desktop/AluNet/data"
 
 download_hic <- function(file_path){
   library(R.utils)
@@ -318,7 +318,7 @@ download_hic <- function(file_path){
   download.file(url, paste(file_path, file_name, sep = "/"), mode = "wb")
   gunzip(file_name, remove=FALSE)
 }
-# download_hic(file_path)
+download_hic(file_path)
 ```
 
 Then we download Dfam mobile elements (cite) (be careful, it is very large). We place it in a folder in the current working directory.
@@ -326,7 +326,7 @@ Then we download Dfam mobile elements (cite) (be careful, it is very large). We 
 ```{r}
 download_dfam <- function(file_path){
   url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
-  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  download_directory <- paste(file_path, "uncleaned_data", sep = "/")
   # Create the directory
   if (!file.exists(download_directory)) {
     dir.create(download_directory)
@@ -336,7 +336,7 @@ download_dfam <- function(file_path){
   download.file(url, hg38_file, mode = "wb")
   gunzip(hg38_file, remove=FALSE)
 }
-# download_dfam(file_path)
+download_dfam(file_path)
 
 ```
 
@@ -364,17 +364,22 @@ download_atac <- function(file_path){
   # Save as CSV
   write.csv(atac_data, output_csv_file, row.names = FALSE)
 }
-# download_atac(file_path)
+download_atac(file_path)
 ```
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
 ```{r}
-source(paste0("/home/xuyuan/Desktop/AluNet/r", "/clean_alu.R"))
-clean_alu.R("/home/xuyuan/Desktop/AluNet/data/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/uncleaned_data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data")
+source(paste0("~/Desktop/AluNet/my functions", "/clean_alu.R"))
+returned_path <- clean_alu.R("/home/xuyuan/Desktop/AluNet/data/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/uncleaned_data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data")
 ```
 
-Then we aggregate teh files to generate the 
+Then we aggregate teh files to generate and generate the edges:
+
+```{r}
+source(paste0("/home/xuyuan/Desktop/AluNet/r", "/merge_hic_with_alu.R")) # returned_path
+clean_alu.R("/home/xuyuan/Desktop/AluNet/data/highest_probability", "/home/xuyuan/Desktop/AluNet/data")
+```
 
 Then we run createAluGraph to create our weighted input graph for the Leiden
 implementation
