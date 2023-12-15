@@ -49,11 +49,11 @@ plotLeiden <- function(result, Alus = FALSE) {
             vertex.color = colors,  # Color nodes based on community
             vertex.frame.color = colors,
             # make vertices smaller
-            vertex.size = 0.25,
+            vertex.size = 1,
             #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
             vertex.label = NA,
             edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-            main = "Our Rcpp-based Clustering"
+            main = "Candidate Chromatin Modulating Alu Communities (Chr22)"
         )
     }
 

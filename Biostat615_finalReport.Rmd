@@ -364,7 +364,7 @@ plotIgraph(gdf, igraph_result)
 
 Let's create a temporary directory and make sure we have a few more dependencies to download and process some data as well as plot our results
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 if (!require("R.utils")) {
   install.packages("R.utils")
 }
@@ -450,9 +450,9 @@ result <- runLeiden(list, 1, 1, 0.01, 1)
 Plot the results and save as a high-dpi png.
 
 ```{r}
-png("alu_plot.png", width = 1000, height = 1000, res = 300)
+#png("alu_plot.png", width = 1000, height = 1000, res = 300)
 plotLeiden(result, Alus=TRUE)
-dev.off()
+#dev.off()
 ```
 
 # References
