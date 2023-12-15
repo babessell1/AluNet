@@ -343,6 +343,28 @@ download_dfam <- function(file_path){
 Then we download some example ATAC-seq data (cite)
 
 ```{r}
+download_atac <- function(){
+  library(readxl)  
+  file_path <- getwd()
+  url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
+  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  # Create the directory
+  if (!file.exists(download_directory)) {
+    dir.create(download_directory)
+  }
+  file_name <- "atac_data.xlsx"
+  atac_file <- paste(download_directory, file_name, sep = "/")
+  download.file(url, atac_file, mode = "wb")
+  # Read the Excel file
+  atac_data <- read_excel(atac_file)
+  
+  # Specify the name of the output CSV file
+  output_csv_name <- "atac_data.csv"
+  output_csv_file <- paste(download_directory, output_csv_name, sep = "/")
+  
+  # Save as CSV
+  write.csv(atac_data, output_csv_file, row.names = FALSE)
+}
 
 ```
 
