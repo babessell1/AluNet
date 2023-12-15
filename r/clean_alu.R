@@ -16,9 +16,9 @@ clean_alu <- function(input_file_path, output_directory, chunksize = 10^6) {
   library(dplyr)
   
   # Check if output directories exist and create them if not
-  output_dir_selection_by_chr <- file.path(output_directory, "selection by chr")
-  output_dir_selection_by_chr_cleaned <- file.path(output_directory, "selection by chr cleaned")
-  output_dir_highest_probability <- file.path(output_directory, "highest probability")
+  output_dir_selection_by_chr <- file.path(output_directory, "selection_by_chr")
+  output_dir_selection_by_chr_cleaned <- file.path(output_directory, "selection_by_chr_cleaned")
+  output_dir_highest_probability <- file.path(output_directory, "highest_probability")
   
   dirs_to_create <- c(output_dir_selection_by_chr, output_dir_selection_by_chr_cleaned, output_dir_highest_probability)
   
@@ -78,3 +78,6 @@ clean_alu <- function(input_file_path, output_directory, chunksize = 10^6) {
     fwrite(selected_data, file.path(output_dir_highest_probability, chromosome_name))
   }
 }
+
+# Example usage of the function
+clean_alu("/home/xuyuan/Desktop/AluNet/data/uncleaned_data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data/final_vs")
