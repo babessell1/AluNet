@@ -16,7 +16,7 @@
 #' The `categorize_dfam` function reads the filtered ALU data and categorizes them by chromosomes based on the Hi-C data file.
 #' The `select_the_highest_probability_alu` function selects the ALU sequences with the highest probability for each position.
 #'
-#' @return Invisible NULL. The function is called for its side effects of processing and saving data.
+#' @return path of the folder where the final output is stored.
 #' 
 #' @importFrom data.table fread fwrite
 #' @importFrom dplyr filter
@@ -24,9 +24,14 @@
 #' @importFrom readr read_csv write_csv
 #' @importFrom stringr grepl sub
 clean_alu.R <- function(hic_file_path, file_path, output_dir) {
+  library(dplyr)
+  library(purrr)
+  library(stringr)
+  library(readr)
   read_dfam(file_path, output_dir)
   categorize_dfam(hic_file_path, output_dir)
   select_the_highest_probability_alu(output_dir)
+  return (paste0(output_dir, "/highest_probability"))
 }
 
 #' Read DFAM Data and Filter ALU Sequences
