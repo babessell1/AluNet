@@ -470,12 +470,8 @@ cleaning_dir <- clean_alu(paste0(data_dir, "/highest_probability"), data_dir)
 merge_hic_with_alu(data_dir, cleaning_dir)
 ```
 
-Alternatively, to avoid downloading the raw data and processing it, you can download the processed data directly to run our implementation of the Leiden algorithm on it.
-
 ```{r}
-url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
-download.file(url, "final_data.csv")
-dataframe <- read.csv("final_data.csv")
+dataframe <- read.csv("edges_data_frame.csv")
 predominant_alu <- dataframe$group
 dataframe$group <- NULL
 list <- as.list(dataframe)
@@ -494,12 +490,12 @@ plotLeiden(result, no_labels=TRUE, edge_colors=predominant_alu)
 If you don't want to download the large datasets, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
-
 url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
 download.file(url, "edges_data_frame.csv")
 dataframe_ <- read.csv("final_data.csv")
-list_ <- as.list(dataframe_)
-predominant_alu <- read.csv("predominant_alu.csv")
+predominant_alu <- dataframe$group
+dataframe$group <- NULL
+list <- as.list(dataframe)
 ```
 Then we run the Leiden algorithm.
 
