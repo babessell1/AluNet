@@ -13,16 +13,14 @@
 #' @param atac_data_file String, optional, path to the ATAC-seq data file.
 #' @return NULL, The function operates through side effects (reading, processing, 
 #'         and writing data) and does not return any value.
-#' @examples
-#' merge_hic_with_alu("path/to/hic_data.txt", "path/to/output")
+#' @import data.table
+#' @import dplyr
+#' @import purrr
+#' @import readr
+#' @import stringr
 #' 
 #' @export
 merge_hic_with_alu <- function(file_path, output_directory){
-  library(dplyr)
-  library(data.table)
-  library(purrr)
-  library(stringr)
-  library(readr)
   # finally, we merge the alu elements with the hic data
   # the hic data frame contains the 
   

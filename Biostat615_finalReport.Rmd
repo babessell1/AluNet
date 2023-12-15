@@ -363,9 +363,9 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Let's create a temporary directory and double check we have a few more dependencies to download and process some data as well as plot our results, 
+Let's create a temporary directory and double check we have a few more dependencies to download and process some data as well as plot our results. To download the processed data directly, skip to the next section.
 
-```{r, eval=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r, eval=FALSE}
 if (!require("R.utils")) {
   install.packages("R.utils")
 }
@@ -408,7 +408,7 @@ download_hic(file_path)
 
 Then we download Dfam mobile elements[@Storer2021] (be careful, it is very large). We place it in a folder in the current working directory.
 
-```{r}
+```{r, eval=FALSE}
 download_dfam <- function(file_path){
   url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
   download_directory <- paste(file_path, "uncleaned_data", sep = "/")
@@ -427,7 +427,7 @@ download_dfam(file_path)
 
 Then we download some example ATAC-seq data for the same tissue and disease context [@Corces2020] 
 
-```{r}
+```{r, eval=FALSE}
 download_atac <- function(file_path){
   library(readxl)
   url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
@@ -454,27 +454,30 @@ download_atac(file_path)
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
-```{r}
+```{r, eval=FALSE}
 data_dir <-  paste0(getwd(), "/temp")
 returned_path <- clean_alu.R(
-  data_dir, "/hic_data.txt"),
-  paste0(data_dir, "/uncleaned_data/hg38.hits",
+  paste0(data_dir, "/hic_data.txt"),
+  paste0(data_dir, "/uncleaned_data/hg38.hits"),
   data_dir
 )
 ```
 
 Then we use the files we made to generate the edges:
 
-```{r}
-clean_alu(paste0(data_dir, "/highest_probability") data_dir)
+```{r, eval=FALSE}
+cleaning_dir <- clean_alu(paste0(data_dir, "/highest_probability"), data_dir)
+merge_hic_with_alu(data_dir, cleaning_dir)
 ```
 
 Alternatively, to avoid downloading the raw data and processing it, you can download the processed data directly to run our implementation of the Leiden algorithm on it.
 
 ```{r}
-url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
-download.file(url, "edges_data_frame.csv")
-dataframe <- read.csv("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package/edges_data_frame.csv")
+url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
+download.file(url, "final_data.csv")
+dataframe <- read.csv("final_data.csv")
+predominant_alu <- dataframe$group
+dataframe$group <- NULL
 list <- as.list(dataframe)
 ```
 
@@ -485,29 +488,30 @@ result <- runLeiden(list, 1, 1, 0.01, 1)
 Finally, we time and plot our results
 
 ```{r}
-plotLeiden(result, no_labels=TRUE)
+plotLeiden(result, no_labels=TRUE, edge_colors=predominant_alu)
 ```
 
-If you don't want to download large data, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
+If you don't want to download the large datasets, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
-url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
+
+url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
 download.file(url, "edges_data_frame.csv")
-dataframe <- read.csv("edges_data_frame.csv")
-list <- as.list(dataframe)
+dataframe_ <- read.csv("final_data.csv")
+list_ <- as.list(dataframe_)
+predominant_alu <- read.csv("predominant_alu.csv")
 ```
 Then we run the Leiden algorithm.
 
 ```{r}
-result <- runLeiden(list, 1, 1, 0.01, 1)
+result <- runLeiden(list_, 1, 1, 0.01, 1)
 ```
 Plot the results and save as a high-dpi png.
 
 ```{r}
 #png("alu_plot.png", width = 1000, height = 1000, res = 300)
-plotLeiden(result, Alus=TRUE)
+plotLeiden(result, Alus=TRUE, edge_colors=predominant_alu$predominant_alu)
 #dev.off()
 ```
-
 
 # References
