@@ -2,24 +2,20 @@
 title: "AluNet Supplementary"
 author: "Brandt Bessell, Xuyuan Zhang, Sicheng Qian"
 date: "2023-12-08"
-output: html_documenYou can use the main body of the paper to help explain it at a high level, but the supplementary actually describe how it t
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+This section will walk through installing our package and replicating the results 
+of our benchmarking. First set your working directory
 
-Set your working directory
-
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
+# change this!
 setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package")
 #setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 ```
 
-To run our package, first install it and some other dependencies we will use to
-benchmark
+To run our package, first install it and some other dependencies we will use to benchmark
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 if (!require("igraph")) {
   install.packages("igraph")
 }
@@ -33,32 +29,26 @@ if (!require("devtools")) {
 
 devtools::install_github("babessell1/AluNet/AluNet")
 
-# the above doesn't work
+# if the above doesn't work, try
 #url <- "https://github.com/babessell1/AluNet/raw/main/AluNet_1.0.tar.gz"
 #download.file(url, "AluNet_1.0.tar.gz")
 #install.packages("AluNet_1.0.tar.gz",repo=NULL)
 
 ```
 
-Then we will load it, igraph, and microbenchmark to benchmark against the 
-current gold standard of clustering algorithm implementations.
+Then we will load it, igraph, and microbenchmark to benchmark against the current gold standard of clustering algorithm implementations.
 
-```{r}
-library(igraph)
-library(microbenchmark)
-library(AluNet)
+```{r, results='hide', message=FALSE, warning=FALSE}
+library("igraph")
+library("microbenchmark")
+library("AluNet")
 ```
 
-First, we check against several toy models. Note that the RNG is different for
-each implementation of Leiden so we will run several different seeds for each
-one to show that they are functioning similarly.
+First, we check against several toy models. Note that the RNG is different for each implementation of Leiden so we will run several different seeds for each one to show that they are functioning similarly.
 
-To do this we define a function to to run igraph's Leiden algorithm and plot 
-the output, we define it here since it is not part of our package. 
+To do this we define a function to to run igraph's Leiden algorithm and plot the output, we define it here since it is not part of our package. 
 
 ```{r}
-#gdf <- make_graph("noperfectmatching")
-
 runIgraph <- function(gdf, iterations, gamma, theta) {
 
   ldc <- cluster_leiden(
@@ -70,7 +60,6 @@ runIgraph <- function(gdf, iterations, gamma, theta) {
     n_iterations=iterations,
     vertex_weights = rep(1, length(unique(c(g_list[["to"]], g_list[["from"]]))))
   )
-  
   return(ldc)
 }
 
@@ -104,19 +93,9 @@ plotIgraph <- function(gdf, ldc) {
 }
 ```
 
-Our first toy model is "noperfectmatching" which has very well defined
-communities except for the central node which can belong to any of them
-depending on the starting conditions. This is a simple model and thus should 
-converge in only a single iteration, despite us setting a maximum of 10.
+Our first toy model is "noperfectmatching" which has very well defined communities except for the central node which can belong to any of them depending on the starting conditions. This is a simple model and thus should converge in only a single iteration, despite us setting a maximum of 10.
 
-We define our resolution parameter, gamma as .1 which should be small enough
-to identify more granular communities that will make it easier to compare its
-accuracy to igraph, we set theta to 0.01 because it is the middle of the 
-recommended ranges of theta by the authors of the Leiden algorithm which should
-result in a moderate degree of randomness in the refine step. Since the toy
-models come from the igraph package, we also have to convert them into a format
-interpretable by our function, which is a list of connections "to" "from" and
-"weight."
+We define our resolution parameter, gamma as .1 which should be small enough to identify more granular communities that will make it easier to compare its accuracy to igraph, we set theta to 0.01 because it is the middle of the recommended ranges of theta by the authors of the Leiden algorithm which should result in a moderate degree of randomness in the refine step. Since the toy models come from the igraph package, we also have to convert them into a format interpretable by our function, which is a list of connections "to" "from" and "weight."
 
 ```{r}
 toy = "noperfectmatching"
@@ -146,30 +125,30 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Next we benchmark the model to show that igraph, which is developed by a team
-of advanced computer scientists, is much more optimized than our implementation.
+Next we benchmark the model to show that igraph, which is developed and maintained by a very large team of computer scientists, is much more optimized than our implementation.
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 rm(.Random.seed)
 # Use microbenchmark to time the function
 mb_ours <- microbenchmark(
   runLeiden(g_list, 1, gamma, theta),
-  times=10
+  times=50
 )
 
 mb_igraph <- microbenchmark(
   runIgraph(gdf, 1, gamma, theta),
-  times=10
+  times=50
 )
+```
+
+```{r}
 # Print the result
 print(rbind(mb_ours, mb_igraph))
 ```
 
-Next we try with a larger more complex toy models to also show that igraph's
-implementation scales better than ours (4:1) compared to (5:1) for a graph that
-is twice as big. 
+Next we try with a larger more complex toy models to also show that igraph's implementation scales better than ours (4:1) compared to (5:1) for a graph that is twice as big. 
 
-```{r}
+```{r, results='hide', message=FALSE, warning=FALSE}
 toy = "Zachary"
 g <- as_edgelist(make_graph(toy))
 g_list <- list(
@@ -184,20 +163,20 @@ rm(.Random.seed)
 # Use microbenchmark to time the function
 mb_ours <- microbenchmark(
   runLeiden(g_list, 3, gamma, theta),
-  times=10
+  times=50
 )
 
 mb_igraph <- microbenchmark(
   runIgraph(gdf, 3, gamma, theta),
-  times=10
+  times=50
 )
-# Print the result
+```
+
+```{r}
 print(rbind(mb_ours, mb_igraph))
 ```
 
-Now, let's increase the iteration number to 10 so that the partition can
-converge, and try several random seeds to see if the sets of partitions 
-produced by each method overlap.
+Now, let's increase the iteration number to 10 so that the partition can converge, and try several random seeds to see if the sets of partitions  produced by each method overlap.
 
 ```{r}
 iterations <- 10
@@ -218,6 +197,7 @@ seed <- 1
 result <- runLeiden(g_list, iterations, gamma, theta, seed)
 plotLeiden(result)
 ```
+
 ```{r}
 gdf <- make_graph(toy)
 set.seed(1)
@@ -225,11 +205,7 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Notice these models are slightly different, Since this graph is a bit more 
-complicated, and prone to RNG-based variation, which cannot be equalized by
-setting the same seed due to differences in implementation, we can rerun the
-igraph implementation with 2 as our seed instead of 1, to get the same partition.
-
+Notice these models are slightly different, Since this graph is a bit more  complicated, and prone to RNG-based variation, which cannot be equalized by setting the same seed due to differences in implementation, we can rerun the igraph implementation with 2 as our seed instead of 1, to get the same partition.
 
 ```{r}
 gdf <- make_graph(toy)
@@ -239,7 +215,6 @@ plotIgraph(gdf, igraph_result)
 ```
 
 Let's see if we consistently produce similar community configurations.
-
 
 ```{r}
 seed <- 3
@@ -281,8 +256,7 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Increasing the resolution parameter, gamma, should decrease the size of the 
-communities, let's see if that happens.
+Increasing the resolution parameter, gamma, should decrease the size of the  communities, let's see if that happens.
 
 ```{r}
 gamma <- 0.5
@@ -301,14 +275,37 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
+Let's create a temporary directory and double check we have a few more dependencies to download and process some data as well as plot our results. To download the processed data directly, skip to the next section.
+
+```{r, eval=FALSE}
+if (!require("R.utils")) {
+  install.packages("R.utils")
+}
+library("R.utils")
+
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+}
+library(RColorBrewer)
+
+if (!require("dplyr")) {
+  install.packages("dplyr")
+}
+library(dplyr)
+
+if (!require("stringr")) {
+  install.packages("stringr")
+}
+library(stringr)
 
 
-To show its utility on biological data, we first download some Fit-Hi-C data (cite)
+dir.create("temp")
+```
 
-```{r}
-# define the global setting
-file_path <- "/home/xuyuan/Desktop/AluNet/data"
+To show its utility on biological data, we first download some Fit-Hi-C data[@Lee2023]
 
+```{r, eval=FALSE}
+file_path <- paste0(getwd(), "/temp")
 download_hic <- function(file_path){
   library(R.utils)
   setwd(file_path)
@@ -321,9 +318,9 @@ download_hic <- function(file_path){
 download_hic(file_path)
 ```
 
-Then we download Dfam mobile elements (cite) (be careful, it is very large). We place it in a folder in the current working directory.
+Then we download Dfam mobile elements[@Storer2021] (be careful, it is very large). We place it in a folder in the current working directory.
 
-```{r}
+```{r, eval=FALSE}
 download_dfam <- function(file_path){
   url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
   download_directory <- paste(file_path, "uncleaned_data", sep = "/")
@@ -340,9 +337,9 @@ download_dfam(file_path)
 
 ```
 
-Then we download some example ATAC-seq data (cite)
+Then we download some example ATAC-seq data for the same tissue and disease context [@Corces2020] 
 
-```{r}
+```{r, eval=FALSE}
 download_atac <- function(file_path){
   library(readxl)
   url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
@@ -369,25 +366,25 @@ download_atac(file_path)
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
-```{r}
-source(paste0("~/Desktop/AluNet/my functions", "/clean_alu.R"))
-returned_path <- clean_alu.R("/home/xuyuan/Desktop/AluNet/data/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/uncleaned_data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data")
+```{r, eval=FALSE}
+data_dir <-  paste0(getwd(), "/temp")
+returned_path <- clean_alu.R(
+  paste0(data_dir, "/hic_data.txt"),
+  paste0(data_dir, "/uncleaned_data/hg38.hits"),
+  data_dir
+)
 ```
 
-Then we aggregate teh files to generate and generate the edges:
+Then we use the files we made to generate the edges:
 
-```{r}
-source(paste0("/home/xuyuan/Desktop/AluNet/r", "/merge_hic_with_alu.R")) # returned_path
-clean_alu.R("/home/xuyuan/Desktop/AluNet/data/highest_probability", "/home/xuyuan/Desktop/AluNet/data")
+```{r, eval=FALSE}
+cleaning_dir <- clean_alu(paste0(data_dir, "/highest_probability"), data_dir)
+merge_hic_with_alu(data_dir, cleaning_dir)
 ```
 
-Then we run createAluGraph to create our weighted input graph for the Leiden
-implementation
-
 ```{r}
-url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
-download.file(url, "edges_data_frame.csv")
-dataframe <- read.csv("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package/edges_data_frame.csv")
+dataframe <- read.csv("edges_data_frame.csv")
+dataframe$group <- NULL
 list <- as.list(dataframe)
 ```
 
@@ -395,8 +392,24 @@ list <- as.list(dataframe)
 result <- runLeiden(list, 1, 1, 0.01, 1)
 ```
 
-Finally, we time and plot our results
+If you don't want to download the large datasets, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
-plotLeiden(result, no_labels=TRUE)
+url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
+download.file(url, "final_data.csv.csv")
+dataframe_ <- read.csv("final_data.csv")
+dataframe$group <- NULL
+list_ <- as.list(dataframe)
+```
+Then we run the Leiden algorithm.
+
+```{r}
+result <- runLeiden(list_, 10, 1, 0.01, 1)
+```
+Plot the results and save as a high-dpi png.
+
+```{r}
+#png("alu_plot.png", width = 1000, height = 1000, res = 300)
+plotLeiden(result, TRUE)
+#dev.off()
 ```
