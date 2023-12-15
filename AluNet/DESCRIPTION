@@ -1,12 +1,15 @@
 Package: AluNet
 Type: Package
-Title: What the Package Does in One 'Title Case' Line
+Title: AluNet: A graph-based method for inferring chromatin
+       modulating Alu element communities
 Version: 1.0
 Date: 2023-12-14
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: One paragraph description of what the package does as one or more full
-          sentences.
+Author: Brandt Bessell, Xuyuan Zhang, Sicheng Qian
+Maintainer: Your Name <bbessell@umich.edu>
+Description: Calculates Alu, Hi-C, and ATAC-seq based graph weights
+             and uses a C++-based implementation of the Leiden
+             algorithm to cluster the Alu communities potenitally
+             modulating chromatin.
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.11)
 LinkingTo: Rcpp
