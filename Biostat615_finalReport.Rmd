@@ -37,7 +37,7 @@ Our package includes two main user-callable functions. The first, createAluGraph
 
 # Evaluation
 
-To evaluate our implementation of the Leiden algorithm, we compare it to the gold-standard of network analysis software igraph[@Csardi2006] using several toy models including “noperfectmatching” and “Zachary.” For the more complex toy model, Zachary, we try several random seeds to account for randomness and show that the models are generating overlapping sets of models. We also test each function on several increasing resolution hyperparameters to demonstrate the expected behavior that the number of communities increases until eventually, the resolution is too high to identify any communities. To evaluate efficiency, we used microbenchmark[@Mersmann2023] to show, as expected, that the igraph implementation is orders of magnitude faster than our implementation, and scales better going from a 16 node graph “noperfectmatching” to the 32 node graph “Zachary.” Suggesting that our implementation should be optimized further before any of the previously described features are added. 
+To evaluate our implementation of the Leiden algorithm, we compare it to the gold-standard of network analysis software igraph[@Csardi2006] using several toy models including “noperfectmatching” and “Zachary.” For the more complex toy model, Zachary, we try several random seeds to account for randomness and show that the models are generating overlapping sets of models. We also test each function on several increasing resolution hyperparameters to demonstrate the expected behavior that the number of communities increases until eventually, the resolution is too high to identify any communities. To evaluate efficiency, we used microbenchmark[@Mersmann2023] to show, as expected, that the igraph implementation is orders of magnitude faster than our implementation, and scales better going from a 16 node graph “noperfectmatching” to the 32 node graph “Zachary.” Suggesting that our implementation should be optimized further before we start adding the planned features. 
 
 ```{r, echo=FALSE}
 table1 <- data.frame(
@@ -362,7 +362,7 @@ dir.create("temp")
 To show its utility on biological data, we first download some Fit-Hi-C data[@Lee2023]
 
 ```{r, eval=FALSE}
-path_ <- paste0(getwd(), "/temp")
+path_ <- paste0(getwd(), temp)
 setwd(path_)
 file_name <- "hic_data.txt.gz"
 url <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE148434&format=file&file=GSE148434%5FNS%5Fall%2E5kb%2E1e%2D2%2EFitHiC%2Eall%2Etxt%2Egz"
@@ -405,23 +405,10 @@ Then we use these weights as inputs for our implementatoin of the Leiden Algorit
 
 ```
 
-Alternatively, if you don't wish to download these large files to reproduce our plot, you can simply download the processed input
+And finally, we plot the results
 
 ```{r}
-dataframe <- read.csv("edges_data_frame")
-list <- as.list(dataframe)
-```
 
-```{r}
-result <- runLeiden(list, 1, 1, 0.1, 1)
 ```
-
-Finally, we time and plot our results
-
-```{r}
-plotLeiden(result, no_labels=TRUE)
-```
-```
-
 
 # References
