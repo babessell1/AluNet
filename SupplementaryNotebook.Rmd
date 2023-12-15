@@ -307,7 +307,7 @@ To show its utility on biological data, we first download some Fit-Hi-C data (ci
 
 ```{r}
 # define the global setting
-file_path <- "your current directory"
+file_path <- "/home/xuyuan/Desktop/AluNet/data"
 
 download_hic <- function(file_path){
   library(R.utils)
@@ -318,7 +318,7 @@ download_hic <- function(file_path){
   download.file(url, paste(file_path, file_name, sep = "/"), mode = "wb")
   gunzip(file_name, remove=FALSE)
 }
-# download_hic(file_path)
+download_hic(file_path)
 ```
 
 Then we download Dfam mobile elements (cite) (be careful, it is very large). We place it in a folder in the current working directory.
@@ -326,7 +326,7 @@ Then we download Dfam mobile elements (cite) (be careful, it is very large). We 
 ```{r}
 download_dfam <- function(file_path){
   url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
-  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  download_directory <- paste(file_path, "uncleaned_data", sep = "/")
   # Create the directory
   if (!file.exists(download_directory)) {
     dir.create(download_directory)
@@ -336,18 +336,17 @@ download_dfam <- function(file_path){
   download.file(url, hg38_file, mode = "wb")
   gunzip(hg38_file, remove=FALSE)
 }
-# download_dfam(file_path)
+download_dfam(file_path)
 
 ```
 
 Then we download some example ATAC-seq data (cite)
 
 ```{r}
-download_atac <- function(){
-  library(readxl)  
-  file_path <- getwd()
+download_atac <- function(file_path){
+  library(readxl)
   url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
-  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  download_directory <- paste(file_path, "uncleaned_data", sep = "/")
   # Create the directory
   if (!file.exists(download_directory)) {
     dir.create(download_directory)
@@ -365,316 +364,21 @@ download_atac <- function(){
   # Save as CSV
   write.csv(atac_data, output_csv_file, row.names = FALSE)
 }
-
+download_atac(file_path)
 ```
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
 ```{r}
-  library(dplyr)
-  library(data.table)
-  library(purrr)
-  library(stringr)
-  library(readr)
-  library(readxl)
-# this function works to read dfam and export it to several small text files that is small enough for R to read.
-# besides, this function selects only alu sequences from the whole dfam data.
-# the export is just a series of csv files.
-read_dfam <- function(file_path){
-  download_directory <- paste(file_path, "uncleaned data", sep = "/")
-  file_name <- "hg38.hits"
-  hg38_file <- paste(download_directory, file_name, sep = "/")
-  library(data.table)
-  # Set parameters
-  output_dir <- paste(file_path, "selection by chr", sep = "/")
-  # Create the directory
-  if (!file.exists(output_dir)) {
-    dir.create(output_dir)
-  }
-
-  chunksize <- 10^6
-  skip_rows <- 0
-
-  # Function to check if a string starts with 'ALU'
-  startsWithAlu <- function(x) {
-    grepl("^ALU", toupper(x))
-  }
-  
-  header <- colnames(fread(hg38_file, nrows = 1))
-  print(header)
-  # Read and process the file in chunks
-  while(TRUE) {
-    # Read a chunk of the file
-    dt <- fread(hg38_file, skip = skip_rows, nrows = chunksize, header = FALSE, col.names = header)
-    # If the chunk is empty, break the loop
-    if (nrow(dt) == 0) {
-      break
-    }
-  
-    # Filter rows where family_name starts with 'ALU'
-    alu_rows <- dt[startsWithAlu(dt$family_name), ]
-    
-    names(alu_rows)[names(alu_rows) == "#seq_name"] <- "seq_name"
-    
-    # Write to CSV
-    fwrite(alu_rows, paste0(output_dir, "/alu_data", skip_rows, ".csv"), col.names = TRUE)
-    print(paste("We have finished the", skip_rows, "to", (skip_rows + chunksize)))
-    
-
-    # Update skip_rows for the next iteration
-    skip_rows <- skip_rows + chunksize
-  }
-}
-# read_dfam("/home/xuyuan/Desktop/AluNet/data")
-# this function reads and categorizes the alu sequences to different chromosome.
-categorize_dfam <- function(file_path){
-  running_dir <- paste(file_path, "selection by chr", sep = "/")
-  # place all your data to the uncleaned data folder
-  output_path_cleaned <- paste0(file_path, "/selection by chr cleaned")
-  # Create the directory
-  if (!file.exists(output_path_cleaned)) {
-    dir.create(output_path_cleaned)
-  }
-
-  hic_data <- read.delim(paste0(file_path, "/hic_data.txt"), header = TRUE)
-  hic_data$chromosome <- sub("^([^.]*)\\..*", "\\1", hic_data$frag1)
-  unique_chromosomes <- unique(hic_data$chromosome)
-
-  read_and_filter <- function(file, chromosome) {
-    data <- read.csv(file)
-    filtered_data <- data %>% filter(seq_name == chromosome)
-    return(filtered_data)
-  }
-  
-  files <- list.files(running_dir, pattern="*.csv", full.names = TRUE)
-  # we first extract the chromosome's alu elements
-  # print(files)
-  for(i in unique_chromosomes){
-    cat(paste0("now we are working on chromosome: ", i))
-  
-    merged_data <- map_df(files,  ~read_and_filter(., i))
-  
-    print(nrow(merged_data))
-  
-    output_file <- paste0(output_path_cleaned, "/", i, ".csv")
-    write.csv(merged_data, output_file)
-  }
-}
-# categorize_dfam("/home/xuyuan/Desktop/AluNet/data")
-select_the_highest_probability_alu <- function(file_path){
-  # we first extract the key alu elements, which with highest probability
-  # for each position in the data frame
-  # then we merge the data frame with the whole data.
-  current_directory <- paste0(file_path, "/selection by chr cleaned")
-  output_path <- paste0(file_path, "/highest probability")
-  # Create the directory
-  if (!file.exists(output_path)) {
-    dir.create(output_path)
-  }
-
-  files <- list.files(current_directory, pattern="*", full.names = TRUE)
-
-  for(i in files){
-    last_item <- basename(i)
-  
-    cat(paste0("now we are working on chromosome: ", last_item))
-  
-    test_file <- read.csv(i)
-    test_file <- data.table(test_file)
-  
-    df_selected <- test_file[, .SD[which.min(e.value)], by = .(ali.st, ali.en)]
-    print(nrow(df_selected))
-    write.csv(df_selected, paste0(output_path, '/', last_item))
-  }
-}
-# select_the_highest_probability_alu("/home/xuyuan/Desktop/AluNet/data")
+source(paste0("~/Desktop/AluNet/my functions", "/clean_alu.R"))
+returned_path <- clean_alu.R("/home/xuyuan/Desktop/AluNet/data/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/uncleaned_data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data")
 ```
 
+Then we aggregate teh files to generate and generate the edges:
+
 ```{r}
-merge_hic_with_alu <- function(file_path){
-  # finally, we merge the alu elements with the hic data
-# the hic data frame contains the 
-
-  current_directory <- paste0(file_path, "/uncleaned data")
-
-  # Load Hi-C data
-  hic_data <- read.delim(paste0(file_path, "/hic_data.txt"), header = TRUE)
-  matches <- str_match(hic_data$frag1, "chr[^.]+\\.([0-9]+)")
-  matches2 <- str_match(hic_data$frag2, "chr[^.]+\\.([0-9]+)")
-  
-  # Extract the captured numeric part and convert to numeric
-  numbers <- as.numeric(matches[, 2])
-  numbers2 <- as.numeric(matches2[, 2])
-  # Apply the floor operation in a vectorized manner
-  hic_data$start <- ifelse(!is.na(numbers), floor(numbers / 5000) * 5000, NA)
-  hic_data$start2 <- ifelse(!is.na(numbers2), floor(numbers2 / 5000) * 5000, NA)
-  # Check the number of NA values
-  sum(is.na(hic_data$start))
-  hic_data$end <- hic_data$start + 5000
-  sum(is.na(hic_data$start2))
-  hic_data$end2 <- hic_data$start2 + 5000
-
-  hic_data$chromosome <- sub("^([^.]*)\\..*", "\\1", hic_data$frag1)
-  unique_chromosomes <- unique(hic_data$chromosome)
-  print(unique_chromosomes)
-
-  current_directory <- paste0(file_path, "/highest probability")
-
-  files <- list.files(current_directory, pattern="*", full.names = TRUE)
-
-
-  big_df <- data.table()
-  for(file in files){
-    chromo <- basename(file)
-    cat(paste0("now we are working on chromosome: ", chromo), "\n")
-  
-    dt <- fread(file)
-    dt[, 'chromo' := chromo] # Create a new column 'chromo' with the filename
-  
-    # Bind the new data table to the 'big_df'
-    big_df <- rbind(big_df, dt)
-  }
-
-  big_df <- rename(big_df, end = ali.en, start = ali.st)
-
-  # set table ready to merge
-  setDT(hic_data)
-  setDT(big_df)
-
-  ## now convert the family of ALU to subfamilies
-
-  unique_alu_types <- unique(big_df$family_name)
-  print(length(unique_alu_types))
-
-  big_df$family_name <- gsub("^AluJ.*", "AluJ", big_df$family_name) 
-  big_df$family_name <- gsub("^AluS.*", "AluS", big_df$family_name) 
-  big_df$family_name <- gsub("^AluY.*", "AluY", big_df$family_name)
-
-  unique_alu_types_revised <- unique(big_df$family_name)
-
-  # generate a index of hic data and using the hic data to operate the merging
-
-  hic_data[, index := .I]
-
-  overlap_frag1 <- big_df[hic_data, on = .(chromo = chromosome, start >= start, end <= end),
-                        .(mapping = i.index, frag1 = i.frag1, alu_name = x.family_name),
-                        nomatch = 0L, allow.cartesian = TRUE]
-
-  overlap_frag2 <- big_df[hic_data, on = .(chromo = chromosome, start >= start2, end <= end2),
-                        .(mapping = i.index, frag2 = i.frag2, alu_name = x.family_name),
-                        nomatch = 0L, allow.cartesian = TRUE]
-
-  hic_data[, c("AluJ_count", "AluS_count", "AluY_count", "alu_total") := 0]
-
-  overlap_frag1_agg <- overlap_frag1[, .(aluJ_count = sum(alu_name=="AluJ"), 
-                                       aluS_count = sum(alu_name=="AluS"), 
-                                       aluY_count = sum(alu_name=="AluY")), 
-                                   by = mapping]
-
-  overlap_frag2_agg <- overlap_frag2[, .(aluJ_count = sum(alu_name=="AluJ"), 
-                                       aluS_count = sum(alu_name=="AluS"), 
-                                       aluY_count = sum(alu_name=="AluY")), 
-                                   by = mapping]
-
-  merged_overlap <- merge(overlap_frag1_agg, overlap_frag2_agg, by = "mapping", all = TRUE)
-  merged_overlap[is.na(merged_overlap)] <- 0 # replace NAs in the merged dataset with 0s
-  merged_overlap[, AluJ_count := pmin(aluJ_count.x, aluJ_count.y)]
-  merged_overlap[, AluS_count := pmin(aluS_count.x, aluS_count.y)]
-  merged_overlap[, AluY_count := pmin(aluY_count.x, aluY_count.y)]
-  merged_overlap[, alu_total := AluJ_count + AluS_count + AluY_count]
-
-
-  count_alu_subset <- merged_overlap[, .(AluJ_count = AluJ_count, 
-                                       AluS_count = AluS_count,
-                                       AluY_count = AluY_count,
-                                       alu_total = alu_total), by = mapping]
-
-  setnames(count_alu_subset, old = "mapping", new = "index")
-  hic_data[count_alu_subset, on = "index", `:=` (AluJ_count = i.AluJ_count, 
-                                               AluS_count = i.AluS_count, 
-                                               AluY_count = i.AluY_count, 
-                                               alu_total = i.alu_total)]
-
-  intermediate_result <- paste0(file_path, "/cleaned hic with alu")
-  # Create the directory
-  if (!file.exists(intermediate_result)) {
-    dir.create(intermediate_result)
-  }
-
-  write.table(hic_data, paste0(intermediate_result, "/hic_with_alu.txt"), sep = "\t")
-}
-
-# merge_hic_with_alu("/home/xuyuan/Desktop/AluNet/data")
-
-clean_hic_with_alu_atac <- function(file_path){
-  
-  current_directory <- paste0(file_path, "/cleaned hic with alu")
-
-  hic_data <- read.delim(paste0(current_directory, "/hic_with_alu.txt"), header = TRUE) 
-  hic_data$chromosome2 <- sub("^([^.]*)\\..*", "\\1", hic_data$frag2)
-
-  atac_dir <- paste0(file_path, "/uncleaned data")
-
-  # Load ATAC-seq data
-  atac_data <- read_excel(paste0(atac_dir, "/atac.xlsx"),col_names = TRUE)
-  atac_data <- atac_data[-(1:18),]
-  colnames(atac_data) <- c("Peak_ID", "hg38_Chromosome", "start", "end", 
-                         "Peak_Width", "Annotation", "Distance_To_TSS", 
-                         "Gene_Symbol", "GC_Percent", "CTCF")
-  unique_chromosomes <- unique(atac_data$hg38_Chromosome)
-  atac_data$start <- as.numeric(atac_data$start)
-  atac_data$end <- as.numeric(atac_data$end)
-
-  setDT(hic_data)
-  setDT(atac_data)
-
-  # for chromosome, frag1
-  hic_data[, atac_peak := 0]  # Initialize the column with zeros
-  overlap <- atac_data[hic_data, on = .(hg38_Chromosome = chromosome, start >= start, end <= end), nomatch = 0L, allow.cartesian = TRUE,
-                     .(frag1 = i.frag1, start = i.start, end = i.end, atac_peak = 1)]
-  overlap[, atac_peak := 1]
-  hic_data[overlap, atac_peak := i.atac_peak, on = .(frag1, start, end)]
-  nrow(hic_data[atac_peak == 1])
-
-  # for chromosome, frag2
-  hic_data[, atac_peak2 := 0]  # Initialize the column with zeros
-  overlap2 <- atac_data[hic_data, on = .(hg38_Chromosome = chromosome2, start >= start2, end <= end2), nomatch = 0L, allow.cartesian = TRUE,
-                      .(frag2 = i.frag2, start2 = i.start2, end2 = i.end2, atac_peak2 = 1)]
-  overlap2[, atac_peak2 := 1]
-  hic_data[overlap2, atac_peak2 := i.atac_peak2, on = .(frag2, start2, end2)]
-  nrow(hic_data[atac_peak2 == 1])
-
-  # combine together
-  hic_data$peak <- (hic_data$atac_peak+hic_data$atac_peak2)
-  hic_data$peak <- ifelse(hic_data$peak == 2, 1, 0)
-  hic_data[, c("atac_peak", "atac_peak2") := NULL]
-  setnames(hic_data, "peak", "atac_peak")
-
-  # combine together
-  setnames(hic_data, "alu_total", "alu_peak")
-  
-  # ##########################
-  # revisions
-  hic_data$node_weights <- hic_data$atac_peak * hic_data$rawCount * hic_data$alu_peak
-  print(nrow(hic_data))
-  hic_data <- hic_data[which(hic_data$chromosome == "chr22")]
-  print(nrow(hic_data))
-  # print(summary(hic_data$node_weights))
-  ## we first try to give each weight a very small value to let every data in the model
-  # hic_data$node_weights <- hic_data$node_weights + 0.01
-  hic_data <- hic_data[which(hic_data$node_weights != 0), ]
-  hic_data$node_weights <- hic_data$node_weights / max(hic_data$node_weights)
-
-  final_result <- paste0(file_path, "/final output")
-  # Create the directory
-  if (!file.exists(final_result)) {
-    dir.create(final_result)
-  }
-  print(nrow(hic_data))
-  write.csv(hic_data, paste0(final_result, "/edges_data_frame.csv"), row.names = TRUE)
-  
-}
-# clean_hic_with_alu_atac("/home/xuyuan/Desktop/AluNet/data")
+source(paste0("/home/xuyuan/Desktop/AluNet/r", "/merge_hic_with_alu.R")) # returned_path
+clean_alu.R("/home/xuyuan/Desktop/AluNet/data/highest_probability", "/home/xuyuan/Desktop/AluNet/data")
 ```
 
 Then we run createAluGraph to create our weighted input graph for the Leiden
