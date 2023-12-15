@@ -580,7 +580,9 @@ merge_hic_with_alu <- function(file_path){
   }
 
   write.table(hic_data, paste0(intermediate_result, "/hic_with_alu.txt"), sep = "\t")
+}
 
+# merge_hic_with_alu("/home/xuyuan/Desktop/AluNet/data")
 
 clean_hic_with_alu_atac <- function(file_path){
   
@@ -628,13 +630,13 @@ clean_hic_with_alu_atac <- function(file_path){
 
   # combine together
   setnames(hic_data, "alu_total", "alu_peak")
-
+  
   # ##########################
   # revisions
   hic_data$node_weights <- hic_data$atac_peak * hic_data$rawCount * hic_data$alu_peak
-
+  print(nrow(hic_data))
   hic_data <- hic_data[which(hic_data$chromosome == "chr22")]
-
+  print(nrow(hic_data))
   # print(summary(hic_data$node_weights))
   ## we first try to give each weight a very small value to let every data in the model
   # hic_data$node_weights <- hic_data$node_weights + 0.01
@@ -646,11 +648,11 @@ clean_hic_with_alu_atac <- function(file_path){
   if (!file.exists(final_result)) {
     dir.create(final_result)
   }
-  
+  print(nrow(hic_data))
   write.csv(hic_data, paste0(final_result, "/edges_data_frame.csv"), row.names = TRUE)
-  }
+  
 }
-merge_hic_with_alu("/home/xuyuan/Desktop/AluNet/data")
+# clean_hic_with_alu_atac("/home/xuyuan/Desktop/AluNet/data")
 ```
 
 Then we run createAluGraph to create our weighted input graph for the Leiden
