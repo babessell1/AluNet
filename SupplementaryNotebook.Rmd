@@ -1,8 +1,8 @@
 ---
 title: "AluNet Supplementary"
-author: "Brandt Bessell"
+author: "Brandt Bessell, Xuyuan ___, Sicheng ____"
 date: "2023-12-08"
-output: html_document
+output: html_documenYou can use the main body of the paper to help explain it at a high level, but the supplementary actually describe how it t
 ---
 
 ```{r setup, include=FALSE}
@@ -12,35 +12,32 @@ knitr::opts_chunk$set(echo = TRUE)
 Set your working directory
 
 ```{r}
-#setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package")
-setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
-sourceRcpp("rcpp/Leiden")
+setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package")
+#setwd("C:/Users/bbessell/Projects/GitHub/AluNet")
 ```
 
 To run our package, first install it and some other dependencies we will use to
 benchmark
 
 ```{r}
-if (!require("devtools")) {
-  install.packages("devtools")
-}
-
-
-#devtools::install_github("babessell1/AluNet/AluNet")
-
-# the above doesn't work
-url <- "https://github.com/babessell1/AluNet/raw/main/AluNet_1.0.tar.gz"
-download.file(url, "AluNet_1.0.tar.gz")
-install.packages("AluNet_1.0.tar.gz",repo=NULL)
-
-
-
 if (!require("igraph")) {
   install.packages("igraph")
 }
 if (!require("microbenchmark")) {
   install.packages("microbenchmark")
 }
+
+if (!require("devtools")) {
+  install.packages("devtools")
+}
+
+devtools::install_github("babessell1/AluNet/AluNet")
+
+# the above doesn't work
+#url <- "https://github.com/babessell1/AluNet/raw/main/AluNet_1.0.tar.gz"
+#download.file(url, "AluNet_1.0.tar.gz")
+#install.packages("AluNet_1.0.tar.gz",repo=NULL)
+
 ```
 
 Then we will load it, igraph, and microbenchmark to benchmark against the 
@@ -168,7 +165,7 @@ mb_igraph <- microbenchmark(
 print(rbind(mb_ours, mb_igraph))
 ```
 
-Next we try with some larger more complex toy models to also show that iGraph's
+Next we try with a larger more complex toy models to also show that igraph's
 implementation scales better than ours (4:1) compared to (5:1) for a graph that
 is twice as big. 
 
