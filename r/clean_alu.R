@@ -165,15 +165,9 @@ select_the_highest_probability_alu <- function(output_dir){
 #' @importFrom purrr map_df
 #' @importFrom readr read_csv write_csv
 #' @importFrom stringr grepl sub
-clean_alu.R <- function(hic_file_path, file_path, output_dir) {
-  library(dplyr)
-  library(purrr)
-  library(stringr)
-  library(data.table)
-  library(readr)
+clean_alu <- function(hic_file_path, file_path, output_dir) {
   read_dfam(file_path, output_dir)
   categorize_dfam(hic_file_path, output_dir)
   select_the_highest_probability_alu(output_dir)
   return (paste0(output_dir, "/highest_probability"))
 }
-# clean_alu.R("/home/xuyuan/Desktop/AluNet/data/final_vs/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/final_vs/uncleaned data/hic_data.hits", "/home/xuyuan/Desktop/AluNet/data/final_vs")

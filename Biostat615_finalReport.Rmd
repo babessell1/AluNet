@@ -363,9 +363,9 @@ igraph_result <- runIgraph(gdf, iterations, gamma, theta)
 plotIgraph(gdf, igraph_result)
 ```
 
-Let's create a temporary directory and make sure we have a few more dependencies to download and process some data as well as plot our results
+Let's create a temporary directory and double check we have a few more dependencies to download and process some data as well as plot our results, 
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r, eval=FALSE, results='hide', message=FALSE, warning=FALSE}
 if (!require("R.utils")) {
   install.packages("R.utils")
 }
@@ -393,33 +393,45 @@ dir.create("temp")
 To show its utility on biological data, we first download some Fit-Hi-C data[@Lee2023]
 
 ```{r, eval=FALSE}
-path_ <- paste0(getwd(), temp)
-setwd(path_)
-file_name <- "hic_data.txt.gz"
-url <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE148434&format=file&file=GSE148434%5FNS%5Fall%2E5kb%2E1e%2D2%2EFitHiC%2Eall%2Etxt%2Egz"
+file_path <- paste0(getwd(), "/temp")
+download_hic <- function(file_path){
+  library(R.utils)
+  setwd(file_path)
+  file_name <- "hic_data.txt.gz"
+  url <- "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE148434&format=file&file=GSE148434%5FNS%5Fall%2E5kb%2E1e%2D2%2EFitHiC%2Eall%2Etxt%2Egz"
 
-download.file(url, paste(path_, file_name, sep = "/"), mode = "wb")
-gunzip(file_name, remove=TRUE)
+  download.file(url, paste(file_path, file_name, sep = "/"), mode = "wb")
+  gunzip(file_name, remove=FALSE)
+}
+download_hic(file_path)
 ```
 
 Then we download Dfam mobile elements[@Storer2021] (be careful, it is very large). We place it in a folder in the current working directory.
 
-```{r. eval=FALSE}
-url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
-file_name <- "hg38.hits.gz"
-hg38_file <- paste(path_, file_name, sep = "/")
-download.file(url, hg38_file, mode = "wb")
-gunzip(hg38_file, remove=FALSE)
+```{r}
+download_dfam <- function(file_path){
+  url <- "https://www.dfam.org/releases/Dfam_3.8/annotations/hg38/hg38.hits.gz"
+  download_directory <- paste(file_path, "uncleaned_data", sep = "/")
+  # Create the directory
+  if (!file.exists(download_directory)) {
+    dir.create(download_directory)
+  }
+  file_name <- "hg38.hits.gz"
+  hg38_file <- paste(download_directory, file_name, sep = "/")
+  download.file(url, hg38_file, mode = "wb")
+  gunzip(hg38_file, remove=FALSE)
+}
+download_dfam(file_path)
+
 ```
 
-Then we download some example ATAC-seq data.[@Corces2020]
+Then we download some example ATAC-seq data for the same tissue and disease context [@Corces2020] 
 
 ```{r}
-download_atac <- function(){
-  library(readxl)  
-  file_path <- getwd()
+download_atac <- function(file_path){
+  library(readxl)
   url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
-  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  download_directory <- paste(file_path, "uncleaned_data", sep = "/")
   # Create the directory
   if (!file.exists(download_directory)) {
     dir.create(download_directory)
@@ -437,28 +449,44 @@ download_atac <- function(){
   # Save as CSV
   write.csv(atac_data, output_csv_file, row.names = FALSE)
 }
+download_atac(file_path)
 ```
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
 ```{r}
-clean_alu("/home/xuyuan/Desktop/AluNet/data/uncleaned data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data/final vs")
-merge_hic_with_alu()
+data_dir <-  paste0(getwd(), "/temp")
+returned_path <- clean_alu.R(
+  data_dir, "/hic_data.txt"),
+  paste0(data_dir, "/uncleaned_data/hg38.hits",
+  data_dir
+)
 ```
 
-% Then we run our function to convert these data into our weighted adjacency matrix
+Then we use the files we made to generate the edges:
 
-% ```{r}
+```{r}
+clean_alu(paste0(data_dir, "/highest_probability") data_dir)
+```
 
-% ```
+Alternatively, to avoid downloading the raw data and processing it, you can download the processed data directly to run our implementation of the Leiden algorithm on it.
 
-% Then we use these weights as inputs for our implementatoin of the Leiden Algorithm
+```{r}
+url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
+download.file(url, "edges_data_frame.csv")
+dataframe <- read.csv("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT615/test_package/edges_data_frame.csv")
+list <- as.list(dataframe)
+```
 
-% ```{r}
+```{r}
+result <- runLeiden(list, 1, 1, 0.01, 1)
+```
 
-% ```
+Finally, we time and plot our results
 
-% and we should generate a demo graph with only chromosome 22.
+```{r}
+plotLeiden(result, no_labels=TRUE)
+```
 
 If you don't want to download large data, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
