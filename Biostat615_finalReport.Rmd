@@ -414,26 +414,51 @@ gunzip(hg38_file, remove=FALSE)
 Then we download some example ATAC-seq data.[@Corces2020]
 
 ```{r}
-
+download_atac <- function(){
+  library(readxl)  
+  file_path <- getwd()
+  url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-020-00721-x/MediaObjects/41588_2020_721_MOESM4_ESM.xlsx"
+  download_directory <- paste(file_path, "uncleaned data", sep = "/")
+  # Create the directory
+  if (!file.exists(download_directory)) {
+    dir.create(download_directory)
+  }
+  file_name <- "atac_data.xlsx"
+  atac_file <- paste(download_directory, file_name, sep = "/")
+  download.file(url, atac_file, mode = "wb")
+  # Read the Excel file
+  atac_data <- read_excel(atac_file)
+  
+  # Specify the name of the output CSV file
+  output_csv_name <- "atac_data.csv"
+  output_csv_file <- paste(download_directory, output_csv_name, sep = "/")
+  
+  # Save as CSV
+  write.csv(atac_data, output_csv_file, row.names = FALSE)
+}
 ```
 
 Then we run several helper functions to convert each of the data into dataframe (matrix)
 
 ```{r}
-
+clean_alu("/home/xuyuan/Desktop/AluNet/data/uncleaned data/hg38.hits", "/home/xuyuan/Desktop/AluNet/data/final vs")
+merge_hic_with_alu()
 ```
 
-Then we run our function to convert these data into our weighted adjacency matrix
+% Then we run our function to convert these data into our weighted adjacency matrix
 
-```{r}
+% ```{r}
 
-```
+% ```
 
-Then we use these weights as inputs for our implementatoin of the Leiden Algorithm
+% Then we use these weights as inputs for our implementatoin of the Leiden Algorithm
 
-```{r}
+% ```{r}
 
-```
+% ```
+
+% and we should generate a demo graph with only chromosome 22.
+
 If you don't want to download large data, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
