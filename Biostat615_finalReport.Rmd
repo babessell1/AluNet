@@ -72,13 +72,21 @@ The aggregate network in the Leiden algorithm is then constructed based on this 
 
 ## Weight Calculation 
 
-Need other equation from the slide to explain the hadamard product better with the sums and stuff
+## Weight calculation
+	The biological intuition for our weight calculations is that we are looking for open transcribable chromatin with complementary Alu elements in it with evidence of chromatin modulation. Therefore we construct a boolean edge weights where $A$ is 1 if both DNA fragments are open (accessible) and 0 otherwise. Our Alu element matrix is the expected maximum number of possible simultaneous RNA-RNA bonds between two complementary Alu elements, assuming all Alu elements in the same family are not mutated beyond the ability to be transcribed or be sufficiently complementary with one another. The counts $N$ represent the number of Alu elements within a certain window around the DNA fragments being considered. This provides an expectation of potential connections or interactions influenced by the presence of these elements.
+For any two DNA fragments, $i$ and $j$, and a specific Alu family, $k$, the edge weight $e_i,j$ is calculated. This weight is the minimum of the boolean values $a_i$ and $a_j$ multiplied by the sum of the minimum number of Alu elements of family $k$ in both fragments, times the fragment contact probabilities $h_i,j$. $e_i,j$ is the edge weight between DNA fragment $i$ and $j$. $a_i$ is a boolean value indicating whether a window coincides with accessible chromatin for fragment $i$. $n_k,i$ is the number of Alu elements of the family $k$ in fragment $i$. $h_i,j$ is the contact probabilities between fragments $i$ and $j$. We can represent this as a matrix operation:
 
 $$
-M = A \odot B \odot C
-$$
+E = A \odot N \odot H
+$$ 
 
-Where:
+Where E is the weighted adjacency matrix, A is the chromatin accessibility matrix, N is the Alu element matrix, and H is the Hi-C contact probability matrix.
+
+\\
+
+The combination of these three datasets—Hi-C, ATAC-seq (chromatin accessibility), and Alu element — constructs a crude weighted graph where the edges are more likely to cluster with one another if their potentially chromatin modulating Alus within the DNA fragment.
+
+
 
 # Evaluation
 
