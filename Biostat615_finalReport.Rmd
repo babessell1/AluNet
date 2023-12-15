@@ -7,7 +7,8 @@ author:
 - Sicheng Qian (sichengq@umich.edu)
 output:
   html_document:
-    df_print: paged
+    df_print: kable
+  pdf_document: default
 bibliography: references.bib
 ---
 
@@ -454,5 +455,6 @@ Plot the results and save as a high-dpi png.
 plotLeiden(result, Alus=TRUE)
 #dev.off()
 ```
+
 
 # References
