@@ -1,16 +1,23 @@
-#' Merge Hi-C Data with ALU Elements and ATAC-seq Data for Graph Analysis
+#' Clean ALU Data from DFAM
 #'
-#' This function integrates Hi-C data with ALU elements and ATAC-seq data for graph analysis.
-#' It processes and merges these datasets, calculates node weights, and saves the final output.
+#' This function performs several steps to clean ALU data from DFAM. It reads the 'hg38.hits' file in chunks,
+#' filters ALU sequences, writes them to CSV files, categorizes these sequences by chromosome,
+#' and finally selects the ALU elements with the highest probability (minimum e-value) for each position.
 #'
-#' @return Invisible NULL. The function operates through side effects: reading, processing,
-#' merging, and writing data to files. It does not return any value.
+#' The function assumes a specific directory structure and creates necessary directories if they do not exist.
 #'
+#' @param path_file String, path to the clean_alu temp data.
+#' @param output_directory String, path to the directory where the output files will be saved.
+#' @param hic_data_file String, optional, path to the Hi-C data file.
+#' @param alu_directory String, optional, path to the directory containing ALU data files.
+#' @param atac_data_file String, optional, path to the ATAC-seq data file.
+#' @return NULL, The function operates through side effects (reading, processing, 
+#'         and writing data) and does not return any value.
 #' @examples
-#' merge_hic_graph()
-#'
+#' merge_hic_with_alu("path/to/hic_data.txt", "path/to/output")
+#' 
 #' @export
-merge_hic_graph <- function(){
+merge_hic_with_alu <- function(file_path, output_directory){
   library(dplyr)
   library(data.table)
   library(purrr)
@@ -18,7 +25,7 @@ merge_hic_graph <- function(){
   library(readr)
   # finally, we merge the alu elements with the hic data
   # the hic data frame contains the 
-  file_path <- getwd()
+  
   current_directory <- paste0(file_path, "/uncleaned data")
   
   # Load Hi-C data
@@ -42,7 +49,7 @@ merge_hic_graph <- function(){
   unique_chromosomes <- unique(hic_data$chromosome)
   print(unique_chromosomes)
   
-  current_directory <- paste0(file_path, "/highest probability")
+  current_directory <- paste0(file_path, "/highest_probability")
   
   files <- list.files(current_directory, pattern="*", full.names = TRUE)
   
@@ -119,7 +126,7 @@ merge_hic_graph <- function(){
                                                  AluY_count = i.AluY_count, 
                                                  alu_total = i.alu_total)]
   
-  intermediate_result <- paste0(file_path, "/cleaned hic with alu")
+  intermediate_result <- paste0(file_path, "/cleaned_hic_with_alu")
   # Create the directory
   if (!file.exists(intermediate_result)) {
     dir.create(intermediate_result)
@@ -127,12 +134,12 @@ merge_hic_graph <- function(){
   
   write.table(hic_data, paste0(intermediate_result, "/hic_with_alu.txt"), sep = "\t")
 
-  current_directory <- paste0(file_path, "/cleaned hic with alu")
+  current_directory <- paste0(file_path, "/cleaned_hic_with_alu")
   
   hic_data <- read.delim(paste0(current_directory, "/hic_with_alu.txt"), header = TRUE) 
   hic_data$chromosome2 <- sub("^([^.]*)\\..*", "\\1", hic_data$frag2)
   
-  atac_dir <- paste0(file_path, "/uncleaned data")
+  atac_dir <- paste0(file_path, "/uncleaned_data")
   
   # Load ATAC-seq data
   atac_data <- read.csv(paste0(atac_dir, "/atac_data.csv"), header = TRUE)
@@ -184,7 +191,7 @@ merge_hic_graph <- function(){
   hic_data <- hic_data[which(hic_data$node_weights != 0), ]
   hic_data$node_weights <- hic_data$node_weights / max(hic_data$node_weights)
   
-  final_result <- paste0(file_path, "/final output")
+  final_result <- output_directory
   # Create the directory
   if (!file.exists(final_result)) {
     dir.create(final_result)
@@ -192,3 +199,5 @@ merge_hic_graph <- function(){
   print(nrow(hic_data))
   write.csv(hic_data, paste0(final_result, "/edges_data_frame.csv"), row.names = TRUE)
 }
+
+merge_hic_with_alu("/home/xuyuan/Desktop/AluNet/data", "/home/xuyuan/Desktop/AluNet/data/final_result")
