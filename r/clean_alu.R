@@ -158,4 +158,4 @@ clean_alu.R <- function(hic_file_path, file_path, output_dir) {
   select_the_highest_probability_alu(output_dir)
 }
 
-clean_alu.R("/home/xuyuan/Desktop/AluNet/data/final_vs/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/final_vs/uncleaned data/hic_data.hits", "/home/xuyuan/Desktop/AluNet/data/final_vs")
+# clean_alu.R("/home/xuyuan/Desktop/AluNet/data/final_vs/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/final_vs/uncleaned data/hic_data.hits", "/home/xuyuan/Desktop/AluNet/data/final_vs")
