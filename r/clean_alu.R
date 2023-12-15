@@ -6,7 +6,7 @@
 #'
 #' @param file_path Path to the DFAM data file.
 #' @param output_dir Directory where the filtered CSV files will be saved.
-#' @return Invisible NULL. The function is used for its side effects of reading, filtering, and writing data.
+#' @return NULL
 #' @import data.table
 #' @importFrom stringr grepl
 read_dfam <- function(file_path, output_dir){

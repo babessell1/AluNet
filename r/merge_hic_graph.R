@@ -199,5 +199,3 @@ merge_hic_with_alu <- function(file_path, output_directory){
   print(nrow(hic_data))
   write.csv(hic_data, paste0(final_result, "/edges_data_frame.csv"), row.names = TRUE)
 }
-
-merge_hic_with_alu("/home/xuyuan/Desktop/AluNet/data", "/home/xuyuan/Desktop/AluNet/data/final_result")

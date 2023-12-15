@@ -3,7 +3,9 @@ build <- function() {
         "AluNet",
         code_files = c(
             "r/plotLeiden.R",
-            "r/graphFromFitHIC.R"
+            "r/graphFromFitHIC.R",
+            "r/merge_hic_graph.R",
+            "r/clean_alu.R"
         ),
         cpp_files = c(
             "rcpp/Leiden.cpp",
