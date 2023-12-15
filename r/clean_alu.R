@@ -1,38 +1,4 @@
 
-#' Main Function to Process ALU Data
-#'
-#' This is a pipeline function that sequentially processes ALU data from a DFAM file. 
-#' It first reads and filters ALU sequences from a given DFAM file (read_dfam), 
-#' then categorizes these sequences by chromosomes based on a Hi-C data file (categorize_dfam), 
-#' and finally selects the ALU sequences with the highest probability for each position in the data frame 
-#' (select_the_highest_probability_alu).
-#'
-#' @param hic_file_path Path to the Hi-C data file, used in categorizing ALU sequences by chromosome.
-#' @param file_path Path to the DFAM data file, which contains ALU sequences to be processed.
-#' @param output_dir Base directory where the processed output data will be saved.
-#' 
-#' @details 
-#' The `read_dfam` function reads a DFAM file in chunks, filters for sequences starting with 'ALU', and saves them to CSV files.
-#' The `categorize_dfam` function reads the filtered ALU data and categorizes them by chromosomes based on the Hi-C data file.
-#' The `select_the_highest_probability_alu` function selects the ALU sequences with the highest probability for each position.
-#'
-#' @return path of the folder where the final output is stored.
-#' 
-#' @importFrom data.table fread fwrite
-#' @importFrom dplyr filter
-#' @importFrom purrr map_df
-#' @importFrom readr read_csv write_csv
-#' @importFrom stringr grepl sub
-clean_alu.R <- function(hic_file_path, file_path, output_dir) {
-  library(dplyr)
-  library(purrr)
-  library(stringr)
-  library(readr)
-  read_dfam(file_path, output_dir)
-  categorize_dfam(hic_file_path, output_dir)
-  select_the_highest_probability_alu(output_dir)
-  return (paste0(output_dir, "/highest_probability"))
-}
 
 #' Read DFAM Data and Filter ALU Sequences
 #'
@@ -52,7 +18,7 @@ read_dfam <- function(file_path, output_dir){
   }
   
   chunksize <- 10^6
-  skip_rows <- 0
+  skip_rows <- 0 
   
   # Function to check if a string starts with 'ALU'
   startsWithAlu <- function(x) {
@@ -62,18 +28,22 @@ read_dfam <- function(file_path, output_dir){
   header <- colnames(fread(file_path, nrows = 1))
   print(header)
   # Read and process the file in chunks
-  while(TRUE) {
-    # Read a chunk of the file
-    dt <- fread(file_path, skip = skip_rows, nrows = chunksize, header = FALSE, col.names = header)
-    # If the chunk is empty, break the loop
-    if (nrow(dt) == 0) {
-      break
-    }
+  continue <- TRUE
+  while(continue) {
+    tryCatch({
+      # Read a chunk of the file
+      dt <- fread(file_path, skip = skip_rows, nrows = chunksize, header = FALSE, col.names = header)
+     
+      if (nrow(dt) == 0) {
+        print(paste("Reached end of file or no more data from skip_rows =", skip_rows))
+        continue = FALSE
+        return()
+      }
+      
+      # Filter rows where family_name starts with 'ALU'
+      alu_rows <- dt[startsWithAlu(dt$family_name), ]
     
-    # Filter rows where family_name starts with 'ALU'
-    alu_rows <- dt[startsWithAlu(dt$family_name), ]
-    
-    names(alu_rows)[names(alu_rows) == "#seq_name"] <- "seq_name"
+      names(alu_rows)[names(alu_rows) == "#seq_name"] <- "seq_name"
     
     # Write to CSV
     fwrite(alu_rows, paste0(output_dir, "/alu_data", skip_rows, ".csv"), col.names = TRUE)
@@ -82,6 +52,14 @@ read_dfam <- function(file_path, output_dir){
     
     # Update skip_rows for the next iteration
     skip_rows <- skip_rows + chunksize
+    }, error = function(e) {
+      # Handle the error
+      print(paste("Something wrong happens", skip_rows, ": ", e$message))
+      if(grepl("skip=", e$message)) {
+        print("Reached past the end of the file. Stopping.")
+        continue <<- FALSE
+      }
+    })
   }
 }
 
@@ -161,5 +139,41 @@ select_the_highest_probability_alu <- function(output_dir){
     print(nrow(df_selected))
     write.csv(df_selected, paste0(output_path, '/', last_item))
   }
+}
+
+#' Main Function to Process ALU Data
+#'
+#' This is a pipeline function that sequentially processes ALU data from a DFAM file. 
+#' It first reads and filters ALU sequences from a given DFAM file (read_dfam), 
+#' then categorizes these sequences by chromosomes based on a Hi-C data file (categorize_dfam), 
+#' and finally selects the ALU sequences with the highest probability for each position in the data frame 
+#' (select_the_highest_probability_alu).
+#'
+#' @param hic_file_path Path to the Hi-C data file, used in categorizing ALU sequences by chromosome.
+#' @param file_path Path to the DFAM data file, which contains ALU sequences to be processed.
+#' @param output_dir Base directory where the processed output data will be saved.
+#' 
+#' @details 
+#' The `read_dfam` function reads a DFAM file in chunks, filters for sequences starting with 'ALU', and saves them to CSV files.
+#' The `categorize_dfam` function reads the filtered ALU data and categorizes them by chromosomes based on the Hi-C data file.
+#' The `select_the_highest_probability_alu` function selects the ALU sequences with the highest probability for each position.
+#'
+#' @return path of the folder where the final output is stored.
+#' 
+#' @importFrom data.table fread fwrite
+#' @importFrom dplyr filter
+#' @importFrom purrr map_df
+#' @importFrom readr read_csv write_csv
+#' @importFrom stringr grepl sub
+clean_alu.R <- function(hic_file_path, file_path, output_dir) {
+  library(dplyr)
+  library(purrr)
+  library(stringr)
+  library(data.table)
+  library(readr)
+  read_dfam(file_path, output_dir)
+  categorize_dfam(hic_file_path, output_dir)
+  select_the_highest_probability_alu(output_dir)
+  return (paste0(output_dir, "/highest_probability"))
 }
 # clean_alu.R("/home/xuyuan/Desktop/AluNet/data/final_vs/hic_data.txt", "/home/xuyuan/Desktop/AluNet/data/final_vs/uncleaned data/hic_data.hits", "/home/xuyuan/Desktop/AluNet/data/final_vs")
