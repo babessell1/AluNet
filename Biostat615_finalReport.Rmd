@@ -125,6 +125,15 @@ knitr::include_graphics("./alu_plot.png")
 
 All relevant code to run the benchmarking and generate the above plot can be found in the supplementary notebook.
 
+#Contributions
+
+Brandt Bessell came up with the project idea, contributed to developing, debugging and testing  all parts of the Leiden implementation, converted it to a documented and installable package, made the presentation slides and helped write the project proposal and project update. He wrote the introduction, the problem description, package features, evaluation, references, and supplementary sections of the report. He helped write and proofread the algorithm description of the report. He benchmarked the algorithm on toy models. He consulted the matrix weight calculation team and did proofreading.
+
+Xuyuan Zhang contributed to writing, debugging and testing the Leiden implementation, wrote the functions and documentation for creating the input weights as well as plotting the outputs of our Leiden implementation. He helped test those functions on our biological data. He helped discuss the presentation, helped write the project proposal and update and helped write the weight calculation section of the final report. 
+
+Sicheng Qian, helped write some of the functions  for creating the input weights. He helped write the project proposal, helped write the Leiden algorithm description section of the final report, and made the .bib format for markdown. 
+
+
 
 # Supplemental
 
