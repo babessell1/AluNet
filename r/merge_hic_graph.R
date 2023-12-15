@@ -1,19 +1,16 @@
-#' Clean ALU Data from DFAM
+#' Merge Hi-C Data with ALU Elements and ATAC-seq Data for Graph Analysis
 #'
-#' This function performs several steps to clean ALU data from DFAM. It reads the 'hg38.hits' file in chunks,
-#' filters ALU sequences, writes them to CSV files, categorizes these sequences by chromosome,
-#' and finally selects the ALU elements with the highest probability (minimum e-value) for each position.
+#' This function integrates Hi-C data with ALU elements and ATAC-seq data for graph analysis.
+#' It processes and merges these datasets, calculates node weights, and saves the final output.
 #'
-#' The function assumes a specific directory structure and creates necessary directories if they do not exist.
-#'
-#' @return NULL. The function operates through side effects: reading, filtering,
-#' categorizing, selecting, and writing data to files. It does not return any value.
+#' @return Invisible NULL. The function operates through side effects: reading, processing,
+#' merging, and writing data to files. It does not return any value.
 #'
 #' @examples
-#' clean_alu()
-#' 
+#' merge_hic_graph()
+#'
 #' @export
-merge_hic_with_alu <- function(){
+merge_hic_graph <- function(){
   library(dplyr)
   library(data.table)
   library(purrr)
