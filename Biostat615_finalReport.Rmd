@@ -18,6 +18,11 @@ library(knitr)
 library(kableExtra)
 ```
 
+# Code Availability
+
+All code for this project is available at:
+https://github.com/babessell1/AluNet
+
 # Introduction
 
 Alu elements are transposable elements (TE) that hijack LINE1 encoded retrotransposition proteins to copy and paste themselves into genomic DNA[@Doucet2015] Discoveries that transposable element polymorphisms in the human population could modulate gene expression[@Wang2017] and active evolutionary pressure toward enhancers paired with long-range interactions with promoters[@Su2014] have challenged earlier conceptions they they were “junk” DNA.[@Pray2008] This year, substantial evidence has been provided suggesting that a complementary sequence motif found in Alu elements of the same family can induce RNA polymerase-II transcribed RNA-RNA interactions in cases where an Alu sequences are embedded in a promoter upstream antisense transcript and another Alu sequence is embedded in an enhancer transcript.[@Liang2023] Based on this mechanism, it has been speculated that mostly disjoint enhancer promoter interaction networks (EPRI) may exist that can be rapidly rewired and have implications in evolutionary and disease contexts[@Wen2023] and that the inherent RNA polymerase-III transcription of Alu elements essential for their retrotransposition could yield similar RNA-RNA based dynamics in non-enhancer/promoter embedded elements. Moreover, it has been demonstrated with FISH that LINE1 and Alu elements both exclusively colocalize with their specific subfamilies in cellular compartments.[@Lu2021] For reasons which will not be discussed in detail in this report, it is hypothesized that understanding the dynamics of these Alu communities could be relevant to one of the group member’s research into neurodegenerative disease mechanisms.
@@ -95,8 +100,8 @@ To evaluate our implementation of the Leiden algorithm, we compare it to the gol
 ```{r, echo=FALSE}
 table1 <- data.frame(
   c("Ours", "igraph"),
-  c("Data1", "Data2"),
-  c("Data1", "Data2")
+  c("501276.3", "147.5"),
+  c("501276.3", "147.5")
 )
 
 colnames(table1) <- c("Implementation",
@@ -148,7 +153,7 @@ setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT6
 
 To run our package, first install it and some other dependencies we will use to benchmark
 
-```{r, results='hide', message=FALSE, warning=FALSE}
+```{r, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 if (!require("igraph")) {
   install.packages("igraph")
 }
@@ -172,9 +177,9 @@ devtools::install_github("babessell1/AluNet/AluNet")
 Then we will load it, igraph, and microbenchmark to benchmark against the current gold standard of clustering algorithm implementations.
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
-library(igraph)
-library(microbenchmark)
-library(AluNet)
+library("igraph")
+library("microbenchmark")
+library("AluNet")
 ```
 
 First, we check against several toy models. Note that the RNG is different for each implementation of Leiden so we will run several different seeds for each one to show that they are functioning similarly.
@@ -517,7 +522,6 @@ merge_hic_with_alu(data_dir, cleaning_dir)
 
 ```{r}
 dataframe <- read.csv("edges_data_frame.csv")
-predominant_alu <- dataframe$group
 dataframe$group <- NULL
 list <- as.list(dataframe)
 ```
@@ -526,32 +530,25 @@ list <- as.list(dataframe)
 result <- runLeiden(list, 1, 1, 0.01, 1)
 ```
 
-Finally, we time and plot our results
-
-```{r}
-plotLeiden(result, no_labels=TRUE, edge_colors=predominant_alu)
-```
-
 If you don't want to download the large datasets, you can download our processed data instead to run our implementation of the Leiden algorithm on it.
 
 ```{r}
 url <- "https://github.com/babessell1/AluNet/raw/main/final_data.csv"
-download.file(url, "edges_data_frame.csv")
+download.file(url, "final_data.csv.csv")
 dataframe_ <- read.csv("final_data.csv")
-predominant_alu <- dataframe$group
 dataframe$group <- NULL
-list <- as.list(dataframe)
+list_ <- as.list(dataframe)
 ```
 Then we run the Leiden algorithm.
 
 ```{r}
-result <- runLeiden(list_, 1, 1, 0.01, 1)
+result <- runLeiden(list_, 10, 1, 0.01, 1)
 ```
 Plot the results and save as a high-dpi png.
 
 ```{r}
 #png("alu_plot.png", width = 1000, height = 1000, res = 300)
-plotLeiden(result, Alus=TRUE, edge_colors=predominant_alu$predominant_alu)
+plotLeiden(result, TRUE)
 #dev.off()
 ```
 

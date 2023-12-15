@@ -4,10 +4,12 @@
 \alias{plotLeiden}
 \title{Plot the output of the Leiden algorithm, coloring nodes based on community}
 \usage{
-plotLeiden(result, Alus = FALSE, alu_vec = NULL)
+plotLeiden(result, Alus = FALSE)
 }
 \arguments{
 \item{result}{The result of the runLeiden function.}
+
+\item{Alus}{Whether or not to the input is from the Alu data.}
 }
 \value{
 A plot of the graph with nodes colored based on community.
