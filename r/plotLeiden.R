@@ -2,7 +2,8 @@
 #' 
 #' @param result The result of the runLeiden function.
 #' @return A plot of the graph with nodes colored based on community.
-plotLeiden <- function(result) {
+#' @export
+plotLeiden <- function(result, no_labels = FALSE) {
     gdf <- graph.data.frame(result$graph)
 
     # get node indices from the graph
@@ -25,16 +26,29 @@ plotLeiden <- function(result) {
     colors <- community_colors[as.factor(V(gdf)$membership)]
 
     # Plot the graph
-    plot(
-    gdf,
-    layout = layout_with_fr(gdf),
-    vertex.color = colors,  # Color nodes based on community
-    vertex.frame.color = colors,
-    #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
-    vertex.label = V(gdf)$name,
-    edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-    main = "Our Rcpp-based Clustering"
-    )
+    if (!no_labels) {
+        plot(
+            gdf,
+            layout = layout_with_fr(gdf),
+            vertex.color = colors,  # Color nodes based on community
+            vertex.frame.color = colors,
+            #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
+            vertex.label = V(gdf)$name,
+            edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+            main = "Our Rcpp-based Clustering"
+        )
+    } else {
+        plot(
+            gdf,
+            layout = layout_with_fr(gdf),
+            vertex.color = colors,  # Color nodes based on community
+            vertex.frame.color = colors,
+            #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
+            vertex.label = NA,
+            edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
+            main = "Our Rcpp-based Clustering"
+        )
+    }
 
     # Add a legend for community colors
     legend("topright", legend = unique(V(gdf)$membership),
