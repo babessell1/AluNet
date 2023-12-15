@@ -57,7 +57,9 @@ plotLeiden <- function(result, Alus = FALSE) {
             #edge.color = color_palette[cut(E(gdf)$weight, breaks = 100)],  # Map edge color from cold to hot
             vertex.label = NA,
             edge.arrow.size = 0,  # Set arrow size to 0 to remove arrows
-            main = "Candidate Chromatin Modulating Alu Communities (Chr22)"
+            main = "Candidate Alu Communities",
+            # make title smalle
+            cex.main = 0.5
         )
     }
 

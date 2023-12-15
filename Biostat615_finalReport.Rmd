@@ -6,9 +6,9 @@ author:
 - Xuyuan Zhang (zxuyuan@umich.edu)
 - Sicheng Qian (sichengq@umich.edu)
 output:
+  pdf_document: default
   html_document:
     df_print: kable
-  pdf_document: default
 bibliography: references.bib
 ---
 
@@ -29,7 +29,7 @@ Alu elements are transposable elements (TE) that hijack LINE1 encoded retrotrans
 
 # Problem Description
 
-With a lack of RIC-seq data to pull from to study the phenomenon, but an abundance of collaborators with the ability to provide Pore-C targeted capture data, we propose that a heuristic community detection approach could be useful for identifying candidate loci for target capture. The algorithm we settled on was the Leiden algorithm[@Traag2019] due to specific improvements over the Louvain algorithm[@Blondel2008] which will be discussed in detail in the algorithm description section. Another reason we decided to select the Leiden algorithm is that it is necessarily highly iterative and thus provides a good use case for using Rcpp which was the main course topic of interest for some of the group members who were interested in learning C++, which is important for their subfield. There is also a practical reason for rewriting the algorithm in C++. igraph[@Csardi2006] is written in C and maintained by a large team of computer scientists working in the field of network analysis and it is unrealistic to believe we can even come close to competing with their computational speed within the timeframe of this project. However, in their C-based implementation, it is difficult to add low-level customized features to the algorithm due to inflexibility resulting from a lack of encapsulation and innate challenges with memory management. By rewriting the algorithm in object-oriented C++ , it will be potentially useful to one of the group members who may want to extend the functionality of the algorithm. For example, on-the-fly checking for intact RNA polymerase-III/II binding domains, more complex weighting schemes using local sequence alignment and expected bindable transcript lengths, as well as dynamic storage of relevant properties for (and results of) these calculations within partition, community, and graph objects. Extending the Leiden algorithm with these features is beyond the scope of this class and will be reserved for potential future projects. Instead, the goal of our project was to get the algorithm working in C++ to have a foundation for these future projects. Our second aim was to use our implementation to demonstrate the Leiden algorithm’s viability in identifying candidate chromatin modulating Alu communities with a crude weighting scheme incorporating publicly available Hi-C[@Lee2023], ATAC-seq data[@Corces2020], and the Dfam transposable elements database[@Storer2021].
+With a lack of RIC-seq data to pull from to study the phenomenon, but an abundance of collaborators with the ability to provide Pore-C targeted capture data, we propose that a heuristic community detection approach could be useful for identifying candidate loci for target capture. The algorithm we settled on was the Leiden algorithm[@Traag2019] due to specific improvements over the Louvain algorithm[@Blondel2008] which will be discussed in detail in the algorithm description section. Another reason we decided to select the Leiden algorithm is that it is necessarily highly iterative and thus provides a good use case for using Rcpp which was the main course topic of interest for some of the group members who were interested in learning C++, which is important for their subfield. There is also a practical reason for rewriting the algorithm in C++. igraph[@Csardi2006] is written in C and maintained by a large team of computer scientists working in the field of network analysis and it is unrealistic to believe we can even come close to competing with their computational speed within the timeframe of this project. However, in their C-based implementation, it is difficult to add low-level customized features to the algorithm due to inflexibility resulting from a lack of encapsulation and innate challenges with memory management. By rewriting the algorithm in object-oriented C++, it will be potentially useful to one of the group members who may want to extend the functionality of the algorithm. For example, on-the-fly checking for intact RNA polymerase-III/II binding domains, more complex weighting schemes using local sequence alignment and expected bindable transcript lengths, as well as dynamic storage of relevant properties for (and results of) these calculations within partition, community, and graph objects. Extending the Leiden algorithm with these features is beyond the scope of this class and will be reserved for potential future projects. Instead, the goal of our project was to get the algorithm working in C++ to have a foundation for these future projects. Our second aim was to use our implementation to demonstrate the Leiden algorithm’s viability in identifying candidate chromatin modulating Alu communities with a crude weighting scheme incorporating publicly available Hi-C[@Lee2023], ATAC-seq data[@Corces2020], and the Dfam transposable elements database[@Storer2021].
 
 # Package Features
 
@@ -44,9 +44,8 @@ The following Two sections are based on [@Traag2019].
 The Louvain algorithm has historically been a popular community detection algorithm. However, it has a significant drawback: it can produce poorly connected communities. In extreme cases, the communities identified by the Louvain algorithm might even be disconnected, which is a problem that becomes more pronounced with iterations getting increasingly large. To overcome these limitations, a new algorithm known as the Leiden algorithm was proposed.[@Traag2019]. Since the Leiden algorithm builds off of the Louvain algorithm, will first introduce the Louvain algorithm and then discuss the improvements Traag et al. made to the Leiden algorithm.
 To ensure clarity in the upcoming discussion about the algorithms, it's essential to establish some key terminologies: $E$ (Edge): This represents a connection between two nodes, $v$ and $u$, in a network. $V$ (Node Set): Every node in the network, denoted as $v$, is associated with a set of edges ($E$). $G$ (Graph): The graph encompasses all nodes and their connecting edges, expressed as $V(E)$. $C$ (Community Set): Each community is composed of a subset of nodes and edges from the graph, represented as a subset of $V(E)$. $P$ (Partition): A partition comprises a collection of communities, each containing a subset of nodes and edges, expressed as $C(V(E))$. $H$ (Quality): This is a measure used to evaluate the effectiveness or suitability of a particular partition or community structure within the graph.
 
-In community detection algorithms, the goal is often to optimize some function of “quality,” which is a quantitative way to represent how community-like you identified communities are. The Louvain algorithm historically functioned by optimizing modularity but other, arguably better metrics have been developed between the Louvain algorithm and Leiden algorithm’s inceptions including  the Constant Potts Model (CPM). $ H = \sum_{c} \left[ e_c - \gamma \left( \frac{n_c}{2} \right) \right] $, which specifically  attempts to maximize the internal edges in communities while ensuring these communities remain relatively small. In other words, CPM attempts to optimize the density of the communities it labels as communities.  A crucial  component of this optimization is the resolution parameter, $\gamma$, which determines the threshold for the density of connections both within and outside a community. Consider a community $c$ with $e_c$ edges and $n_c$ nodes. If this community is divided into two separate communities, $r$ and $s$, $ \frac{e_{r \rightarrow s}}{2n_r n_s} < \gamma $, with $e_{r \leftrightarrow s}$ representing the number of links between them, the algorithm assesses whether such a split is advantageous. The ratio of $e_{r \leftrightarrow s}$  denotes the density of links between $r$ and $s$. Therefore, the algorithm seeks to keep the link density between different communities lower than $\gamma$, while maintaining a higher density within the communities. This approach gives a clear and practical interpretation of the $\gamma$ hyperparameter, guiding the formation and division of communities in the network. 
-
-\\
+In community detection algorithms, the goal is often to optimize some function of “quality,” which is a quantitative way to represent how community-like identified communities are. The Louvain algorithm historically functioned by optimizing modularity but other, arguably better metrics have been developed between the Louvain algorithm and Leiden algorithm’s inceptions including  the Constant Potts Model (CPM). $H = \sum_{c} \left[ e_c - \gamma \left( \frac{n_c}{2} \right) \right]$, which specifically  attempts to maximize the internal edges in communities while ensuring these communities remain relatively small. In other words, CPM attempts to optimize the density of the communities it labels as communities.  A crucial  component of this optimization is the resolution parameter, $\gamma$, which determines the threshold for the density of connections both within and outside a community. Consider a community $c$ with $e_c$ edges and $n_c$ nodes. If this community is divided into two separate communities, $r$ and $s$, $\frac{e_{r \rightarrow s}}{2n_r n_s} < \gamma$, with $e_{r \leftrightarrow s}$ representing the number of links between them, the algorithm assesses whether such a split is advantageous. The ratio of $e_{r \leftrightarrow s}$
+ denotes the density of links between $r$ and $s$. Therefore, the algorithm seeks to keep the link density between different communities lower than $\gamma$, while maintaining a higher density within the communities. This approach gives a clear and practical interpretation of the $\gamma$ hyperparameter, guiding the formation and division of communities in the network. 
 
 The Louvain algorithm optimizes community labeling through two subroutines: (1) local moving of nodes, and (2) network aggregation. In the first moving phase, nodes are initialized as singletons (members of their own community) and are systematically moved into other communities until the partition quality cannot be improved anymore. The moving phase knows when to stop because the nodes are all marked as stable when they are moved, and marked as unstable when one of their neighbors moves and they are not in the same community as the new community their neighbor was moved to. Following this, the second phase involves constructing an aggregated network based on the newly formed partitions. Here, each community becomes a singular node within this aggregated network. These two processes repeat iteratively until there is no further improvement in the quality function. A significant drawback of the Louvain algorithm is its tendency to create poorly connected or even disconnected communities. In such cases, parts of a community are only interconnected through paths that extend outside their community. This issue often arises when a node, serving as a bridge within its original community, is moved to a different community, leading to a disconnection in the former. Surprisingly, other nodes in the disconnected community might not shift to new communities, as they could still be strongly linked within their original community despite its disconnection. Intriguingly, repeated iterations of the algorithm tend to exacerbate the issue, rather than resolving it. This reveals a critical limitation in the Louvain algorithm’s ability to maintain cohesive and connected communities throughout its optimization process. 
 
@@ -54,32 +53,30 @@ The Louvain algorithm optimizes community labeling through two subroutines: (1) 
 
 The Leiden algorithm involves three distinct phases, two of which are mostly the same as the Leiden algorithm: (1) the local moving of nodes, (2) the refinement of the partition, and (3) the aggregation of the network based on the refined partition. 
 A significant difference between the Leiden and Louvain algorithms lies in their approach to local moving of nodes. Contrary to the Louvain algorithm, which iteratively visits all nodes in a network until no further node movements increase the quality function, the Leiden algorithm adopts a more efficient strategy. In its fast local move procedure, only nodes in a changed neighborhood are visited.  The fast local move procedure can be summarized in the following steps:
-\\
+
 First we initialize a queue with all nodes in the network, adding them in a random order, we also initialize several vectors to track changes made during this step, most notably a boolean vector marking each node as stable or unstable. We iterate over and pop each node from the front of the queue, and create an empty community as a neighbor for it if it is not in a community by itself. For each neighboring community,  we check the difference in the partition quality resulting from moving this node from its current community to the neighboring one with the equation:
 
 $\Delta H$ can be efficiently calculated as:
-\\
-$$
-$\Delta H$ =C^\prime') - u_{\text{weight}} \cdot c_{\text{weight}} \cdot \gamma$
-$$
-\\
-Where $C^\prime$ is the cluster $u$ is being moved to and $u$ is the node which has moved. 
-\\
+
+\[
+\Delta H = C^\prime - u_{\text{weight}} \cdot c_{\text{weight}} \cdot \gamma
+\]
+
+Where $C^\prime$ is the cluster $u$ is being moved to, and $u$ is the node which has moved.
+
+
 We select the community to move to as the community resulting in the highest delta quality. Regardless of whether or not the node moves to a new community here, the node is marked as stable. However, if the node does move, any neighbor that is not already queued, and not already in the community it moved to is marked as unstable and added to the end of the queue. This process terminates when the queue is empty and all nodes are marked as stable.
-The Leiden algorithm introduces a second subroutine between the moving and aggregation subroutines, called the refinement phase. This phase aims to develop a more granular refined partition $P_{text{refined}}$  where each community in the partition can consist of multiple subcommunities from the partition, $P$ identified  by the previous move nodes phase. To obtain $P_{text{refined}}$, we first initialize it as a singleton partition, where each node forms its own community. The algorithm then undergoes a process of local mergers within this partition. Specifically, nodes that are isolated in a community in $P_{text{refined}}$ can be merged into a different community. However, these mergers are restricted to occur only within each community of the original partition P. Furthermore, a node is only merged into a community in$P_{text{refined}}$ if both the node and the community exhibit sufficient connectivity to their respective communities in P. If multiple quality improving mergers are identified, it selects on based on a probability weighted by the delta quality improvement to the partition, rather than selecting the best one every time which helps prevent the partition from converging to a local minima, another benefit of the Leiden approach over the Louvain. 
+The Leiden algorithm introduces a second subroutine between the moving and aggregation subroutines, called the refinement phase. This phase aims to develop a more granular refined partition $P_{refined}$  where each community in the partition can consist of multiple subcommunities from the partition, $P$, identified by the previous move nodes phase. To obtain $P_{refined}$, we first initialize it as a singleton partition, where each node forms its own community. The algorithm then undergoes a process of local mergers within this partition. Specifically, nodes that are isolated in a community in $P_{refined}$ can be merged into a different community. However, these mergers are restricted to occur only within each community of the original partition P. Furthermore, a node is only merged into a community in$P_{refined}$ if both the node and the community exhibit sufficient connectivity to their respective communities in P. If multiple quality improving mergers are identified, it selects on based on a probability weighted by the delta quality improvement to the partition, rather than selecting the best one every time which helps prevent the partition from converging to a local minima, another benefit of the Leiden approach over the Louvain. 
 
-\\
-
-
-As a result of this refinement phase, communities in P are often, but not always, divided into multiple smaller communities in $P_{text{refined}}$. Based on above changes, the Leiden algorithm opens up more possibilities for identifying high-quality partitions.
-An important aspect of the refinement phase in the refine partition is the node merging strategy. Unlike a purely greedy approach, nodes are not necessarily merged with the community that offers the largest increase in the quality function. Instead, a node may be merged with any community that results in an increase in the quality function, with the probability of the communities selection proportional to the delta quality improvement. This approach effectively mitigates the risk of encountering local maxima or minima in the optimization process. The selection of the community for merging a node is randomized, with the likelihood of a community being chosen correlating to the magnitude of the increase in the quality function it offers. By excluding mergers that would decrease the quality function, the refinement phase is rendered more efficient. Also, even when node mergers that decrease the quality function are excluded, based on the theorem, for any graph ( $G = (V, E)$ ), there exists a sequence of moves that non-decreasingly improves the modularity until it reaches an optimal partition $P^*$ , and this can be achieved in $n - |P^*|$ steps, where $n$ is the number of nodes in the graph and $|P^*|$ is the number of communities in the optimal partition,  the optimal partition of a set of nodes can still be uncovered. 
-The aggregate network in the Leiden algorithm is then constructed based on this refined partition $P_{text{refined}}$, although the initial partition for the aggregate network is still based on P, similar to the Louvain algorithm. The 3 subroutines iterate for a specified number of times, or until convergence. 
-
-## Weight Calculation 
+As a result of this refinement phase, communities in P are often, but not always, divided into multiple smaller communities in $P_{refined}$. Based on above changes, the Leiden algorithm opens up more possibilities for identifying high-quality partitions.
+An important aspect of the refinement phase in the refine partition is the node merging strategy. Unlike a purely greedy approach, nodes are not necessarily merged with the community that offers the largest increase in the quality function. Instead, a node may be merged with any community that results in an increase in the quality function, with the probability of the communities selection proportional to the delta quality improvement. This approach effectively mitigates the risk of encountering local maxima or minima in the optimization process. The selection of the community for merging a node is randomized, with the likelihood of a community being chosen correlating to the magnitude of the increase in the quality function it offers. By excluding mergers that would decrease the quality function, the refinement phase is rendered more efficient. Also, even when node mergers that decrease the quality function are excluded, based on the theorem, for any graph $G = (V, E)$, there exists a sequence of moves that non-decreasingly improves the modularity until it reaches an optimal partition $P^*$ , and this can be achieved in $n - |P^*|$ steps, where $n$ is the number of nodes in the graph and $|P^*|$ is the number of communities in the optimal partition,  the optimal partition of a set of nodes can still be uncovered. 
+The aggregate network in the Leiden algorithm is then constructed based on this refined partition $P_{refined}$, although the initial partition for the aggregate network is still based on P, similar to the Louvain algorithm. The 3 subroutines iterate for a specified number of times, or until convergence. 
 
 ## Weight calculation
-	The biological intuition for our weight calculations is that we are looking for open transcribable chromatin with complementary Alu elements in it with evidence of chromatin modulation. Therefore we construct a boolean edge weights where $A$ is 1 if both DNA fragments are open (accessible) and 0 otherwise. Our Alu element matrix is the expected maximum number of possible simultaneous RNA-RNA bonds between two complementary Alu elements, assuming all Alu elements in the same family are not mutated beyond the ability to be transcribed or be sufficiently complementary with one another. The counts $N$ represent the number of Alu elements within a certain window around the DNA fragments being considered. This provides an expectation of potential connections or interactions influenced by the presence of these elements.
-For any two DNA fragments, $i$ and $j$, and a specific Alu family, $k$, the edge weight $e_i,j$ is calculated. This weight is the minimum of the boolean values $a_i$ and $a_j$ multiplied by the sum of the minimum number of Alu elements of family $k$ in both fragments, times the fragment contact probabilities $h_i,j$. $e_i,j$ is the edge weight between DNA fragment $i$ and $j$. $a_i$ is a boolean value indicating whether a window coincides with accessible chromatin for fragment $i$. $n_k,i$ is the number of Alu elements of the family $k$ in fragment $i$. $h_i,j$ is the contact probabilities between fragments $i$ and $j$. We can represent this as a matrix operation:
+
+The biological intuition for our weight calculations is that we are looking for open transcribable chromatin with complementary Alu elements in it with evidence of chromatin modulation. Therefore we construct a boolean edge weights where $A$ is 1 if both DNA fragments are open (accessible) and 0 otherwise. Our Alu element matrix is the expected maximum number of possible simultaneous RNA-RNA bonds between two complementary Alu elements, assuming all Alu elements in the same family are not mutated beyond the ability to be transcribed or be sufficiently complementary with one another. The counts $N$ represent the number of Alu elements within a certain window around the DNA fragments being considered. This provides an expectation of potential connections or interactions influenced by the presence of these elements.
+
+For any two DNA fragments, $i$ and $j$, and a specific Alu family, $k$, the edge weight $e_{i,j}$ is calculated. This weight is the minimum of the boolean values $a_i$ and $a_j$ multiplied by the sum of the minimum number of Alu elements of family $k$ in both fragments, times the fragment contact probabilities $h_{i,j}$. $e_{i,j}$ is the edge weight between DNA fragment $i$ and $j$. $a_i$ is a boolean value indicating whether a window coincides with accessible chromatin for fragment $i$. $n_{k,i}$ is the number of Alu elements of the family $k$ in fragment $i$. $h_{i,j}$ is the contact probabilities between fragments $i$ and $j$. We can represent this as a matrix operation:
 
 $$
 E = A \odot N \odot H
@@ -87,11 +84,7 @@ $$
 
 Where E is the weighted adjacency matrix, A is the chromatin accessibility matrix, N is the Alu element matrix, and H is the Hi-C contact probability matrix.
 
-\\
-
 The combination of these three datasets—Hi-C, ATAC-seq (chromatin accessibility), and Alu element — constructs a crude weighted graph where the edges are more likely to cluster with one another if their potentially chromatin modulating Alus within the DNA fragment.
-
-
 
 # Evaluation
 
@@ -122,7 +115,7 @@ knitr::kable(
 )
 ```
 
-To see if our weighting scheme with the Leiden implementation provides sensible results on our biological data and runs in a reasonable amount of time to be useful on the scale of data it was designed for, we create weights from chromosome 21 using createAluGraph and our runLeiden implementation. As expected, our plot shows that AluJ’s are not likely to be as involved in chromatin remodeling via RNA-RNA interactions. This is sensible because AluJ’s are very old and not likely to be transcribed and/or not likely to be as complementary to each other due to accumulated mutations. Producing these communities took PUT TIME HERE suggesting that while the implementation should be optimized, it is not unacceptably slow as a discovery tool. A plot of these communities is shown in Figure 1. 
+To see if our weighting scheme with the Leiden implementation provides sensible results on our biological data and runs in a reasonable amount of time to be useful on the scale of data it was designed for, we create weights from chromosome 21 using createAluGraph and our runLeiden implementation. As expected, our plot shows that AluJ’s are not likely to be as involved in chromatin remodeling via RNA-RNA interactions. This is sensible because AluJ’s are very old and not likely to be transcribed and/or not likely to be as complementary to each other due to accumulated mutations. A plot of these communities is shown in Figure 1. 
 
 ```{r, echo=FALSE}
 knitr::include_graphics("./alu_plot.png")
@@ -130,13 +123,13 @@ knitr::include_graphics("./alu_plot.png")
 
 All relevant code to run the benchmarking and generate the above plot can be found in the supplementary notebook.
 
-#Contributions
+# Contributions
 
 Brandt Bessell came up with the project idea, contributed to developing, debugging and testing  all parts of the Leiden implementation, converted it to a documented and installable package, made the presentation slides and helped write the project proposal and project update. He wrote the introduction, the problem description, package features, evaluation, references, and supplementary sections of the report. He helped write and proofread the algorithm description of the report. He benchmarked the algorithm on toy models. He consulted the matrix weight calculation team and did proofreading.
 
 Xuyuan Zhang contributed to writing, debugging and testing the Leiden implementation, wrote the functions and documentation for creating the input weights as well as plotting the outputs of our Leiden implementation. He helped test those functions on our biological data. He helped discuss the presentation, helped write the project proposal and update and helped write the weight calculation section of the final report. 
 
-Sicheng Qian, helped write some of the functions  for creating the input weights. He helped write the project proposal, helped write the Leiden algorithm description section of the final report, and made the .bib format for markdown. 
+Sicheng Qian, helped write some of the functions for creating the input weights. He helped write the project proposal, helped write the Leiden algorithm description section of the final report, and made the .bib format for markdown. 
 
 
 
@@ -153,7 +146,7 @@ setwd("C:/Users/bbessell/OneDrive - Michigan Medicine/Documents/Courses/BIOSTAT6
 
 To run our package, first install it and some other dependencies we will use to benchmark
 
-```{r, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
+```{r, results='hide', message=FALSE, warning=FALSE}
 if (!require("igraph")) {
   install.packages("igraph")
 }
@@ -167,7 +160,7 @@ if (!require("devtools")) {
 
 devtools::install_github("babessell1/AluNet/AluNet")
 
-# the above doesn't work
+# if the above doesn't work, try
 #url <- "https://github.com/babessell1/AluNet/raw/main/AluNet_1.0.tar.gz"
 #download.file(url, "AluNet_1.0.tar.gz")
 #install.packages("AluNet_1.0.tar.gz",repo=NULL)
@@ -270,12 +263,12 @@ rm(.Random.seed)
 # Use microbenchmark to time the function
 mb_ours <- microbenchmark(
   runLeiden(g_list, 1, gamma, theta),
-  times=10
+  times=50
 )
 
 mb_igraph <- microbenchmark(
   runIgraph(gdf, 1, gamma, theta),
-  times=10
+  times=50
 )
 ```
 
@@ -301,12 +294,12 @@ rm(.Random.seed)
 # Use microbenchmark to time the function
 mb_ours <- microbenchmark(
   runLeiden(g_list, 3, gamma, theta),
-  times=10
+  times=50
 )
 
 mb_igraph <- microbenchmark(
   runIgraph(gdf, 3, gamma, theta),
-  times=10
+  times=50
 )
 ```
 
