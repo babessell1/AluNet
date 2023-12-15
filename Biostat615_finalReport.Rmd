@@ -370,6 +370,20 @@ if (!require("R.utils")) {
 }
 library("R.utils")
 
+if (!require("RColorBrewer")) {
+  install.packages("RColorBrewer")
+}
+library(RColorBrewer)
+
+if (!require("dplyr")) {
+  install.packages("dplyr")
+}
+library(dplyr)
+
+if (!require("stringr")) {
+  install.packages("stringr")
+}
+library(stringr)
 
 
 dir.create("temp")
@@ -437,7 +451,7 @@ Plot the results and save as a high-dpi png.
 
 ```{r}
 png("alu_plot.png", width = 1000, height = 1000, res = 300)
-plotLeiden(result)
+plotLeiden(result, Alus=TRUE)
 dev.off()
 ```
 

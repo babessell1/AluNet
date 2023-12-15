@@ -4,7 +4,7 @@
 \alias{plotLeiden}
 \title{Plot the output of the Leiden algorithm, coloring nodes based on community}
 \usage{
-plotLeiden(result)
+plotLeiden(result, Alus = FALSE)
 }
 \arguments{
 \item{result}{The result of the runLeiden function.}

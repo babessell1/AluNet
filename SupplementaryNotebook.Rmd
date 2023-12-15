@@ -680,7 +680,6 @@ clean_hic_with_alu_atac <- function(file_path){
 Then we run createAluGraph to create our weighted input graph for the Leiden
 implementation
 
-
 ```{r}
 url <- "https://github.com/babessell1/AluNet/raw/main/edges_data_frame.csv"
 download.file(url, "edges_data_frame.csv")
@@ -689,7 +688,7 @@ list <- as.list(dataframe)
 ```
 
 ```{r}
-result <- runLeiden(list, 1, .5, 0.01, 1)
+result <- runLeiden(list, 1, 1, 0.01, 1)
 ```
 
 Finally, we time and plot our results
