@@ -1,6 +1,6 @@
 ---
 title: "AluNet Supplementary"
-author: "Brandt Bessell, Xuyuan ___, Sicheng ____"
+author: "Brandt Bessell, Xuyuan Zhang, Sicheng Qian"
 date: "2023-12-08"
 output: html_documenYou can use the main body of the paper to help explain it at a high level, but the supplementary actually describe how it t
 ---
